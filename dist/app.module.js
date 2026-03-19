@@ -19,11 +19,9 @@ const gyms_module_1 = require("./gyms/gyms.module");
 const muscle_status_module_1 = require("./muscle-status/muscle-status.module");
 const workouts_module_1 = require("./workouts/workouts.module");
 const gym_module_1 = require("./gym/gym.module");
-const user_entity_1 = require("./entities/user.entity");
-const exercise_entity_1 = require("./entities/exercise.entity");
-const workout_template_entity_1 = require("./entities/workout-template.entity");
-const gym_entity_1 = require("./entities/gym.entity");
-const muscle_status_entity_1 = require("./entities/muscle-status.entity");
+const dotenv = require("dotenv");
+dotenv.config();
+console.log(process.env);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,10 +30,11 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
-                url: process.env.DATABASE_URL,
-                entities: [user_entity_1.User, exercise_entity_1.Exercise, workout_template_entity_1.WorkoutTemplate, gym_entity_1.Gym, muscle_status_entity_1.MuscleStatus],
-                synchronize: true,
-                ssl: { rejectUnauthorized: false },
+                host: process.env.DB_HOST,
+                port: 5432,
+                username: process.env.DB_USER,
+                password: process.env.DB_PASS,
+                database: process.env.DB_DATABASE
             }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,

@@ -22,3 +22,4 @@ async function bootstrap() {
   await app.listen(process.env.PORT ? Number(process.env.PORT) : 3000, '0.0.0.0');
 }
 bootstrap();
+console.log('DEBUG DATABASE_URL:', process.env.DATABASE_URL);

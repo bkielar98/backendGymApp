@@ -10,21 +10,21 @@ import { GymsModule } from './gyms/gyms.module';
 import { MuscleStatusModule } from './muscle-status/muscle-status.module';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { GymModule } from './gym/gym.module';
-import { User } from './entities/user.entity';
-import { Exercise } from './entities/exercise.entity';
-import { WorkoutTemplate } from './entities/workout-template.entity';
-import { Gym } from './entities/gym.entity';
-import { MuscleStatus } from './entities/muscle-status.entity';
+import * as dotenv from 'dotenv';
 
+dotenv.config();
+console.log(process.env)
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      entities: [User, Exercise, WorkoutTemplate, Gym, MuscleStatus],
-      synchronize: true,
-      ssl: { rejectUnauthorized: false },
-    }),
+   TypeOrmModule.forRoot({
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: 5432,
+  username:  process.env.DB_USER,
+  password:  process.env.DB_PASS,
+  database:process.env.DB_DATABASE
+
+}),
     AuthModule,
     UsersModule,
     ExercisesModule,
