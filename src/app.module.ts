@@ -16,29 +16,15 @@ import { WorkoutTemplate } from './entities/workout-template.entity';
 import { Gym } from './entities/gym.entity';
 import { MuscleStatus } from './entities/muscle-status.entity';
 
-const usePostgres = Boolean(process.env.DATABASE_URL);
-
-const typeOrmConfig = usePostgres
-  ? {
-      type: 'postgres' as const,
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
       url: process.env.DATABASE_URL,
       entities: [User, Exercise, WorkoutTemplate, Gym, MuscleStatus],
       synchronize: true,
-    }
-  : {
-      type: 'mysql' as const,
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT || 3306),
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || '',
-      database: process.env.DB_NAME || 'gym_app',
-      entities: [User, Exercise, WorkoutTemplate, Gym, MuscleStatus],
-      synchronize: true,
-    };
-
-@Module({
-  imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
+      ssl: { rejectUnauthorized: false },
+    }),
     AuthModule,
     UsersModule,
     ExercisesModule,

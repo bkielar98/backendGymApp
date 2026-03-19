@@ -24,31 +24,19 @@ const exercise_entity_1 = require("./entities/exercise.entity");
 const workout_template_entity_1 = require("./entities/workout-template.entity");
 const gym_entity_1 = require("./entities/gym.entity");
 const muscle_status_entity_1 = require("./entities/muscle-status.entity");
-const usePostgres = Boolean(process.env.DATABASE_URL);
-const typeOrmConfig = usePostgres
-    ? {
-        type: 'postgres',
-        url: process.env.DATABASE_URL,
-        entities: [user_entity_1.User, exercise_entity_1.Exercise, workout_template_entity_1.WorkoutTemplate, gym_entity_1.Gym, muscle_status_entity_1.MuscleStatus],
-        synchronize: true,
-    }
-    : {
-        type: 'mysql',
-        host: process.env.DB_HOST || 'localhost',
-        port: Number(process.env.DB_PORT || 3306),
-        username: process.env.DB_USER || 'root',
-        password: process.env.DB_PASS || '',
-        database: process.env.DB_NAME || 'gym_app',
-        entities: [user_entity_1.User, exercise_entity_1.Exercise, workout_template_entity_1.WorkoutTemplate, gym_entity_1.Gym, muscle_status_entity_1.MuscleStatus],
-        synchronize: true,
-    };
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forRoot(typeOrmConfig),
+            typeorm_1.TypeOrmModule.forRoot({
+                type: 'postgres',
+                url: process.env.DATABASE_URL,
+                entities: [user_entity_1.User, exercise_entity_1.Exercise, workout_template_entity_1.WorkoutTemplate, gym_entity_1.Gym, muscle_status_entity_1.MuscleStatus],
+                synchronize: true,
+                ssl: { rejectUnauthorized: false },
+            }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             exercises_module_1.ExercisesModule,
