@@ -23,7 +23,11 @@ console.log(process.env)
   username:  process.env.DB_USER,
   password:  process.env.DB_PASS,
   database:process.env.DB_DATABASE,
-  synchronize: true
+  synchronize: true,
+  autoLoadEntities: true,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 }),
     AuthModule,
     UsersModule,
