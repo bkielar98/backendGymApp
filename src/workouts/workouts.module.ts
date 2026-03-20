@@ -2,12 +2,20 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkoutsService } from './workouts.service';
 import { WorkoutsController } from './workouts.controller';
-import { Exercise } from '../entities/exercise.entity';
-import { MuscleStatusModule } from '../muscle-status/muscle-status.module';
-import { GymModule } from '../gym/gym.module';
+import { Workout } from '../entities/workout.entity';
+import { WorkoutExercise } from '../entities/workout-exercise.entity';
+import { WorkoutSet } from '../entities/workout-set.entity';
+import { WorkoutTemplate } from '../entities/workout-template.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Exercise]), MuscleStatusModule, GymModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      Workout,
+      WorkoutExercise,
+      WorkoutSet,
+      WorkoutTemplate,
+    ]),
+  ],
   providers: [WorkoutsService],
   controllers: [WorkoutsController],
 })

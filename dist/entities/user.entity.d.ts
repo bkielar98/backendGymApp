@@ -1,5 +1,6 @@
 import { WorkoutTemplate } from './workout-template.entity';
 import { MuscleStatus } from './muscle-status.entity';
+import { Workout } from './workout.entity';
 export declare class User {
     id: number;
     email: string;
@@ -9,4 +10,5 @@ export declare class User {
     gender: string;
     workoutTemplates: WorkoutTemplate[];
     muscleStatuses: MuscleStatus[];
+    workouts: Workout[];
 }

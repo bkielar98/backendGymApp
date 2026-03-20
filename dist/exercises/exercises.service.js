@@ -29,13 +29,18 @@ let ExercisesService = class ExercisesService {
         return this.exerciseRepository.find();
     }
     async findOne(id) {
-        return this.exerciseRepository.findOne({ where: { id } });
+        const exercise = await this.exerciseRepository.findOne({ where: { id } });
+        if (!exercise) {
+            throw new common_1.NotFoundException('Exercise not found');
+        }
+        return exercise;
     }
     async update(id, updateExerciseDto) {
         await this.exerciseRepository.update(id, updateExerciseDto);
         return this.findOne(id);
     }
     async remove(id) {
+        await this.findOne(id);
         await this.exerciseRepository.delete(id);
     }
 };

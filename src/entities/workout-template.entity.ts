@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
-import { Exercise } from './exercise.entity';
+import { WorkoutTemplateExercise } from './workout-template-exercise.entity';
 
 @Entity()
 export class WorkoutTemplate {
@@ -13,10 +13,12 @@ export class WorkoutTemplate {
   @Column()
   userId: number;
 
-  @ManyToOne(() => User, user => user.workoutTemplates)
+  @ManyToOne(() => User, (user) => user.workoutTemplates, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToMany(() => Exercise)
-  @JoinTable()
-  exercises: Exercise[];
+  @OneToMany(() => WorkoutTemplateExercise, (exercise) => exercise.template, {
+    cascade: true,
+    eager: true,
+  })
+  exercises: WorkoutTemplateExercise[];
 }

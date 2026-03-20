@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const class_transformer_1 = require("class-transformer");
 const workout_template_entity_1 = require("./workout-template.entity");
 const muscle_status_entity_1 = require("./muscle-status.entity");
+const workout_entity_1 = require("./workout.entity");
 let User = class User {
 };
 exports.User = User;
@@ -43,13 +44,17 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "gender", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => workout_template_entity_1.WorkoutTemplate, template => template.user),
+    (0, typeorm_1.OneToMany)(() => workout_template_entity_1.WorkoutTemplate, (template) => template.user),
     __metadata("design:type", Array)
 ], User.prototype, "workoutTemplates", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => muscle_status_entity_1.MuscleStatus, status => status.user),
+    (0, typeorm_1.OneToMany)(() => muscle_status_entity_1.MuscleStatus, (status) => status.user),
     __metadata("design:type", Array)
 ], User.prototype, "muscleStatuses", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => workout_entity_1.Workout, (workout) => workout.user),
+    __metadata("design:type", Array)
+], User.prototype, "workouts", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

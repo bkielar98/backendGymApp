@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
@@ -19,23 +20,27 @@ const gyms_module_1 = require("./gyms/gyms.module");
 const muscle_status_module_1 = require("./muscle-status/muscle-status.module");
 const workouts_module_1 = require("./workouts/workouts.module");
 const gym_module_1 = require("./gym/gym.module");
-const dotenv = require("dotenv");
-dotenv.config();
-console.log(process.env);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+            }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
                 host: process.env.DB_HOST,
-                port: 5432,
+                port: Number(process.env.DB_PORT),
                 username: process.env.DB_USER,
                 password: process.env.DB_PASS,
                 database: process.env.DB_DATABASE,
-                synchronize: true
+                synchronize: true,
+                autoLoadEntities: true,
+                ssl: {
+                    rejectUnauthorized: false,
+                },
             }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,

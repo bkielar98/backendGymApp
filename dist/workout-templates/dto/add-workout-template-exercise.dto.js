@@ -9,32 +9,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogSetDto = void 0;
-const class_validator_1 = require("class-validator");
+exports.AddWorkoutTemplateExerciseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
-class LogSetDto {
+const class_validator_1 = require("class-validator");
+class AddWorkoutTemplateExerciseDto {
 }
-exports.LogSetDto = LogSetDto;
+exports.AddWorkoutTemplateExerciseDto = AddWorkoutTemplateExerciseDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, swagger_1.ApiProperty)({
+        example: 5,
+        description: 'ID ćwiczenia do dodania do planu',
+    }),
+    (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)
-], LogSetDto.prototype, "exerciseId", void 0);
+], AddWorkoutTemplateExerciseDto.prototype, "exerciseId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 100.0 }),
-    (0, class_validator_1.IsNumber)(),
+    (0, swagger_1.ApiProperty)({
+        example: 4,
+        description: 'Liczba serii dla nowej pozycji w planie',
+    }),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
-], LogSetDto.prototype, "weight", void 0);
+], AddWorkoutTemplateExerciseDto.prototype, "setsCount", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 8 }),
-    (0, class_validator_1.IsNumber)(),
+    (0, swagger_1.ApiProperty)({
+        example: 2,
+        description: 'Pozycja ćwiczenia w planie',
+    }),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
-], LogSetDto.prototype, "reps", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], LogSetDto.prototype, "gymId", void 0);
-//# sourceMappingURL=log-set.dto.js.map
+], AddWorkoutTemplateExerciseDto.prototype, "order", void 0);
+//# sourceMappingURL=add-workout-template-exercise.dto.js.map

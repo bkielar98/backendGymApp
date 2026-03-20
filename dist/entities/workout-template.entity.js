@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkoutTemplate = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("./user.entity");
-const exercise_entity_1 = require("./exercise.entity");
+const workout_template_exercise_entity_1 = require("./workout-template-exercise.entity");
 let WorkoutTemplate = class WorkoutTemplate {
 };
 exports.WorkoutTemplate = WorkoutTemplate;
@@ -29,12 +29,14 @@ __decorate([
     __metadata("design:type", Number)
 ], WorkoutTemplate.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, user => user.workoutTemplates),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, (user) => user.workoutTemplates, { onDelete: 'CASCADE' }),
     __metadata("design:type", user_entity_1.User)
 ], WorkoutTemplate.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => exercise_entity_1.Exercise),
-    (0, typeorm_1.JoinTable)(),
+    (0, typeorm_1.OneToMany)(() => workout_template_exercise_entity_1.WorkoutTemplateExercise, (exercise) => exercise.template, {
+        cascade: true,
+        eager: true,
+    }),
     __metadata("design:type", Array)
 ], WorkoutTemplate.prototype, "exercises", void 0);
 exports.WorkoutTemplate = WorkoutTemplate = __decorate([
