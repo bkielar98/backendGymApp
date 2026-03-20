@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity()
 export class Exercise {
@@ -13,4 +14,13 @@ export class Exercise {
 
   @Column('simple-array')
   muscleGroups: string[];
+
+  @Column({ default: true })
+  isGlobal: boolean;
+
+  @Column({ nullable: true })
+  createdByUserId: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  createdByUser: User | null;
 }

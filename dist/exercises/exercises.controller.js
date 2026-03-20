@@ -23,20 +23,20 @@ let ExercisesController = class ExercisesController {
     constructor(exercisesService) {
         this.exercisesService = exercisesService;
     }
-    create(createExerciseDto) {
-        return this.exercisesService.create(createExerciseDto);
+    create(req, createExerciseDto) {
+        return this.exercisesService.create(req.user, createExerciseDto);
     }
-    findAll() {
-        return this.exercisesService.findAll();
+    findAll(req) {
+        return this.exercisesService.findAll(req.user);
     }
-    findOne(id) {
-        return this.exercisesService.findOne(+id);
+    findOne(req, id) {
+        return this.exercisesService.findOne(req.user, +id);
     }
-    update(id, updateExerciseDto) {
-        return this.exercisesService.update(+id, updateExerciseDto);
+    update(req, id, updateExerciseDto) {
+        return this.exercisesService.update(req.user, +id, updateExerciseDto);
     }
-    remove(id) {
-        return this.exercisesService.remove(+id);
+    remove(req, id) {
+        return this.exercisesService.remove(req.user, +id);
     }
 };
 exports.ExercisesController = ExercisesController;
@@ -44,17 +44,19 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Create exercise' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Exercise created' }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_exercise_dto_1.CreateExerciseDto]),
+    __metadata("design:paramtypes", [Object, create_exercise_dto_1.CreateExerciseDto]),
     __metadata("design:returntype", void 0)
 ], ExercisesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'List all exercises' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercises retrieved' }),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], ExercisesController.prototype, "findAll", null);
 __decorate([
@@ -62,9 +64,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get exercise by ID' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercise retrieved' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], ExercisesController.prototype, "findOne", null);
 __decorate([
@@ -72,10 +75,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Update exercise' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercise updated' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_exercise_dto_1.UpdateExerciseDto]),
+    __metadata("design:paramtypes", [Object, String, update_exercise_dto_1.UpdateExerciseDto]),
     __metadata("design:returntype", void 0)
 ], ExercisesController.prototype, "update", null);
 __decorate([
@@ -83,9 +87,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete exercise' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercise deleted' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], ExercisesController.prototype, "remove", null);
 exports.ExercisesController = ExercisesController = __decorate([

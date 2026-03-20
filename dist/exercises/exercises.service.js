@@ -17,31 +17,75 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const exercise_entity_1 = require("../entities/exercise.entity");
+const user_entity_1 = require("../entities/user.entity");
 let ExercisesService = class ExercisesService {
     constructor(exerciseRepository) {
         this.exerciseRepository = exerciseRepository;
     }
-    async create(createExerciseDto) {
-        const exercise = this.exerciseRepository.create(createExerciseDto);
+    async create(user, createExerciseDto) {
+        const exercise = this.exerciseRepository.create({
+            ...createExerciseDto,
+            isGlobal: user.role === user_entity_1.UserRole.ADMIN,
+            createdByUserId: user.role === user_entity_1.UserRole.ADMIN ? null : user.id,
+        });
         return this.exerciseRepository.save(exercise);
     }
-    async findAll() {
-        return this.exerciseRepository.find();
+    async findAll(user) {
+        if (user.role === user_entity_1.UserRole.ADMIN) {
+            return this.exerciseRepository.find({
+                order: {
+                    name: 'ASC',
+                },
+            });
+        }
+        return this.exerciseRepository
+            .createQueryBuilder('exercise')
+            .where('exercise.isGlobal = :isGlobal', { isGlobal: true })
+            .orWhere(new typeorm_2.Brackets((qb) => {
+            qb.where('exercise.createdByUserId = :userId', { userId: user.id });
+        }))
+            .orderBy('exercise.name', 'ASC')
+            .getMany();
     }
-    async findOne(id) {
+    async findOne(user, id) {
         const exercise = await this.exerciseRepository.findOne({ where: { id } });
         if (!exercise) {
             throw new common_1.NotFoundException('Exercise not found');
         }
+        this.ensureUserCanAccessExercise(user, exercise);
         return exercise;
     }
-    async update(id, updateExerciseDto) {
+    async update(user, id, updateExerciseDto) {
+        const exercise = await this.findOne(user, id);
+        this.ensureUserCanManageExercise(user, exercise);
         await this.exerciseRepository.update(id, updateExerciseDto);
-        return this.findOne(id);
+        return this.findOne(user, id);
     }
-    async remove(id) {
-        await this.findOne(id);
+    async remove(user, id) {
+        const exercise = await this.findOne(user, id);
+        this.ensureUserCanManageExercise(user, exercise);
         await this.exerciseRepository.delete(id);
+    }
+    ensureUserCanAccessExercise(user, exercise) {
+        if (user.role === user_entity_1.UserRole.ADMIN) {
+            return;
+        }
+        if (exercise.isGlobal) {
+            return;
+        }
+        if (exercise.createdByUserId === user.id) {
+            return;
+        }
+        throw new common_1.NotFoundException('Exercise not found');
+    }
+    ensureUserCanManageExercise(user, exercise) {
+        if (user.role === user_entity_1.UserRole.ADMIN) {
+            return;
+        }
+        if (!exercise.isGlobal && exercise.createdByUserId === user.id) {
+            return;
+        }
+        throw new common_1.ForbiddenException('You cannot modify this exercise');
     }
 };
 exports.ExercisesService = ExercisesService;
