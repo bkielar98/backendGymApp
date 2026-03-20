@@ -11,15 +11,23 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const workouts_service_1 = require("./workouts.service");
 const workouts_controller_1 = require("./workouts.controller");
-const exercise_entity_1 = require("../entities/exercise.entity");
-const muscle_status_module_1 = require("../muscle-status/muscle-status.module");
-const gym_module_1 = require("../gym/gym.module");
+const workout_entity_1 = require("../entities/workout.entity");
+const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
+const workout_set_entity_1 = require("../entities/workout-set.entity");
+const workout_template_entity_1 = require("../entities/workout-template.entity");
 let WorkoutsModule = class WorkoutsModule {
 };
 exports.WorkoutsModule = WorkoutsModule;
 exports.WorkoutsModule = WorkoutsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([exercise_entity_1.Exercise]), muscle_status_module_1.MuscleStatusModule, gym_module_1.GymModule],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([
+                workout_entity_1.Workout,
+                workout_exercise_entity_1.WorkoutExercise,
+                workout_set_entity_1.WorkoutSet,
+                workout_template_entity_1.WorkoutTemplate,
+            ]),
+        ],
         providers: [workouts_service_1.WorkoutsService],
         controllers: [workouts_controller_1.WorkoutsController],
     })

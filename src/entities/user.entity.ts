@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { WorkoutTemplate } from './workout-template.entity';
 import { MuscleStatus } from './muscle-status.entity';
+import { Workout } from './workout.entity';
 
 @Entity()
 export class User {
@@ -24,9 +25,12 @@ export class User {
   @Column({ nullable: true })
   gender: string;
 
-  @OneToMany(() => WorkoutTemplate, template => template.user)
+  @OneToMany(() => WorkoutTemplate, (template) => template.user)
   workoutTemplates: WorkoutTemplate[];
 
-  @OneToMany(() => MuscleStatus, status => status.user)
+  @OneToMany(() => MuscleStatus, (status) => status.user)
   muscleStatuses: MuscleStatus[];
+
+  @OneToMany(() => Workout, (workout) => workout.user)
+  workouts: Workout[];
 }
