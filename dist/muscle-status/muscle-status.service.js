@@ -32,14 +32,27 @@ let MuscleStatusService = class MuscleStatusService {
         return this.muscleStatusRepository.find({ where: { userId } });
     }
     async findOne(id) {
-        return this.muscleStatusRepository.findOne({ where: { id } });
+        const status = await this.muscleStatusRepository.findOne({ where: { id } });
+        if (!status) {
+            throw new common_1.NotFoundException('Muscle status not found');
+        }
+        return status;
     }
     async update(id, updateDto) {
         await this.muscleStatusRepository.update(id, updateDto);
         return this.findOne(id);
     }
     async remove(id) {
+        const status = await this.findOne(id);
         await this.muscleStatusRepository.delete(id);
+        return {
+            success: true,
+            message: 'Muscle status removed',
+            item: {
+                id: status.id,
+                muscleGroup: status.muscleGroup,
+            },
+        };
     }
     async updateLastTrained(userId, muscleGroups) {
         for (const group of muscleGroups) {

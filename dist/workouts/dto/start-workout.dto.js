@@ -16,11 +16,21 @@ class StartWorkoutDto {
 }
 exports.StartWorkoutDto = StartWorkoutDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({
+    (0, swagger_1.ApiPropertyOptional)({
         example: 1,
-        description: 'ID planu treningowego użytkownika',
+        description: 'ID planu treningowego uzytkownika. Pomijaj, jesli trening ma startowac pusty.',
     }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)
 ], StartWorkoutDto.prototype, "templateId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Push Day',
+        description: 'Opcjonalna nazwa treningu.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], StartWorkoutDto.prototype, "name", void 0);
 //# sourceMappingURL=start-workout.dto.js.map

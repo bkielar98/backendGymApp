@@ -14,48 +14,79 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkoutTemplatesController = void 0;
 const common_1 = require("@nestjs/common");
-const workout_templates_service_1 = require("./workout-templates.service");
-const create_workout_template_dto_1 = require("./dto/create-workout-template.dto");
-const update_workout_template_dto_1 = require("./dto/update-workout-template.dto");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const swagger_1 = require("@nestjs/swagger");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const add_workout_template_exercise_dto_1 = require("./dto/add-workout-template-exercise.dto");
 const change_workout_template_exercise_position_dto_1 = require("./dto/change-workout-template-exercise-position.dto");
-const change_workout_template_exercise_dto_1 = require("./dto/change-workout-template-exercise.dto");
 const change_workout_template_exercise_sets_dto_1 = require("./dto/change-workout-template-exercise-sets.dto");
+const change_workout_template_exercise_dto_1 = require("./dto/change-workout-template-exercise.dto");
+const create_workout_template_dto_1 = require("./dto/create-workout-template.dto");
+const update_workout_template_dto_1 = require("./dto/update-workout-template.dto");
+const workout_templates_service_1 = require("./workout-templates.service");
 let WorkoutTemplatesController = class WorkoutTemplatesController {
     constructor(workoutTemplatesService) {
         this.workoutTemplatesService = workoutTemplatesService;
     }
-    create(req, createDto) {
-        return this.workoutTemplatesService.create(req.user.id, createDto);
+    async create(req, createDto) {
+        const item = await this.workoutTemplatesService.create(req.user.id, createDto);
+        return {
+            item,
+        };
     }
-    findAll(req) {
-        return this.workoutTemplatesService.findAll(req.user.id);
+    async findAll(req) {
+        const items = await this.workoutTemplatesService.findAll(req.user.id);
+        return {
+            items,
+            total: items.length,
+        };
     }
-    findOne(req, id) {
-        return this.workoutTemplatesService.findOne(req.user.id, id);
+    async findOne(req, id) {
+        const item = await this.workoutTemplatesService.findOne(req.user.id, id);
+        return {
+            item,
+        };
     }
-    update(req, id, updateDto) {
-        return this.workoutTemplatesService.update(req.user.id, id, updateDto);
+    async update(req, id, updateDto) {
+        const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
+        return {
+            item,
+        };
     }
-    patch(req, id, updateDto) {
-        return this.workoutTemplatesService.update(req.user.id, id, updateDto);
+    async patch(req, id, updateDto) {
+        const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
+        return {
+            item,
+        };
     }
-    addExercise(req, id, dto) {
-        return this.workoutTemplatesService.addExercise(req.user.id, id, dto);
+    async addExercise(req, id, dto) {
+        const item = await this.workoutTemplatesService.addExercise(req.user.id, id, dto);
+        return {
+            item,
+        };
     }
-    changeExercisePosition(req, id, exerciseEntryId, dto) {
-        return this.workoutTemplatesService.changeExercisePosition(req.user.id, id, exerciseEntryId, dto.order);
+    async changeExercisePosition(req, id, exerciseEntryId, dto) {
+        const item = await this.workoutTemplatesService.changeExercisePosition(req.user.id, id, exerciseEntryId, dto.order);
+        return {
+            item,
+        };
     }
-    changeExercise(req, id, exerciseEntryId, dto) {
-        return this.workoutTemplatesService.changeExercise(req.user.id, id, exerciseEntryId, dto.exerciseId);
+    async changeExercise(req, id, exerciseEntryId, dto) {
+        const item = await this.workoutTemplatesService.changeExercise(req.user.id, id, exerciseEntryId, dto.exerciseId);
+        return {
+            item,
+        };
     }
-    changeExerciseSetsCount(req, id, exerciseEntryId, dto) {
-        return this.workoutTemplatesService.changeExerciseSetsCount(req.user.id, id, exerciseEntryId, dto.setsCount);
+    async changeExerciseSetsCount(req, id, exerciseEntryId, dto) {
+        const item = await this.workoutTemplatesService.changeExerciseSetsCount(req.user.id, id, exerciseEntryId, dto.setsCount);
+        return {
+            item,
+        };
     }
-    removeExercise(req, id, exerciseEntryId) {
-        return this.workoutTemplatesService.removeExercise(req.user.id, id, exerciseEntryId);
+    async removeExercise(req, id, exerciseEntryId) {
+        const item = await this.workoutTemplatesService.removeExercise(req.user.id, id, exerciseEntryId);
+        return {
+            item,
+        };
     }
     remove(req, id) {
         return this.workoutTemplatesService.remove(req.user.id, id);
@@ -68,14 +99,14 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, create_workout_template_dto_1.CreateWorkoutTemplateDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
@@ -83,7 +114,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
@@ -92,7 +123,7 @@ __decorate([
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, update_workout_template_dto_1.UpdateWorkoutTemplateDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(':id'),
@@ -101,7 +132,7 @@ __decorate([
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, update_workout_template_dto_1.UpdateWorkoutTemplateDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "patch", null);
 __decorate([
     (0, common_1.Post)(':id/exercises'),
@@ -110,7 +141,7 @@ __decorate([
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, add_workout_template_exercise_dto_1.AddWorkoutTemplateExerciseDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "addExercise", null);
 __decorate([
     (0, common_1.Patch)(':id/exercises/:exerciseEntryId/position'),
@@ -120,7 +151,7 @@ __decorate([
     __param(3, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Number, change_workout_template_exercise_position_dto_1.ChangeWorkoutTemplateExercisePositionDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "changeExercisePosition", null);
 __decorate([
     (0, common_1.Patch)(':id/exercises/:exerciseEntryId/exercise'),
@@ -130,7 +161,7 @@ __decorate([
     __param(3, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Number, change_workout_template_exercise_dto_1.ChangeWorkoutTemplateExerciseDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "changeExercise", null);
 __decorate([
     (0, common_1.Patch)(':id/exercises/:exerciseEntryId/sets-count'),
@@ -140,7 +171,7 @@ __decorate([
     __param(3, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Number, change_workout_template_exercise_sets_dto_1.ChangeWorkoutTemplateExerciseSetsDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "changeExerciseSetsCount", null);
 __decorate([
     (0, common_1.Delete)(':id/exercises/:exerciseEntryId'),
@@ -149,7 +180,7 @@ __decorate([
     __param(2, (0, common_1.Param)('exerciseEntryId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Number]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "removeExercise", null);
 __decorate([
     (0, common_1.Delete)(':id'),

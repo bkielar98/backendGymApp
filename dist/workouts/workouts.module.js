@@ -15,6 +15,7 @@ const workout_entity_1 = require("../entities/workout.entity");
 const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
 const workout_set_entity_1 = require("../entities/workout-set.entity");
 const workout_template_entity_1 = require("../entities/workout-template.entity");
+const exercise_entity_1 = require("../entities/exercise.entity");
 let WorkoutsModule = class WorkoutsModule {
 };
 exports.WorkoutsModule = WorkoutsModule;
@@ -26,6 +27,7 @@ exports.WorkoutsModule = WorkoutsModule = __decorate([
                 workout_exercise_entity_1.WorkoutExercise,
                 workout_set_entity_1.WorkoutSet,
                 workout_template_entity_1.WorkoutTemplate,
+                exercise_entity_1.Exercise,
             ]),
         ],
         providers: [workouts_service_1.WorkoutsService],

@@ -9,5 +9,12 @@ export declare class GymsService {
     findAll(): Promise<Gym[]>;
     findOne(id: number): Promise<Gym>;
     update(id: number, updateGymDto: UpdateGymDto): Promise<Gym>;
-    remove(id: number): Promise<void>;
+    remove(id: number): Promise<{
+        success: boolean;
+        message: string;
+        item: {
+            id: number;
+            name: string;
+        };
+    }>;
 }

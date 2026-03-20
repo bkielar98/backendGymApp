@@ -9,6 +9,13 @@ export declare class MuscleStatusService {
     findAll(userId: number): Promise<MuscleStatus[]>;
     findOne(id: number): Promise<MuscleStatus>;
     update(id: number, updateDto: UpdateMuscleStatusDto): Promise<MuscleStatus>;
-    remove(id: number): Promise<void>;
+    remove(id: number): Promise<{
+        success: boolean;
+        message: string;
+        item: {
+            id: number;
+            muscleGroup: string;
+        };
+    }>;
     updateLastTrained(userId: number, muscleGroups: string[]): Promise<void>;
 }

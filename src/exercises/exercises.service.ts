@@ -48,6 +48,29 @@ export class ExercisesService {
       .getMany();
   }
 
+  async findCustom(user: User): Promise<Exercise[]> {
+    if (user.role === UserRole.ADMIN) {
+      return this.exerciseRepository.find({
+        where: {
+          isGlobal: false,
+        },
+        order: {
+          name: 'ASC',
+        },
+      });
+    }
+
+    return this.exerciseRepository.find({
+      where: {
+        isGlobal: false,
+        createdByUserId: user.id,
+      },
+      order: {
+        name: 'ASC',
+      },
+    });
+  }
+
   async findOne(user: User, id: number): Promise<Exercise> {
     const exercise = await this.exerciseRepository.findOne({ where: { id } });
 
@@ -72,10 +95,19 @@ export class ExercisesService {
     return this.findOne(user, id);
   }
 
-  async remove(user: User, id: number): Promise<void> {
+  async remove(user: User, id: number) {
     const exercise = await this.findOne(user, id);
     this.ensureUserCanManageExercise(user, exercise);
     await this.exerciseRepository.delete(id);
+
+    return {
+      success: true,
+      message: 'Exercise removed',
+      item: {
+        id: exercise.id,
+        name: exercise.name,
+      },
+    };
   }
 
   private ensureUserCanAccessExercise(user: User, exercise: Exercise) {

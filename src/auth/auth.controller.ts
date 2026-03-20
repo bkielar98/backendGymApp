@@ -13,13 +13,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    const item = await this.authService.register(registerDto);
+
+    return {
+      item,
+    };
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+    const item = await this.authService.login(loginDto);
+
+    return {
+      item,
+    };
   }
 }

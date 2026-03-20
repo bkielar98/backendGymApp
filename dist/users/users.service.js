@@ -22,14 +22,27 @@ let UsersService = class UsersService {
         this.userRepository = userRepository;
     }
     async findOne(id) {
-        return this.userRepository.findOne({ where: { id } });
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        return user;
     }
     async update(id, updateUserDto) {
         await this.userRepository.update(id, updateUserDto);
         return this.findOne(id);
     }
     async remove(id) {
+        const user = await this.findOne(id);
         await this.userRepository.delete(id);
+        return {
+            success: true,
+            message: 'User removed',
+            item: {
+                id: user.id,
+                email: user.email,
+            },
+        };
     }
 };
 exports.UsersService = UsersService;

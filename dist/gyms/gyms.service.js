@@ -29,14 +29,27 @@ let GymsService = class GymsService {
         return this.gymRepository.find();
     }
     async findOne(id) {
-        return this.gymRepository.findOne({ where: { id } });
+        const gym = await this.gymRepository.findOne({ where: { id } });
+        if (!gym) {
+            throw new common_1.NotFoundException('Gym not found');
+        }
+        return gym;
     }
     async update(id, updateGymDto) {
         await this.gymRepository.update(id, updateGymDto);
         return this.findOne(id);
     }
     async remove(id) {
+        const gym = await this.findOne(id);
         await this.gymRepository.delete(id);
+        return {
+            success: true,
+            message: 'Gym removed',
+            item: {
+                id: gym.id,
+                name: gym.name,
+            },
+        };
     }
 };
 exports.GymsService = GymsService;

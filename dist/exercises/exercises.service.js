@@ -47,6 +47,27 @@ let ExercisesService = class ExercisesService {
             .orderBy('exercise.name', 'ASC')
             .getMany();
     }
+    async findCustom(user) {
+        if (user.role === user_entity_1.UserRole.ADMIN) {
+            return this.exerciseRepository.find({
+                where: {
+                    isGlobal: false,
+                },
+                order: {
+                    name: 'ASC',
+                },
+            });
+        }
+        return this.exerciseRepository.find({
+            where: {
+                isGlobal: false,
+                createdByUserId: user.id,
+            },
+            order: {
+                name: 'ASC',
+            },
+        });
+    }
     async findOne(user, id) {
         const exercise = await this.exerciseRepository.findOne({ where: { id } });
         if (!exercise) {
@@ -65,6 +86,14 @@ let ExercisesService = class ExercisesService {
         const exercise = await this.findOne(user, id);
         this.ensureUserCanManageExercise(user, exercise);
         await this.exerciseRepository.delete(id);
+        return {
+            success: true,
+            message: 'Exercise removed',
+            item: {
+                id: exercise.id,
+                name: exercise.name,
+            },
+        };
     }
     ensureUserCanAccessExercise(user, exercise) {
         if (user.role === user_entity_1.UserRole.ADMIN) {

@@ -16,14 +16,20 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'Profile retrieved' })
   getProfile(@Request() req) {
-    return req.user;
+    return {
+      item: req.user,
+    };
   }
 
   @Put('profile')
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated' })
-  updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(req.user.id, updateUserDto);
+  async updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    const item = await this.usersService.update(req.user.id, updateUserDto);
+
+    return {
+      item,
+    };
   }
 
   @Delete('profile')
