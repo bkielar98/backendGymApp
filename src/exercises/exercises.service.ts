@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Exercise } from '../entities/exercise.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
+import { User, UserRole } from '../entities/user.entity';
 
 @Injectable()
 export class ExercisesService {
@@ -12,32 +17,92 @@ export class ExercisesService {
     private exerciseRepository: Repository<Exercise>,
   ) {}
 
-  async create(createExerciseDto: CreateExerciseDto): Promise<Exercise> {
-    const exercise = this.exerciseRepository.create(createExerciseDto);
+  async create(user: User, createExerciseDto: CreateExerciseDto): Promise<Exercise> {
+    const exercise = this.exerciseRepository.create({
+      ...createExerciseDto,
+      isGlobal: user.role === UserRole.ADMIN,
+      createdByUserId: user.role === UserRole.ADMIN ? null : user.id,
+    });
+
     return this.exerciseRepository.save(exercise);
   }
 
-  async findAll(): Promise<Exercise[]> {
-    return this.exerciseRepository.find();
+  async findAll(user: User): Promise<Exercise[]> {
+    if (user.role === UserRole.ADMIN) {
+      return this.exerciseRepository.find({
+        order: {
+          name: 'ASC',
+        },
+      });
+    }
+
+    return this.exerciseRepository
+      .createQueryBuilder('exercise')
+      .where('exercise.isGlobal = :isGlobal', { isGlobal: true })
+      .orWhere(
+        new Brackets((qb) => {
+          qb.where('exercise.createdByUserId = :userId', { userId: user.id });
+        }),
+      )
+      .orderBy('exercise.name', 'ASC')
+      .getMany();
   }
 
-  async findOne(id: number): Promise<Exercise> {
+  async findOne(user: User, id: number): Promise<Exercise> {
     const exercise = await this.exerciseRepository.findOne({ where: { id } });
 
     if (!exercise) {
       throw new NotFoundException('Exercise not found');
     }
 
+    this.ensureUserCanAccessExercise(user, exercise);
+
     return exercise;
   }
 
-  async update(id: number, updateExerciseDto: UpdateExerciseDto): Promise<Exercise> {
+  async update(
+    user: User,
+    id: number,
+    updateExerciseDto: UpdateExerciseDto,
+  ): Promise<Exercise> {
+    const exercise = await this.findOne(user, id);
+    this.ensureUserCanManageExercise(user, exercise);
+
     await this.exerciseRepository.update(id, updateExerciseDto);
-    return this.findOne(id);
+    return this.findOne(user, id);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.findOne(id);
+  async remove(user: User, id: number): Promise<void> {
+    const exercise = await this.findOne(user, id);
+    this.ensureUserCanManageExercise(user, exercise);
     await this.exerciseRepository.delete(id);
+  }
+
+  private ensureUserCanAccessExercise(user: User, exercise: Exercise) {
+    if (user.role === UserRole.ADMIN) {
+      return;
+    }
+
+    if (exercise.isGlobal) {
+      return;
+    }
+
+    if (exercise.createdByUserId === user.id) {
+      return;
+    }
+
+    throw new NotFoundException('Exercise not found');
+  }
+
+  private ensureUserCanManageExercise(user: User, exercise: Exercise) {
+    if (user.role === UserRole.ADMIN) {
+      return;
+    }
+
+    if (!exercise.isGlobal && exercise.createdByUserId === user.id) {
+      return;
+    }
+
+    throw new ForbiddenException('You cannot modify this exercise');
   }
 }

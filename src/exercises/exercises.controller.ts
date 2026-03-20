@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ExercisesService } from './exercises.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
@@ -15,38 +25,42 @@ export class ExercisesController {
   @Post()
   @ApiOperation({ summary: 'Create exercise' })
   @ApiResponse({ status: 201, description: 'Exercise created' })
-  create(@Body() createExerciseDto: CreateExerciseDto) {
-    return this.exercisesService.create(createExerciseDto);
+  create(@Request() req, @Body() createExerciseDto: CreateExerciseDto) {
+    return this.exercisesService.create(req.user, createExerciseDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'List all exercises' })
   @ApiResponse({ status: 200, description: 'Exercises retrieved' })
-  findAll() {
-    return this.exercisesService.findAll();
+  findAll(@Request() req) {
+    return this.exercisesService.findAll(req.user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get exercise by ID' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Exercise retrieved' })
-  findOne(@Param('id') id: string) {
-    return this.exercisesService.findOne(+id);
+  findOne(@Request() req, @Param('id') id: string) {
+    return this.exercisesService.findOne(req.user, +id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update exercise' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Exercise updated' })
-  update(@Param('id') id: string, @Body() updateExerciseDto: UpdateExerciseDto) {
-    return this.exercisesService.update(+id, updateExerciseDto);
+  update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() updateExerciseDto: UpdateExerciseDto,
+  ) {
+    return this.exercisesService.update(req.user, +id, updateExerciseDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete exercise' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Exercise deleted' })
-  remove(@Param('id') id: string) {
-    return this.exercisesService.remove(+id);
+  remove(@Request() req, @Param('id') id: string) {
+    return this.exercisesService.remove(req.user, +id);
   }
 }

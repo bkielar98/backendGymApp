@@ -4,6 +4,11 @@ import { WorkoutTemplate } from './workout-template.entity';
 import { MuscleStatus } from './muscle-status.entity';
 import { Workout } from './workout.entity';
 
+export enum UserRole {
+  ADMIN = 'admin',
+  USER = 'user',
+}
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -24,6 +29,13 @@ export class User {
 
   @Column({ nullable: true })
   gender: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
 
   @OneToMany(() => WorkoutTemplate, (template) => template.user)
   workoutTemplates: WorkoutTemplate[];
