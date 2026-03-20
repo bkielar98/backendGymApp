@@ -23,10 +23,15 @@ let UsersController = class UsersController {
         this.usersService = usersService;
     }
     getProfile(req) {
-        return req.user;
+        return {
+            item: req.user,
+        };
     }
-    updateProfile(req, updateUserDto) {
-        return this.usersService.update(req.user.id, updateUserDto);
+    async updateProfile(req, updateUserDto) {
+        const item = await this.usersService.update(req.user.id, updateUserDto);
+        return {
+            item,
+        };
     }
     deleteProfile(req) {
         return this.usersService.remove(req.user.id);
@@ -50,7 +55,7 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_user_dto_1.UpdateUserDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Delete)('profile'),

@@ -9,9 +9,12 @@ import { Workout, WorkoutStatus } from '../entities/workout.entity';
 import { WorkoutExercise } from '../entities/workout-exercise.entity';
 import { WorkoutSet } from '../entities/workout-set.entity';
 import { WorkoutTemplate } from '../entities/workout-template.entity';
+import { Exercise } from '../entities/exercise.entity';
 import { StartWorkoutDto } from './dto/start-workout.dto';
 import { UpdateWorkoutSetDto } from './dto/update-workout-set.dto';
 import { ConfirmWorkoutSetDto } from './dto/confirm-workout-set.dto';
+import { AddWorkoutExerciseDto } from './dto/add-workout-exercise.dto';
+import { UpdateWorkoutDto } from './dto/update-workout.dto';
 
 @Injectable()
 export class WorkoutsService {
@@ -24,6 +27,8 @@ export class WorkoutsService {
     private readonly workoutSetRepository: Repository<WorkoutSet>,
     @InjectRepository(WorkoutTemplate)
     private readonly templateRepository: Repository<WorkoutTemplate>,
+    @InjectRepository(Exercise)
+    private readonly exerciseRepository: Repository<Exercise>,
   ) {}
 
   async startWorkout(userId: number, dto: StartWorkoutDto) {
@@ -35,19 +40,23 @@ export class WorkoutsService {
       throw new BadRequestException('User already has an active workout');
     }
 
-    const template = await this.templateRepository.findOne({
-      where: { id: dto.templateId, userId },
-    });
+    let template: WorkoutTemplate | null = null;
 
-    if (!template) {
-      throw new NotFoundException('Workout template not found');
+    if (typeof dto.templateId === 'number') {
+      template = await this.templateRepository.findOne({
+        where: { id: dto.templateId, userId },
+      });
+
+      if (!template) {
+        throw new NotFoundException('Workout template not found');
+      }
     }
 
     const workout = this.workoutRepository.create({
       userId,
-      templateId: template.id,
+      templateId: template?.id ?? null,
       template,
-      name: template.name,
+      name: dto.name || template?.name || 'Workout',
       status: WorkoutStatus.ACTIVE,
       startedAt: new Date(),
       finishedAt: null,
@@ -56,7 +65,7 @@ export class WorkoutsService {
 
     const savedWorkout = await this.workoutRepository.save(workout);
 
-    const sortedTemplateExercises = [...(template.exercises || [])].sort(
+    const sortedTemplateExercises = [...(template?.exercises || [])].sort(
       (a, b) => a.order - b.order,
     );
 
@@ -102,6 +111,17 @@ export class WorkoutsService {
     return this.getWorkoutByIdForUser(userId, savedWorkout.id);
   }
 
+  async updateWorkout(userId: number, workoutId: number, dto: UpdateWorkoutDto) {
+    const workout = await this.getWorkoutEntityForUser(userId, workoutId);
+
+    if (typeof dto.name === 'string') {
+      workout.name = dto.name;
+      await this.workoutRepository.save(workout);
+    }
+
+    return this.getWorkoutByIdForUser(userId, workout.id);
+  }
+
   async getActiveWorkout(userId: number) {
     const workout = await this.workoutRepository.findOne({
       where: { userId, status: WorkoutStatus.ACTIVE },
@@ -131,6 +151,156 @@ export class WorkoutsService {
 
   async findOne(userId: number, workoutId: number) {
     return this.getWorkoutByIdForUser(userId, workoutId);
+  }
+
+  async removeWorkout(userId: number, workoutId: number) {
+    await this.getWorkoutEntityForUser(userId, workoutId);
+    await this.workoutRepository.delete({
+      id: workoutId,
+      userId,
+    });
+
+    return { success: true, message: 'Workout removed' };
+  }
+
+  async addExercise(userId: number, workoutId: number, dto: AddWorkoutExerciseDto) {
+    const workout = await this.getActiveWorkoutEntityForUser(userId, workoutId);
+    const exercise = await this.getAccessibleExerciseForUser(userId, dto.exerciseId);
+    const workoutExercises = [...(workout.exercises || [])];
+    const insertOrder = Math.min(dto.order ?? workoutExercises.length, workoutExercises.length);
+
+    for (const item of workoutExercises) {
+      if (item.order >= insertOrder) {
+        item.order += 1;
+      }
+    }
+
+    await this.workoutExerciseRepository.save(workoutExercises);
+
+    const workoutExercise = this.workoutExerciseRepository.create({
+      workoutId: workout.id,
+      workout,
+      exerciseId: exercise.id,
+      exercise,
+      order: insertOrder,
+      sets: [],
+    });
+
+    const savedWorkoutExercise =
+      await this.workoutExerciseRepository.save(workoutExercise);
+
+    if ((dto.setsCount ?? 0) > 0) {
+      const previousSets = await this.getPreviousSetsForExercise(userId, exercise.id);
+      const setsToCreate: WorkoutSet[] = [];
+
+      for (let i = 1; i <= (dto.setsCount ?? 0); i += 1) {
+        const previousSet = previousSets.find((set) => set.setNumber === i);
+
+        setsToCreate.push(
+          this.workoutSetRepository.create({
+            workoutExerciseId: savedWorkoutExercise.id,
+            setNumber: i,
+            previousWeight: previousSet?.currentWeight ?? null,
+            previousReps: previousSet?.currentReps ?? null,
+            currentWeight: null,
+            currentReps: null,
+            repMax: null,
+            confirmed: false,
+          }),
+        );
+      }
+
+      await this.workoutSetRepository.save(setsToCreate);
+    }
+
+    return this.getWorkoutByIdForUser(userId, workout.id);
+  }
+
+  async changeExercisePosition(
+    userId: number,
+    workoutId: number,
+    workoutExerciseId: number,
+    order: number,
+  ) {
+    const workout = await this.getActiveWorkoutEntityForUser(userId, workoutId);
+    const workoutExercises = [...(workout.exercises || [])];
+    const workoutExercise = this.getWorkoutExerciseFromWorkout(
+      workout,
+      workoutExerciseId,
+    );
+    const maxOrder = Math.max(0, workoutExercises.length - 1);
+    const targetOrder = Math.max(0, Math.min(order, maxOrder));
+    const currentOrder = workoutExercise.order;
+
+    if (currentOrder === targetOrder) {
+      return this.getWorkoutByIdForUser(userId, workout.id);
+    }
+
+    for (const item of workoutExercises) {
+      if (item.id === workoutExercise.id) {
+        continue;
+      }
+
+      if (targetOrder < currentOrder) {
+        if (item.order >= targetOrder && item.order < currentOrder) {
+          item.order += 1;
+        }
+      } else if (item.order <= targetOrder && item.order > currentOrder) {
+        item.order -= 1;
+      }
+    }
+
+    workoutExercise.order = targetOrder;
+    await this.workoutExerciseRepository.save(workoutExercises);
+
+    return this.getWorkoutByIdForUser(userId, workout.id);
+  }
+
+  async changeExercise(
+    userId: number,
+    workoutId: number,
+    workoutExerciseId: number,
+    exerciseId: number,
+  ) {
+    const workout = await this.getActiveWorkoutEntityForUser(userId, workoutId);
+    const workoutExercise = this.getWorkoutExerciseFromWorkout(
+      workout,
+      workoutExerciseId,
+    );
+    const exercise = await this.getAccessibleExerciseForUser(userId, exerciseId);
+
+    workoutExercise.exerciseId = exercise.id;
+    workoutExercise.exercise = exercise;
+    await this.workoutExerciseRepository.save(workoutExercise);
+
+    return this.getWorkoutByIdForUser(userId, workout.id);
+  }
+
+  async removeExercise(userId: number, workoutId: number, workoutExerciseId: number) {
+    const workout = await this.getActiveWorkoutEntityForUser(userId, workoutId);
+    const workoutExercise = this.getWorkoutExerciseFromWorkout(
+      workout,
+      workoutExerciseId,
+    );
+
+    await this.workoutExerciseRepository.delete({
+      id: workoutExerciseId,
+      workoutId: workout.id,
+    });
+
+    const remainingExercises = (workout.exercises || []).filter(
+      (item) => item.id !== workoutExerciseId,
+    );
+
+    for (const item of remainingExercises) {
+      if (item.order > workoutExercise.order) {
+        item.order -= 1;
+      }
+    }
+
+    await this.workoutExerciseRepository.save(remainingExercises);
+
+    return this.getWorkoutByIdForUser(userId, workout.id);
   }
 
   async updateSet(userId: number, setId: number, dto: UpdateWorkoutSetDto) {
@@ -197,6 +367,20 @@ export class WorkoutsService {
     return this.getWorkoutExerciseByIdForUser(userId, workoutExercise.id);
   }
 
+  async addSetToWorkoutExercise(
+    userId: number,
+    workoutId: number,
+    workoutExerciseId: number,
+  ) {
+    const workout = await this.getActiveWorkoutEntityForUser(userId, workoutId);
+    const workoutExercise = this.getWorkoutExerciseFromWorkout(
+      workout,
+      workoutExerciseId,
+    );
+
+    return this.addSet(userId, workoutExercise.id);
+  }
+
   async removeSet(userId: number, setId: number) {
     const set = await this.getSetForUser(userId, setId);
     const workoutExerciseId = set.workoutExercise.id;
@@ -247,6 +431,55 @@ export class WorkoutsService {
     }
 
     return this.mapWorkout(workout);
+  }
+
+  private async getWorkoutEntityForUser(userId: number, workoutId: number) {
+    const workout = await this.workoutRepository.findOne({
+      where: { id: workoutId, userId },
+      relations: {
+        template: true,
+      },
+    });
+
+    if (!workout) {
+      throw new NotFoundException('Workout not found');
+    }
+
+    return workout;
+  }
+
+  private async getActiveWorkoutEntityForUser(userId: number, workoutId: number) {
+    const workout = await this.workoutRepository.findOne({
+      where: {
+        id: workoutId,
+        userId,
+        status: WorkoutStatus.ACTIVE,
+      },
+      relations: {
+        template: true,
+      },
+    });
+
+    if (!workout) {
+      throw new NotFoundException('Active workout not found');
+    }
+
+    return workout;
+  }
+
+  private getWorkoutExerciseFromWorkout(
+    workout: Workout,
+    workoutExerciseId: number,
+  ) {
+    const workoutExercise = (workout.exercises || []).find(
+      (item) => item.id === workoutExerciseId,
+    );
+
+    if (!workoutExercise) {
+      throw new NotFoundException('Workout exercise not found');
+    }
+
+    return workoutExercise;
   }
 
   private async getWorkoutExerciseEntityForUser(
@@ -352,6 +585,22 @@ export class WorkoutsService {
     return previousWorkoutExercise?.sets || [];
   }
 
+  private async getAccessibleExerciseForUser(userId: number, exerciseId: number) {
+    const exercise = await this.exerciseRepository.findOne({
+      where: { id: exerciseId },
+    });
+
+    if (!exercise) {
+      throw new NotFoundException('Exercise not found');
+    }
+
+    if (exercise.isGlobal || exercise.createdByUserId === userId) {
+      return exercise;
+    }
+
+    throw new NotFoundException('Exercise not found');
+  }
+
   private calculateRepMax(weight?: number | null, reps?: number | null) {
     if (
       typeof weight !== 'number' ||
@@ -373,14 +622,36 @@ export class WorkoutsService {
     return Math.max(0, Math.floor((end - start) / 1000));
   }
 
+  private getDurationLabel(durationSeconds: number) {
+    const hours = Math.floor(durationSeconds / 3600);
+    const minutes = Math.floor((durationSeconds % 3600) / 60);
+    const seconds = durationSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}min`;
+    }
+
+    if (minutes > 0) {
+      return `${minutes}min ${seconds}s`;
+    }
+
+    return `${seconds}s`;
+  }
+
   private mapWorkout(workout: Workout) {
+    const durationSeconds = this.getDurationSeconds(
+      workout.startedAt,
+      workout.finishedAt,
+    );
+
     return {
       id: workout.id,
       name: workout.name,
       status: workout.status,
       startedAt: workout.startedAt,
       finishedAt: workout.finishedAt,
-      durationSeconds: this.getDurationSeconds(workout.startedAt, workout.finishedAt),
+      durationSeconds,
+      durationLabel: this.getDurationLabel(durationSeconds),
       template: workout.template
         ? {
             id: workout.template.id,

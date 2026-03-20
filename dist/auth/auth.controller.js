@@ -23,10 +23,16 @@ let AuthController = class AuthController {
         this.authService = authService;
     }
     async register(registerDto) {
-        return this.authService.register(registerDto);
+        const item = await this.authService.register(registerDto);
+        return {
+            item,
+        };
     }
     async login(loginDto) {
-        return this.authService.login(loginDto);
+        const item = await this.authService.login(loginDto);
+        return {
+            item,
+        };
     }
 };
 exports.AuthController = AuthController;

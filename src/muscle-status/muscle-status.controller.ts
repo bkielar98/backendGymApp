@@ -10,23 +10,40 @@ export class MuscleStatusController {
   constructor(private muscleStatusService: MuscleStatusService) {}
 
   @Post()
-  create(@Request() req, @Body() createDto: CreateMuscleStatusDto) {
-    return this.muscleStatusService.create(req.user.id, createDto);
+  async create(@Request() req, @Body() createDto: CreateMuscleStatusDto) {
+    const item = await this.muscleStatusService.create(req.user.id, createDto);
+
+    return {
+      item,
+    };
   }
 
   @Get()
-  findAll(@Request() req) {
-    return this.muscleStatusService.findAll(req.user.id);
+  async findAll(@Request() req) {
+    const items = await this.muscleStatusService.findAll(req.user.id);
+
+    return {
+      items,
+      total: items.length,
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.muscleStatusService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const item = await this.muscleStatusService.findOne(+id);
+
+    return {
+      item,
+    };
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdateMuscleStatusDto) {
-    return this.muscleStatusService.update(+id, updateDto);
+  async update(@Param('id') id: string, @Body() updateDto: UpdateMuscleStatusDto) {
+    const item = await this.muscleStatusService.update(+id, updateDto);
+
+    return {
+      item,
+    };
   }
 
   @Delete(':id')

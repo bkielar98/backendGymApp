@@ -1,3 +1,4 @@
 export declare class StartWorkoutDto {
-    templateId: number;
+    templateId?: number;
+    name?: string;
 }

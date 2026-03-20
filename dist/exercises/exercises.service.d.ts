@@ -8,9 +8,17 @@ export declare class ExercisesService {
     constructor(exerciseRepository: Repository<Exercise>);
     create(user: User, createExerciseDto: CreateExerciseDto): Promise<Exercise>;
     findAll(user: User): Promise<Exercise[]>;
+    findCustom(user: User): Promise<Exercise[]>;
     findOne(user: User, id: number): Promise<Exercise>;
     update(user: User, id: number, updateExerciseDto: UpdateExerciseDto): Promise<Exercise>;
-    remove(user: User, id: number): Promise<void>;
+    remove(user: User, id: number): Promise<{
+        success: boolean;
+        message: string;
+        item: {
+            id: number;
+            name: string;
+        };
+    }>;
     private ensureUserCanAccessExercise;
     private ensureUserCanManageExercise;
 }

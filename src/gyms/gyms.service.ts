@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Gym } from '../entities/gym.entity';
@@ -22,7 +22,13 @@ export class GymsService {
   }
 
   async findOne(id: number): Promise<Gym> {
-    return this.gymRepository.findOne({ where: { id } });
+    const gym = await this.gymRepository.findOne({ where: { id } });
+
+    if (!gym) {
+      throw new NotFoundException('Gym not found');
+    }
+
+    return gym;
   }
 
   async update(id: number, updateGymDto: UpdateGymDto): Promise<Gym> {
@@ -30,7 +36,17 @@ export class GymsService {
     return this.findOne(id);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number) {
+    const gym = await this.findOne(id);
     await this.gymRepository.delete(id);
+
+    return {
+      success: true,
+      message: 'Gym removed',
+      item: {
+        id: gym.id,
+        name: gym.name,
+      },
+    };
   }
 }

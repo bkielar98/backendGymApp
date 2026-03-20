@@ -14,28 +14,48 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExercisesController = void 0;
 const common_1 = require("@nestjs/common");
-const exercises_service_1 = require("./exercises.service");
+const swagger_1 = require("@nestjs/swagger");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const create_exercise_dto_1 = require("./dto/create-exercise.dto");
 const update_exercise_dto_1 = require("./dto/update-exercise.dto");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
-const swagger_1 = require("@nestjs/swagger");
+const exercises_service_1 = require("./exercises.service");
 let ExercisesController = class ExercisesController {
     constructor(exercisesService) {
         this.exercisesService = exercisesService;
     }
-    create(req, createExerciseDto) {
-        return this.exercisesService.create(req.user, createExerciseDto);
+    async create(req, createExerciseDto) {
+        const item = await this.exercisesService.create(req.user, createExerciseDto);
+        return {
+            item,
+        };
     }
-    findAll(req) {
-        return this.exercisesService.findAll(req.user);
+    async findAll(req) {
+        const items = await this.exercisesService.findAll(req.user);
+        return {
+            items,
+            total: items.length,
+        };
     }
-    findOne(req, id) {
-        return this.exercisesService.findOne(req.user, +id);
+    async findCustom(req) {
+        const items = await this.exercisesService.findCustom(req.user);
+        return {
+            items,
+            total: items.length,
+        };
     }
-    update(req, id, updateExerciseDto) {
-        return this.exercisesService.update(req.user, +id, updateExerciseDto);
+    async findOne(req, id) {
+        const item = await this.exercisesService.findOne(req.user, +id);
+        return {
+            item,
+        };
     }
-    remove(req, id) {
+    async update(req, id, updateExerciseDto) {
+        const item = await this.exercisesService.update(req.user, +id, updateExerciseDto);
+        return {
+            item,
+        };
+    }
+    async remove(req, id) {
         return this.exercisesService.remove(req.user, +id);
     }
 };
@@ -48,7 +68,7 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, create_exercise_dto_1.CreateExerciseDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
@@ -57,8 +77,17 @@ __decorate([
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('custom'),
+    (0, swagger_1.ApiOperation)({ summary: 'List custom exercises available for current user' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Custom exercises retrieved' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ExercisesController.prototype, "findCustom", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get exercise by ID' }),
@@ -68,7 +97,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
@@ -80,7 +109,7 @@ __decorate([
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, update_exercise_dto_1.UpdateExerciseDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
@@ -91,7 +120,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "remove", null);
 exports.ExercisesController = ExercisesController = __decorate([
     (0, swagger_1.ApiTags)('exercises'),

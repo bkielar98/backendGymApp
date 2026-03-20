@@ -22,17 +22,30 @@ let MuscleStatusController = class MuscleStatusController {
     constructor(muscleStatusService) {
         this.muscleStatusService = muscleStatusService;
     }
-    create(req, createDto) {
-        return this.muscleStatusService.create(req.user.id, createDto);
+    async create(req, createDto) {
+        const item = await this.muscleStatusService.create(req.user.id, createDto);
+        return {
+            item,
+        };
     }
-    findAll(req) {
-        return this.muscleStatusService.findAll(req.user.id);
+    async findAll(req) {
+        const items = await this.muscleStatusService.findAll(req.user.id);
+        return {
+            items,
+            total: items.length,
+        };
     }
-    findOne(id) {
-        return this.muscleStatusService.findOne(+id);
+    async findOne(id) {
+        const item = await this.muscleStatusService.findOne(+id);
+        return {
+            item,
+        };
     }
-    update(id, updateDto) {
-        return this.muscleStatusService.update(+id, updateDto);
+    async update(id, updateDto) {
+        const item = await this.muscleStatusService.update(+id, updateDto);
+        return {
+            item,
+        };
     }
     remove(id) {
         return this.muscleStatusService.remove(+id);
@@ -45,21 +58,21 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, create_muscle_status_dto_1.CreateMuscleStatusDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], MuscleStatusController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], MuscleStatusController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], MuscleStatusController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
@@ -67,7 +80,7 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_muscle_status_dto_1.UpdateMuscleStatusDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], MuscleStatusController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),

@@ -11,15 +11,15 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { WorkoutTemplatesService } from './workout-templates.service';
-import { CreateWorkoutTemplateDto } from './dto/create-workout-template.dto';
-import { UpdateWorkoutTemplateDto } from './dto/update-workout-template.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AddWorkoutTemplateExerciseDto } from './dto/add-workout-template-exercise.dto';
 import { ChangeWorkoutTemplateExercisePositionDto } from './dto/change-workout-template-exercise-position.dto';
-import { ChangeWorkoutTemplateExerciseDto } from './dto/change-workout-template-exercise.dto';
 import { ChangeWorkoutTemplateExerciseSetsDto } from './dto/change-workout-template-exercise-sets.dto';
+import { ChangeWorkoutTemplateExerciseDto } from './dto/change-workout-template-exercise.dto';
+import { CreateWorkoutTemplateDto } from './dto/create-workout-template.dto';
+import { UpdateWorkoutTemplateDto } from './dto/update-workout-template.dto';
+import { WorkoutTemplatesService } from './workout-templates.service';
 
 @ApiTags('workout-templates')
 @ApiBearerAuth()
@@ -29,103 +29,144 @@ export class WorkoutTemplatesController {
   constructor(private readonly workoutTemplatesService: WorkoutTemplatesService) {}
 
   @Post()
-  create(@Request() req, @Body() createDto: CreateWorkoutTemplateDto) {
-    return this.workoutTemplatesService.create(req.user.id, createDto);
+  async create(@Request() req, @Body() createDto: CreateWorkoutTemplateDto) {
+    const item = await this.workoutTemplatesService.create(req.user.id, createDto);
+
+    return {
+      item,
+    };
   }
 
   @Get()
-  findAll(@Request() req) {
-    return this.workoutTemplatesService.findAll(req.user.id);
+  async findAll(@Request() req) {
+    const items = await this.workoutTemplatesService.findAll(req.user.id);
+
+    return {
+      items,
+      total: items.length,
+    };
   }
 
   @Get(':id')
-  findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
-    return this.workoutTemplatesService.findOne(req.user.id, id);
+  async findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    const item = await this.workoutTemplatesService.findOne(req.user.id, id);
+
+    return {
+      item,
+    };
   }
 
   @Put(':id')
-  update(
+  async update(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWorkoutTemplateDto,
   ) {
-    return this.workoutTemplatesService.update(req.user.id, id, updateDto);
+    const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
+
+    return {
+      item,
+    };
   }
 
   @Patch(':id')
-  patch(
+  async patch(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWorkoutTemplateDto,
   ) {
-    return this.workoutTemplatesService.update(req.user.id, id, updateDto);
+    const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
+
+    return {
+      item,
+    };
   }
 
   @Post(':id/exercises')
-  addExercise(
+  async addExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AddWorkoutTemplateExerciseDto,
   ) {
-    return this.workoutTemplatesService.addExercise(req.user.id, id, dto);
+    const item = await this.workoutTemplatesService.addExercise(req.user.id, id, dto);
+
+    return {
+      item,
+    };
   }
 
   @Patch(':id/exercises/:exerciseEntryId/position')
-  changeExercisePosition(
+  async changeExercisePosition(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
     @Body() dto: ChangeWorkoutTemplateExercisePositionDto,
   ) {
-    return this.workoutTemplatesService.changeExercisePosition(
+    const item = await this.workoutTemplatesService.changeExercisePosition(
       req.user.id,
       id,
       exerciseEntryId,
       dto.order,
     );
+
+    return {
+      item,
+    };
   }
 
   @Patch(':id/exercises/:exerciseEntryId/exercise')
-  changeExercise(
+  async changeExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
     @Body() dto: ChangeWorkoutTemplateExerciseDto,
   ) {
-    return this.workoutTemplatesService.changeExercise(
+    const item = await this.workoutTemplatesService.changeExercise(
       req.user.id,
       id,
       exerciseEntryId,
       dto.exerciseId,
     );
+
+    return {
+      item,
+    };
   }
 
   @Patch(':id/exercises/:exerciseEntryId/sets-count')
-  changeExerciseSetsCount(
+  async changeExerciseSetsCount(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
     @Body() dto: ChangeWorkoutTemplateExerciseSetsDto,
   ) {
-    return this.workoutTemplatesService.changeExerciseSetsCount(
+    const item = await this.workoutTemplatesService.changeExerciseSetsCount(
       req.user.id,
       id,
       exerciseEntryId,
       dto.setsCount,
     );
+
+    return {
+      item,
+    };
   }
 
   @Delete(':id/exercises/:exerciseEntryId')
-  removeExercise(
+  async removeExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
   ) {
-    return this.workoutTemplatesService.removeExercise(
+    const item = await this.workoutTemplatesService.removeExercise(
       req.user.id,
       id,
       exerciseEntryId,
     );
+
+    return {
+      item,
+    };
   }
 
   @Delete(':id')

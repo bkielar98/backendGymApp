@@ -6,5 +6,12 @@ export declare class UsersService {
     constructor(userRepository: Repository<User>);
     findOne(id: number): Promise<User>;
     update(id: number, updateUserDto: UpdateUserDto): Promise<User>;
-    remove(id: number): Promise<void>;
+    remove(id: number): Promise<{
+        success: boolean;
+        message: string;
+        item: {
+            id: number;
+            email: string;
+        };
+    }>;
 }

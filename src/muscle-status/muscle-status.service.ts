@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MuscleStatus } from '../entities/muscle-status.entity';
@@ -25,7 +25,13 @@ export class MuscleStatusService {
   }
 
   async findOne(id: number): Promise<MuscleStatus> {
-    return this.muscleStatusRepository.findOne({ where: { id } });
+    const status = await this.muscleStatusRepository.findOne({ where: { id } });
+
+    if (!status) {
+      throw new NotFoundException('Muscle status not found');
+    }
+
+    return status;
   }
 
   async update(id: number, updateDto: UpdateMuscleStatusDto): Promise<MuscleStatus> {
@@ -33,8 +39,18 @@ export class MuscleStatusService {
     return this.findOne(id);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number) {
+    const status = await this.findOne(id);
     await this.muscleStatusRepository.delete(id);
+
+    return {
+      success: true,
+      message: 'Muscle status removed',
+      item: {
+        id: status.id,
+        muscleGroup: status.muscleGroup,
+      },
+    };
   }
 
   // For recovery logic

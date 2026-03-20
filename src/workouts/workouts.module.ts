@@ -6,6 +6,7 @@ import { Workout } from '../entities/workout.entity';
 import { WorkoutExercise } from '../entities/workout-exercise.entity';
 import { WorkoutSet } from '../entities/workout-set.entity';
 import { WorkoutTemplate } from '../entities/workout-template.entity';
+import { Exercise } from '../entities/exercise.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { WorkoutTemplate } from '../entities/workout-template.entity';
       WorkoutExercise,
       WorkoutSet,
       WorkoutTemplate,
+      Exercise,
     ]),
   ],
   providers: [WorkoutsService],
