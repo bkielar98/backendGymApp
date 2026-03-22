@@ -65,6 +65,16 @@ export class WorkoutsController {
     };
   }
 
+  @Get('history')
+  async findHistory(@Request() req) {
+    const items = await this.workoutsService.findHistory(req.user.id);
+
+    return {
+      items,
+      total: items.length,
+    };
+  }
+
   @Get(':id')
   async findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
     const item = await this.workoutsService.findOne(req.user.id, id);

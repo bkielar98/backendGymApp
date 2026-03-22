@@ -18,6 +18,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -53,6 +56,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -88,6 +94,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -123,6 +132,48 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
+            template: {
+                id: number;
+                name: string;
+            };
+            exercises: {
+                id: number;
+                order: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                sets: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+            }[];
+        }[];
+        total: number;
+    }>;
+    findHistory(req: any): Promise<{
+        items: {
+            id: number;
+            name: string;
+            status: import("../entities/workout.entity").WorkoutStatus;
+            startedAt: Date;
+            finishedAt: Date;
+            durationSeconds: number;
+            durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -159,6 +210,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -194,6 +248,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -233,6 +290,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -268,6 +328,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -303,6 +366,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;
@@ -338,6 +404,9 @@ export declare class WorkoutsController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            exerciseNames: string[];
             template: {
                 id: number;
                 name: string;

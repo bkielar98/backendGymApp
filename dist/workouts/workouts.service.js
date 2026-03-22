@@ -115,6 +115,19 @@ let WorkoutsService = class WorkoutsService {
         });
         return workouts.map((workout) => this.mapWorkout(workout));
     }
+    async findHistory(userId) {
+        const workouts = await this.workoutRepository.find({
+            where: {
+                userId,
+                status: workout_entity_1.WorkoutStatus.COMPLETED,
+            },
+            order: { startedAt: 'DESC' },
+            relations: {
+                template: true,
+            },
+        });
+        return workouts.map((workout) => this.mapWorkout(workout));
+    }
     async findOne(userId, workoutId) {
         return this.getWorkoutByIdForUser(userId, workoutId);
     }
@@ -461,6 +474,9 @@ let WorkoutsService = class WorkoutsService {
     }
     mapWorkout(workout) {
         const durationSeconds = this.getDurationSeconds(workout.startedAt, workout.finishedAt);
+        const exercises = [...(workout.exercises || [])]
+            .sort((a, b) => a.order - b.order)
+            .map((exercise) => this.mapWorkoutExercise(exercise));
         return {
             id: workout.id,
             name: workout.name,
@@ -469,15 +485,18 @@ let WorkoutsService = class WorkoutsService {
             finishedAt: workout.finishedAt,
             durationSeconds,
             durationLabel: this.getDurationLabel(durationSeconds),
+            exerciseCount: exercises.length,
+            totalSets: exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0),
+            exerciseNames: exercises
+                .map((exercise) => exercise.exercise?.name)
+                .filter((name) => Boolean(name)),
             template: workout.template
                 ? {
                     id: workout.template.id,
                     name: workout.template.name,
                 }
                 : null,
-            exercises: [...(workout.exercises || [])]
-                .sort((a, b) => a.order - b.order)
-                .map((exercise) => this.mapWorkoutExercise(exercise)),
+            exercises,
         };
     }
     mapWorkoutExercise(workoutExercise) {
