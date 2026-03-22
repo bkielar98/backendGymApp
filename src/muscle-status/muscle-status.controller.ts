@@ -11,39 +11,22 @@ export class MuscleStatusController {
 
   @Post()
   async create(@Request() req, @Body() createDto: CreateMuscleStatusDto) {
-    const item = await this.muscleStatusService.create(req.user.id, createDto);
-
-    return {
-      item,
-    };
+    return this.muscleStatusService.create(req.user.id, createDto);
   }
 
   @Get()
   async findAll(@Request() req) {
-    const items = await this.muscleStatusService.findAll(req.user.id);
-
-    return {
-      items,
-      total: items.length,
-    };
+    return this.muscleStatusService.findAll(req.user.id);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const item = await this.muscleStatusService.findOne(+id);
-
-    return {
-      item,
-    };
+    return this.muscleStatusService.findOne(+id);
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateDto: UpdateMuscleStatusDto) {
-    const item = await this.muscleStatusService.update(+id, updateDto);
-
-    return {
-      item,
-    };
+    return this.muscleStatusService.update(+id, updateDto);
   }
 
   @Delete(':id')

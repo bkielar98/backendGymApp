@@ -30,30 +30,17 @@ export class WorkoutTemplatesController {
 
   @Post()
   async create(@Request() req, @Body() createDto: CreateWorkoutTemplateDto) {
-    const item = await this.workoutTemplatesService.create(req.user.id, createDto);
-
-    return {
-      item,
-    };
+    return this.workoutTemplatesService.create(req.user.id, createDto);
   }
 
   @Get()
   async findAll(@Request() req) {
-    const items = await this.workoutTemplatesService.findAll(req.user.id);
-
-    return {
-      items,
-      total: items.length,
-    };
+    return this.workoutTemplatesService.findAll(req.user.id);
   }
 
   @Get(':id')
   async findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
-    const item = await this.workoutTemplatesService.findOne(req.user.id, id);
-
-    return {
-      item,
-    };
+    return this.workoutTemplatesService.findOne(req.user.id, id);
   }
 
   @Put(':id')
@@ -62,11 +49,7 @@ export class WorkoutTemplatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWorkoutTemplateDto,
   ) {
-    const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
-
-    return {
-      item,
-    };
+    return this.workoutTemplatesService.update(req.user.id, id, updateDto);
   }
 
   @Patch(':id')
@@ -75,11 +58,7 @@ export class WorkoutTemplatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWorkoutTemplateDto,
   ) {
-    const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
-
-    return {
-      item,
-    };
+    return this.workoutTemplatesService.update(req.user.id, id, updateDto);
   }
 
   @Post(':id/exercises')
@@ -88,11 +67,7 @@ export class WorkoutTemplatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AddWorkoutTemplateExerciseDto,
   ) {
-    const item = await this.workoutTemplatesService.addExercise(req.user.id, id, dto);
-
-    return {
-      item,
-    };
+    return this.workoutTemplatesService.addExercise(req.user.id, id, dto);
   }
 
   @Patch(':id/exercises/:exerciseEntryId/position')
@@ -102,16 +77,12 @@ export class WorkoutTemplatesController {
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
     @Body() dto: ChangeWorkoutTemplateExercisePositionDto,
   ) {
-    const item = await this.workoutTemplatesService.changeExercisePosition(
+    return this.workoutTemplatesService.changeExercisePosition(
       req.user.id,
       id,
       exerciseEntryId,
       dto.order,
     );
-
-    return {
-      item,
-    };
   }
 
   @Patch(':id/exercises/:exerciseEntryId/exercise')
@@ -121,16 +92,12 @@ export class WorkoutTemplatesController {
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
     @Body() dto: ChangeWorkoutTemplateExerciseDto,
   ) {
-    const item = await this.workoutTemplatesService.changeExercise(
+    return this.workoutTemplatesService.changeExercise(
       req.user.id,
       id,
       exerciseEntryId,
       dto.exerciseId,
     );
-
-    return {
-      item,
-    };
   }
 
   @Patch(':id/exercises/:exerciseEntryId/sets-count')
@@ -140,16 +107,12 @@ export class WorkoutTemplatesController {
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
     @Body() dto: ChangeWorkoutTemplateExerciseSetsDto,
   ) {
-    const item = await this.workoutTemplatesService.changeExerciseSetsCount(
+    return this.workoutTemplatesService.changeExerciseSetsCount(
       req.user.id,
       id,
       exerciseEntryId,
       dto.setsCount,
     );
-
-    return {
-      item,
-    };
   }
 
   @Delete(':id/exercises/:exerciseEntryId')
@@ -158,15 +121,11 @@ export class WorkoutTemplatesController {
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseEntryId', ParseIntPipe) exerciseEntryId: number,
   ) {
-    const item = await this.workoutTemplatesService.removeExercise(
+    return this.workoutTemplatesService.removeExercise(
       req.user.id,
       id,
       exerciseEntryId,
     );
-
-    return {
-      item,
-    };
   }
 
   @Delete(':id')

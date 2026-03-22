@@ -24,36 +24,19 @@ let ExercisesController = class ExercisesController {
         this.exercisesService = exercisesService;
     }
     async create(req, createExerciseDto) {
-        const item = await this.exercisesService.create(req.user, createExerciseDto);
-        return {
-            item,
-        };
+        return this.exercisesService.create(req.user, createExerciseDto);
     }
     async findAll(req) {
-        const items = await this.exercisesService.findAll(req.user);
-        return {
-            items,
-            total: items.length,
-        };
+        return this.exercisesService.findAll(req.user);
     }
     async findCustom(req) {
-        const items = await this.exercisesService.findCustom(req.user);
-        return {
-            items,
-            total: items.length,
-        };
+        return this.exercisesService.findCustom(req.user);
     }
     async findOne(req, id) {
-        const item = await this.exercisesService.findOne(req.user, +id);
-        return {
-            item,
-        };
+        return this.exercisesService.findOne(req.user, +id);
     }
     async update(req, id, updateExerciseDto) {
-        const item = await this.exercisesService.update(req.user, +id, updateExerciseDto);
-        return {
-            item,
-        };
+        return this.exercisesService.update(req.user, +id, updateExerciseDto);
     }
     async remove(req, id) {
         return this.exercisesService.remove(req.user, +id);

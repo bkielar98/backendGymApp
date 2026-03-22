@@ -46,6 +46,17 @@ let AuthService = class AuthService {
             access_token: this.jwtService.sign(payload),
         };
     }
+    getMe(user) {
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            gender: user.gender,
+            role: user.role,
+            avatarPath: user.avatarPath ?? null,
+            avatarUrl: user.avatarPath ?? null,
+        };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

@@ -23,29 +23,16 @@ let MuscleStatusController = class MuscleStatusController {
         this.muscleStatusService = muscleStatusService;
     }
     async create(req, createDto) {
-        const item = await this.muscleStatusService.create(req.user.id, createDto);
-        return {
-            item,
-        };
+        return this.muscleStatusService.create(req.user.id, createDto);
     }
     async findAll(req) {
-        const items = await this.muscleStatusService.findAll(req.user.id);
-        return {
-            items,
-            total: items.length,
-        };
+        return this.muscleStatusService.findAll(req.user.id);
     }
     async findOne(id) {
-        const item = await this.muscleStatusService.findOne(+id);
-        return {
-            item,
-        };
+        return this.muscleStatusService.findOne(+id);
     }
     async update(id, updateDto) {
-        const item = await this.muscleStatusService.update(+id, updateDto);
-        return {
-            item,
-        };
+        return this.muscleStatusService.update(+id, updateDto);
     }
     remove(id) {
         return this.muscleStatusService.remove(+id);

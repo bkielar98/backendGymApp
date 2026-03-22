@@ -12,9 +12,7 @@ export declare class GymsService {
     remove(id: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            name: string;
-        };
+        id: number;
+        name: string;
     }>;
 }

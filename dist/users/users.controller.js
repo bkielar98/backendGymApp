@@ -39,24 +39,18 @@ let UsersController = class UsersController {
         this.usersService = usersService;
     }
     async getProfile(req) {
-        const item = await this.usersService.getProfile(req.user.id);
-        return {
-            item,
-        };
+        return this.usersService.getUserCard(req.user.id);
+    }
+    async getUserCard(req) {
+        return this.usersService.getUserCard(req.user.id);
     }
     async updateProfile(req, updateUserDto) {
         await this.usersService.updateProfile(req.user.id, updateUserDto);
-        const item = await this.usersService.getProfile(req.user.id);
-        return {
-            item,
-        };
+        return this.usersService.getUserCard(req.user.id);
     }
     async updateEmail(req, updateEmailDto) {
         await this.usersService.updateEmail(req.user.id, updateEmailDto);
-        const item = await this.usersService.getProfile(req.user.id);
-        return {
-            item,
-        };
+        return this.usersService.getUserCard(req.user.id);
     }
     async updatePassword(req, updatePasswordDto) {
         await this.usersService.updatePassword(req.user.id, updatePasswordDto);
@@ -67,25 +61,16 @@ let UsersController = class UsersController {
     }
     async uploadAvatar(req, file) {
         await this.usersService.updateAvatar(req.user.id, file);
-        const item = await this.usersService.getProfile(req.user.id);
-        return {
-            item,
-        };
+        return this.usersService.getUserCard(req.user.id);
     }
     async getWeights(req) {
         return this.usersService.listWeightEntries(req.user.id);
     }
     async createWeight(req, dto) {
-        const item = await this.usersService.createWeightEntry(req.user.id, dto);
-        return {
-            item,
-        };
+        return this.usersService.createWeightEntry(req.user.id, dto);
     }
     async updateWeight(req, id, dto) {
-        const item = await this.usersService.updateWeightEntry(req.user.id, id, dto);
-        return {
-            item,
-        };
+        return this.usersService.updateWeightEntry(req.user.id, id, dto);
     }
     deleteWeight(req, id) {
         return this.usersService.removeWeightEntry(req.user.id, id);
@@ -94,16 +79,10 @@ let UsersController = class UsersController {
         return this.usersService.listBodyMeasurementEntries(req.user.id);
     }
     async createBodyMeasurement(req, dto) {
-        const item = await this.usersService.createBodyMeasurementEntry(req.user.id, dto);
-        return {
-            item,
-        };
+        return this.usersService.createBodyMeasurementEntry(req.user.id, dto);
     }
     async updateBodyMeasurement(req, id, dto) {
-        const item = await this.usersService.updateBodyMeasurementEntry(req.user.id, id, dto);
-        return {
-            item,
-        };
+        return this.usersService.updateBodyMeasurementEntry(req.user.id, id, dto);
     }
     deleteBodyMeasurement(req, id) {
         return this.usersService.removeBodyMeasurementEntry(req.user.id, id);
@@ -122,6 +101,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Get)('card'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get full user card data' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'User card retrieved' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getUserCard", null);
 __decorate([
     (0, common_1.Put)('profile'),
     (0, swagger_1.ApiOperation)({ summary: 'Update user profile' }),

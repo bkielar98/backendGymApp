@@ -16,26 +16,20 @@ const exercises_controller_1 = require("./exercises.controller");
         };
         controller = new exercises_controller_1.ExercisesController(exercisesService);
     });
-    (0, globals_1.it)('wraps list responses in items/total', async () => {
+    (0, globals_1.it)('returns list responses as plain arrays', async () => {
         const items = [{ id: 1, name: 'Bench Press' }];
         exercisesService.findAll.mockResolvedValue(items);
-        await (0, globals_1.expect)(controller.findAll({ user: { id: 15 } })).resolves.toEqual({
-            items,
-            total: 1,
-        });
+        await (0, globals_1.expect)(controller.findAll({ user: { id: 15 } })).resolves.toEqual(items);
     });
-    (0, globals_1.it)('wraps custom list responses in items/total', async () => {
+    (0, globals_1.it)('returns custom list responses as plain arrays', async () => {
         const items = [{ id: 2, name: 'My Custom Row' }];
         exercisesService.findCustom.mockResolvedValue(items);
-        await (0, globals_1.expect)(controller.findCustom({ user: { id: 15 } })).resolves.toEqual({
-            items,
-            total: 1,
-        });
+        await (0, globals_1.expect)(controller.findCustom({ user: { id: 15 } })).resolves.toEqual(items);
     });
-    (0, globals_1.it)('wraps create response in item', async () => {
+    (0, globals_1.it)('returns create response directly', async () => {
         const item = { id: 3, name: 'Lat Pulldown' };
         exercisesService.create.mockResolvedValue(item);
-        await (0, globals_1.expect)(controller.create({ user: { id: 15 } }, { name: 'Lat Pulldown', muscleGroups: ['back'] })).resolves.toEqual({ item });
+        await (0, globals_1.expect)(controller.create({ user: { id: 15 } }, { name: 'Lat Pulldown', muscleGroups: ['back'] })).resolves.toEqual(item);
     });
 });
 //# sourceMappingURL=exercises.controller.spec.js.map

@@ -12,10 +12,8 @@ export declare class MuscleStatusService {
     remove(id: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            muscleGroup: string;
-        };
+        id: number;
+        muscleGroup: string;
     }>;
     updateLastTrained(userId: number, muscleGroups: string[]): Promise<void>;
 }

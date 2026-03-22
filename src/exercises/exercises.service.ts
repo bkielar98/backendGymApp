@@ -103,10 +103,8 @@ export class ExercisesService {
     return {
       success: true,
       message: 'Exercise removed',
-      item: {
-        id: exercise.id,
-        name: exercise.name,
-      },
+      id: exercise.id,
+      name: exercise.name,
     };
   }
 

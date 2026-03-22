@@ -15,7 +15,16 @@ export declare class UsersService {
     private bodyMeasurementEntryRepository;
     constructor(userRepository: Repository<User>, weightEntryRepository: Repository<UserWeightEntry>, bodyMeasurementEntryRepository: Repository<UserBodyMeasurementEntry>);
     findOne(id: number): Promise<User>;
-    getProfile(id: number): Promise<{
+    getSessionProfile(id: number): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+    }>;
+    getUserCard(id: number): Promise<{
         id: number;
         email: string;
         name: string;
@@ -24,22 +33,16 @@ export declare class UsersService {
         avatarPath: string;
         avatarUrl: string;
         currentWeight: number;
-        weightHistory: {
-            items: UserWeightEntry[];
-            total: number;
-            chart: {
-                date: string;
-                value: number;
-            }[];
-        };
-        bodyMeasurements: {
-            items: UserBodyMeasurementEntry[];
-            total: number;
-            chart: Record<string, {
-                date: string;
-                value: number;
-            }[]>;
-        };
+        weightHistory: UserWeightEntry[];
+        weightChart: {
+            date: string;
+            value: number;
+        }[];
+        bodyMeasurements: UserBodyMeasurementEntry[];
+        bodyMeasurementsChart: Record<string, {
+            date: string;
+            value: number;
+        }[]>;
     }>;
     updateProfile(id: number, updateUserDto: UpdateUserProfileDto): Promise<User>;
     updateEmail(id: number, updateEmailDto: UpdateEmailDto): Promise<User>;
@@ -47,50 +50,31 @@ export declare class UsersService {
     updateAvatar(id: number, file: {
         filename: string;
     }): Promise<User>;
-    listWeightEntries(id: number): Promise<{
-        items: UserWeightEntry[];
-        total: number;
-        chart: {
-            date: string;
-            value: number;
-        }[];
-    }>;
+    listWeightEntries(id: number): Promise<UserWeightEntry[]>;
     createWeightEntry(id: number, dto: CreateWeightEntryDto): Promise<UserWeightEntry>;
     updateWeightEntry(id: number, entryId: number, dto: UpdateWeightEntryDto): Promise<UserWeightEntry>;
     removeWeightEntry(id: number, entryId: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            recordedOn: string;
-        };
+        id: number;
+        recordedOn: string;
     }>;
-    listBodyMeasurementEntries(id: number): Promise<{
-        items: UserBodyMeasurementEntry[];
-        total: number;
-        chart: Record<string, {
-            date: string;
-            value: number;
-        }[]>;
-    }>;
+    listBodyMeasurementEntries(id: number): Promise<UserBodyMeasurementEntry[]>;
     createBodyMeasurementEntry(id: number, dto: CreateBodyMeasurementEntryDto): Promise<UserBodyMeasurementEntry>;
     updateBodyMeasurementEntry(id: number, entryId: number, dto: UpdateBodyMeasurementEntryDto): Promise<UserBodyMeasurementEntry>;
     removeBodyMeasurementEntry(id: number, entryId: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            recordedOn: string;
-        };
+        id: number;
+        recordedOn: string;
     }>;
     remove(id: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            email: string;
-        };
+        id: number;
+        email: string;
     }>;
+    private mapSessionUser;
     private findWeightEntry;
     private findBodyMeasurementEntry;
     private syncLatestUserWeight;

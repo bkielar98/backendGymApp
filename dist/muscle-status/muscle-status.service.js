@@ -48,10 +48,8 @@ let MuscleStatusService = class MuscleStatusService {
         return {
             success: true,
             message: 'Muscle status removed',
-            item: {
-                id: status.id,
-                muscleGroup: status.muscleGroup,
-            },
+            id: status.id,
+            muscleGroup: status.muscleGroup,
         };
     }
     async updateLastTrained(userId, muscleGroups) {

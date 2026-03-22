@@ -32,7 +32,7 @@ const users_service_1 = require("./users.service");
         };
         service = new users_service_1.UsersService(userRepository, weightEntryRepository, bodyMeasurementEntryRepository);
     });
-    (0, globals_1.it)('builds profile with current weight and chart data', async () => {
+    (0, globals_1.it)('builds lightweight session profile', async () => {
         userRepository.findOne.mockResolvedValue({
             id: 19,
             email: 'user@example.com',
@@ -47,17 +47,9 @@ const users_service_1 = require("./users.service");
             ],
             bodyMeasurementEntries: [],
         });
-        await (0, globals_1.expect)(service.getProfile(19)).resolves.toMatchObject({
+        await (0, globals_1.expect)(service.getSessionProfile(19)).resolves.toMatchObject({
             email: 'user@example.com',
             avatarUrl: '/uploads/avatars/test.jpg',
-            currentWeight: 79.8,
-            weightHistory: {
-                total: 2,
-                chart: [
-                    { date: '2026-03-11', value: 80.1 },
-                    { date: '2026-03-12', value: 79.8 },
-                ],
-            },
         });
     });
     (0, globals_1.it)('rejects email change when current password is invalid', async () => {
@@ -75,7 +67,7 @@ const users_service_1 = require("./users.service");
             newEmail: 'new@example.com',
         })).rejects.toBeInstanceOf(common_1.UnauthorizedException);
     });
-    (0, globals_1.it)('returns chart-ready body measurement history', async () => {
+    (0, globals_1.it)('returns body measurement history as a plain array', async () => {
         bodyMeasurementEntryRepository.find.mockResolvedValue([
             {
                 id: 2,
@@ -124,19 +116,18 @@ const users_service_1 = require("./users.service");
             weightEntries: [],
             bodyMeasurementEntries: [],
         });
-        await (0, globals_1.expect)(service.listBodyMeasurementEntries(19)).resolves.toMatchObject({
-            total: 2,
-            chart: {
-                neck: [
-                    { date: '2026-03-11', value: 37 },
-                    { date: '2026-03-12', value: 38 },
-                ],
-                waist: [
-                    { date: '2026-03-11', value: 82 },
-                    { date: '2026-03-12', value: 81 },
-                ],
+        await (0, globals_1.expect)(service.listBodyMeasurementEntries(19)).resolves.toMatchObject([
+            {
+                recordedOn: '2026-03-12',
+                neck: 38,
+                waist: 81,
             },
-        });
+            {
+                recordedOn: '2026-03-11',
+                neck: 37,
+                waist: 82,
+            },
+        ]);
     });
 });
 //# sourceMappingURL=users.service.spec.js.map

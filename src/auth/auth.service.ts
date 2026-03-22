@@ -38,4 +38,16 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  getMe(user: User) {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      gender: user.gender,
+      role: user.role,
+      avatarPath: user.avatarPath ?? null,
+      avatarUrl: user.avatarPath ?? null,
+    };
+  }
 }

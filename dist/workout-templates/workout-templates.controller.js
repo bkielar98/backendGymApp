@@ -28,65 +28,34 @@ let WorkoutTemplatesController = class WorkoutTemplatesController {
         this.workoutTemplatesService = workoutTemplatesService;
     }
     async create(req, createDto) {
-        const item = await this.workoutTemplatesService.create(req.user.id, createDto);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.create(req.user.id, createDto);
     }
     async findAll(req) {
-        const items = await this.workoutTemplatesService.findAll(req.user.id);
-        return {
-            items,
-            total: items.length,
-        };
+        return this.workoutTemplatesService.findAll(req.user.id);
     }
     async findOne(req, id) {
-        const item = await this.workoutTemplatesService.findOne(req.user.id, id);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.findOne(req.user.id, id);
     }
     async update(req, id, updateDto) {
-        const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.update(req.user.id, id, updateDto);
     }
     async patch(req, id, updateDto) {
-        const item = await this.workoutTemplatesService.update(req.user.id, id, updateDto);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.update(req.user.id, id, updateDto);
     }
     async addExercise(req, id, dto) {
-        const item = await this.workoutTemplatesService.addExercise(req.user.id, id, dto);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.addExercise(req.user.id, id, dto);
     }
     async changeExercisePosition(req, id, exerciseEntryId, dto) {
-        const item = await this.workoutTemplatesService.changeExercisePosition(req.user.id, id, exerciseEntryId, dto.order);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.changeExercisePosition(req.user.id, id, exerciseEntryId, dto.order);
     }
     async changeExercise(req, id, exerciseEntryId, dto) {
-        const item = await this.workoutTemplatesService.changeExercise(req.user.id, id, exerciseEntryId, dto.exerciseId);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.changeExercise(req.user.id, id, exerciseEntryId, dto.exerciseId);
     }
     async changeExerciseSetsCount(req, id, exerciseEntryId, dto) {
-        const item = await this.workoutTemplatesService.changeExerciseSetsCount(req.user.id, id, exerciseEntryId, dto.setsCount);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.changeExerciseSetsCount(req.user.id, id, exerciseEntryId, dto.setsCount);
     }
     async removeExercise(req, id, exerciseEntryId) {
-        const item = await this.workoutTemplatesService.removeExercise(req.user.id, id, exerciseEntryId);
-        return {
-            item,
-        };
+        return this.workoutTemplatesService.removeExercise(req.user.id, id, exerciseEntryId);
     }
     remove(req, id) {
         return this.workoutTemplatesService.remove(req.user.id, id);

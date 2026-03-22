@@ -55,11 +55,14 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'Profile retrieved' })
   async getProfile(@Request() req) {
-    const item = await this.usersService.getProfile(req.user.id);
+    return this.usersService.getUserCard(req.user.id);
+  }
 
-    return {
-      item,
-    };
+  @Get('card')
+  @ApiOperation({ summary: 'Get full user card data' })
+  @ApiResponse({ status: 200, description: 'User card retrieved' })
+  async getUserCard(@Request() req) {
+    return this.usersService.getUserCard(req.user.id);
   }
 
   @Put('profile')
@@ -67,11 +70,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Profile updated' })
   async updateProfile(@Request() req, @Body() updateUserDto: UpdateUserProfileDto) {
     await this.usersService.updateProfile(req.user.id, updateUserDto);
-    const item = await this.usersService.getProfile(req.user.id);
 
-    return {
-      item,
-    };
+    return this.usersService.getUserCard(req.user.id);
   }
 
   @Patch('email')
@@ -79,11 +79,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Email updated' })
   async updateEmail(@Request() req, @Body() updateEmailDto: UpdateEmailDto) {
     await this.usersService.updateEmail(req.user.id, updateEmailDto);
-    const item = await this.usersService.getProfile(req.user.id);
 
-    return {
-      item,
-    };
+    return this.usersService.getUserCard(req.user.id);
   }
 
   @Patch('password')
@@ -117,11 +114,8 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('avatar', { storage: avatarStorage }))
   async uploadAvatar(@Request() req, @UploadedFile() file: { filename: string }) {
     await this.usersService.updateAvatar(req.user.id, file);
-    const item = await this.usersService.getProfile(req.user.id);
 
-    return {
-      item,
-    };
+    return this.usersService.getUserCard(req.user.id);
   }
 
   @Get('weights')
@@ -135,11 +129,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Create weight entry' })
   @ApiResponse({ status: 201, description: 'Weight entry created' })
   async createWeight(@Request() req, @Body() dto: CreateWeightEntryDto) {
-    const item = await this.usersService.createWeightEntry(req.user.id, dto);
-
-    return {
-      item,
-    };
+    return this.usersService.createWeightEntry(req.user.id, dto);
   }
 
   @Put('weights/:id')
@@ -150,11 +140,7 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateWeightEntryDto,
   ) {
-    const item = await this.usersService.updateWeightEntry(req.user.id, id, dto);
-
-    return {
-      item,
-    };
+    return this.usersService.updateWeightEntry(req.user.id, id, dto);
   }
 
   @Delete('weights/:id')
@@ -178,11 +164,7 @@ export class UsersController {
     @Request() req,
     @Body() dto: CreateBodyMeasurementEntryDto,
   ) {
-    const item = await this.usersService.createBodyMeasurementEntry(req.user.id, dto);
-
-    return {
-      item,
-    };
+    return this.usersService.createBodyMeasurementEntry(req.user.id, dto);
   }
 
   @Put('body-measurements/:id')
@@ -193,11 +175,7 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBodyMeasurementEntryDto,
   ) {
-    const item = await this.usersService.updateBodyMeasurementEntry(req.user.id, id, dto);
-
-    return {
-      item,
-    };
+    return this.usersService.updateBodyMeasurementEntry(req.user.id, id, dto);
   }
 
   @Delete('body-measurements/:id')

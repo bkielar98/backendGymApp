@@ -30,58 +30,32 @@ export class WorkoutsController {
 
   @Post('start')
   async startWorkout(@Request() req, @Body() dto: StartWorkoutDto) {
-    const item = await this.workoutsService.startWorkout(req.user.id, dto);
-
-    return {
-      item,
-    };
+    return this.workoutsService.startWorkout(req.user.id, dto);
   }
 
   @Get('active')
   async getActiveWorkout(@Request() req) {
-    const item = await this.workoutsService.getActiveWorkout(req.user.id);
-
-    return {
-      item,
-    };
+    return this.workoutsService.getActiveWorkout(req.user.id);
   }
 
   @Post('finish')
   async finishActiveWorkout(@Request() req) {
-    const item = await this.workoutsService.finishActiveWorkout(req.user.id);
-
-    return {
-      item,
-    };
+    return this.workoutsService.finishActiveWorkout(req.user.id);
   }
 
   @Get()
   async findAll(@Request() req) {
-    const items = await this.workoutsService.findAll(req.user.id);
-
-    return {
-      items,
-      total: items.length,
-    };
+    return this.workoutsService.findAll(req.user.id);
   }
 
   @Get('history')
   async findHistory(@Request() req) {
-    const items = await this.workoutsService.findHistory(req.user.id);
-
-    return {
-      items,
-      total: items.length,
-    };
+    return this.workoutsService.findHistory(req.user.id);
   }
 
   @Get(':id')
   async findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
-    const item = await this.workoutsService.findOne(req.user.id, id);
-
-    return {
-      item,
-    };
+    return this.workoutsService.findOne(req.user.id, id);
   }
 
   @Patch(':id')
@@ -90,11 +64,7 @@ export class WorkoutsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateWorkoutDto,
   ) {
-    const item = await this.workoutsService.updateWorkout(req.user.id, id, dto);
-
-    return {
-      item,
-    };
+    return this.workoutsService.updateWorkout(req.user.id, id, dto);
   }
 
   @Delete(':id')
@@ -108,11 +78,7 @@ export class WorkoutsController {
     @Param('workoutId', ParseIntPipe) workoutId: number,
     @Body() dto: AddWorkoutExerciseDto,
   ) {
-    const item = await this.workoutsService.addExercise(req.user.id, workoutId, dto);
-
-    return {
-      item,
-    };
+    return this.workoutsService.addExercise(req.user.id, workoutId, dto);
   }
 
   @Patch(':workoutId/exercises/:workoutExerciseId/position')
@@ -122,16 +88,12 @@ export class WorkoutsController {
     @Param('workoutExerciseId', ParseIntPipe) workoutExerciseId: number,
     @Body() dto: ChangeWorkoutExercisePositionDto,
   ) {
-    const item = await this.workoutsService.changeExercisePosition(
+    return this.workoutsService.changeExercisePosition(
       req.user.id,
       workoutId,
       workoutExerciseId,
       dto.order,
     );
-
-    return {
-      item,
-    };
   }
 
   @Patch(':workoutId/exercises/:workoutExerciseId/exercise')
@@ -141,16 +103,12 @@ export class WorkoutsController {
     @Param('workoutExerciseId', ParseIntPipe) workoutExerciseId: number,
     @Body() dto: ChangeWorkoutExerciseDto,
   ) {
-    const item = await this.workoutsService.changeExercise(
+    return this.workoutsService.changeExercise(
       req.user.id,
       workoutId,
       workoutExerciseId,
       dto.exerciseId,
     );
-
-    return {
-      item,
-    };
   }
 
   @Delete(':workoutId/exercises/:workoutExerciseId')
@@ -159,15 +117,11 @@ export class WorkoutsController {
     @Param('workoutId', ParseIntPipe) workoutId: number,
     @Param('workoutExerciseId', ParseIntPipe) workoutExerciseId: number,
   ) {
-    const item = await this.workoutsService.removeExercise(
+    return this.workoutsService.removeExercise(
       req.user.id,
       workoutId,
       workoutExerciseId,
     );
-
-    return {
-      item,
-    };
   }
 
   @Patch('sets/:setId')
@@ -176,11 +130,7 @@ export class WorkoutsController {
     @Param('setId', ParseIntPipe) setId: number,
     @Body() dto: UpdateWorkoutSetDto,
   ) {
-    const item = await this.workoutsService.updateSet(req.user.id, setId, dto);
-
-    return {
-      item,
-    };
+    return this.workoutsService.updateSet(req.user.id, setId, dto);
   }
 
   @Patch('sets/:setId/confirm')
@@ -189,11 +139,7 @@ export class WorkoutsController {
     @Param('setId', ParseIntPipe) setId: number,
     @Body() dto: ConfirmWorkoutSetDto,
   ) {
-    const item = await this.workoutsService.confirmSet(req.user.id, setId, dto);
-
-    return {
-      item,
-    };
+    return this.workoutsService.confirmSet(req.user.id, setId, dto);
   }
 
   @Post('exercises/:workoutExerciseId/add-set')
@@ -201,11 +147,7 @@ export class WorkoutsController {
     @Request() req,
     @Param('workoutExerciseId', ParseIntPipe) workoutExerciseId: number,
   ) {
-    const item = await this.workoutsService.addSet(req.user.id, workoutExerciseId);
-
-    return {
-      item,
-    };
+    return this.workoutsService.addSet(req.user.id, workoutExerciseId);
   }
 
   @Post(':workoutId/exercises/:workoutExerciseId/sets')
@@ -214,23 +156,15 @@ export class WorkoutsController {
     @Param('workoutId', ParseIntPipe) workoutId: number,
     @Param('workoutExerciseId', ParseIntPipe) workoutExerciseId: number,
   ) {
-    const item = await this.workoutsService.addSetToWorkoutExercise(
+    return this.workoutsService.addSetToWorkoutExercise(
       req.user.id,
       workoutId,
       workoutExerciseId,
     );
-
-    return {
-      item,
-    };
   }
 
   @Delete('sets/:setId')
   async removeSet(@Request() req, @Param('setId', ParseIntPipe) setId: number) {
-    const item = await this.workoutsService.removeSet(req.user.id, setId);
-
-    return {
-      item,
-    };
+    return this.workoutsService.removeSet(req.user.id, setId);
   }
 }

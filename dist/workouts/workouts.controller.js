@@ -29,105 +29,55 @@ let WorkoutsController = class WorkoutsController {
         this.workoutsService = workoutsService;
     }
     async startWorkout(req, dto) {
-        const item = await this.workoutsService.startWorkout(req.user.id, dto);
-        return {
-            item,
-        };
+        return this.workoutsService.startWorkout(req.user.id, dto);
     }
     async getActiveWorkout(req) {
-        const item = await this.workoutsService.getActiveWorkout(req.user.id);
-        return {
-            item,
-        };
+        return this.workoutsService.getActiveWorkout(req.user.id);
     }
     async finishActiveWorkout(req) {
-        const item = await this.workoutsService.finishActiveWorkout(req.user.id);
-        return {
-            item,
-        };
+        return this.workoutsService.finishActiveWorkout(req.user.id);
     }
     async findAll(req) {
-        const items = await this.workoutsService.findAll(req.user.id);
-        return {
-            items,
-            total: items.length,
-        };
+        return this.workoutsService.findAll(req.user.id);
     }
     async findHistory(req) {
-        const items = await this.workoutsService.findHistory(req.user.id);
-        return {
-            items,
-            total: items.length,
-        };
+        return this.workoutsService.findHistory(req.user.id);
     }
     async findOne(req, id) {
-        const item = await this.workoutsService.findOne(req.user.id, id);
-        return {
-            item,
-        };
+        return this.workoutsService.findOne(req.user.id, id);
     }
     async updateWorkout(req, id, dto) {
-        const item = await this.workoutsService.updateWorkout(req.user.id, id, dto);
-        return {
-            item,
-        };
+        return this.workoutsService.updateWorkout(req.user.id, id, dto);
     }
     removeWorkout(req, id) {
         return this.workoutsService.removeWorkout(req.user.id, id);
     }
     async addExercise(req, workoutId, dto) {
-        const item = await this.workoutsService.addExercise(req.user.id, workoutId, dto);
-        return {
-            item,
-        };
+        return this.workoutsService.addExercise(req.user.id, workoutId, dto);
     }
     async changeExercisePosition(req, workoutId, workoutExerciseId, dto) {
-        const item = await this.workoutsService.changeExercisePosition(req.user.id, workoutId, workoutExerciseId, dto.order);
-        return {
-            item,
-        };
+        return this.workoutsService.changeExercisePosition(req.user.id, workoutId, workoutExerciseId, dto.order);
     }
     async changeExercise(req, workoutId, workoutExerciseId, dto) {
-        const item = await this.workoutsService.changeExercise(req.user.id, workoutId, workoutExerciseId, dto.exerciseId);
-        return {
-            item,
-        };
+        return this.workoutsService.changeExercise(req.user.id, workoutId, workoutExerciseId, dto.exerciseId);
     }
     async removeExercise(req, workoutId, workoutExerciseId) {
-        const item = await this.workoutsService.removeExercise(req.user.id, workoutId, workoutExerciseId);
-        return {
-            item,
-        };
+        return this.workoutsService.removeExercise(req.user.id, workoutId, workoutExerciseId);
     }
     async updateSet(req, setId, dto) {
-        const item = await this.workoutsService.updateSet(req.user.id, setId, dto);
-        return {
-            item,
-        };
+        return this.workoutsService.updateSet(req.user.id, setId, dto);
     }
     async confirmSet(req, setId, dto) {
-        const item = await this.workoutsService.confirmSet(req.user.id, setId, dto);
-        return {
-            item,
-        };
+        return this.workoutsService.confirmSet(req.user.id, setId, dto);
     }
     async addSet(req, workoutExerciseId) {
-        const item = await this.workoutsService.addSet(req.user.id, workoutExerciseId);
-        return {
-            item,
-        };
+        return this.workoutsService.addSet(req.user.id, workoutExerciseId);
     }
     async addSetToExercise(req, workoutId, workoutExerciseId) {
-        const item = await this.workoutsService.addSetToWorkoutExercise(req.user.id, workoutId, workoutExerciseId);
-        return {
-            item,
-        };
+        return this.workoutsService.addSetToWorkoutExercise(req.user.id, workoutId, workoutExerciseId);
     }
     async removeSet(req, setId) {
-        const item = await this.workoutsService.removeSet(req.user.id, setId);
-        return {
-            item,
-        };
+        return this.workoutsService.removeSet(req.user.id, setId);
     }
 };
 exports.WorkoutsController = WorkoutsController;

@@ -14,10 +14,8 @@ export declare class ExercisesService {
     remove(user: User, id: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            name: string;
-        };
+        id: number;
+        name: string;
     }>;
     private ensureUserCanAccessExercise;
     private ensureUserCanManageExercise;

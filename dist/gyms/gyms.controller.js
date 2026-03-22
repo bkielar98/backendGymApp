@@ -23,29 +23,16 @@ let GymsController = class GymsController {
         this.gymsService = gymsService;
     }
     async create(createGymDto) {
-        const item = await this.gymsService.create(createGymDto);
-        return {
-            item,
-        };
+        return this.gymsService.create(createGymDto);
     }
     async findAll() {
-        const items = await this.gymsService.findAll();
-        return {
-            items,
-            total: items.length,
-        };
+        return this.gymsService.findAll();
     }
     async findOne(id) {
-        const item = await this.gymsService.findOne(+id);
-        return {
-            item,
-        };
+        return this.gymsService.findOne(+id);
     }
     async update(id, updateGymDto) {
-        const item = await this.gymsService.update(+id, updateGymDto);
-        return {
-            item,
-        };
+        return this.gymsService.update(+id, updateGymDto);
     }
     remove(id) {
         return this.gymsService.remove(+id);

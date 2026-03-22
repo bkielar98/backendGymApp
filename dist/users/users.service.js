@@ -30,6 +30,17 @@ let UsersService = class UsersService {
         this.bodyMeasurementEntryRepository = bodyMeasurementEntryRepository;
     }
     async findOne(id) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        return user;
+    }
+    async getSessionProfile(id) {
+        const user = await this.findOne(id);
+        return this.mapSessionUser(user);
+    }
+    async getUserCard(id) {
         const user = await this.userRepository.findOne({
             where: { id },
             relations: ['weightEntries', 'bodyMeasurementEntries'],
@@ -37,10 +48,6 @@ let UsersService = class UsersService {
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        return user;
-    }
-    async getProfile(id) {
-        const user = await this.findOne(id);
         const weightEntries = [...(user.weightEntries ?? [])].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
         const bodyMeasurementEntries = [...(user.bodyMeasurementEntries ?? [])].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
         return {
@@ -52,19 +59,13 @@ let UsersService = class UsersService {
             avatarPath: user.avatarPath,
             avatarUrl: user.avatarPath ?? null,
             currentWeight: weightEntries.length > 0 ? weightEntries[weightEntries.length - 1].weight : user.weight,
-            weightHistory: {
-                items: weightEntries,
-                total: weightEntries.length,
-                chart: weightEntries.map((entry) => ({
-                    date: entry.recordedOn,
-                    value: entry.weight,
-                })),
-            },
-            bodyMeasurements: {
-                items: bodyMeasurementEntries,
-                total: bodyMeasurementEntries.length,
-                chart: this.buildMeasurementChart(bodyMeasurementEntries),
-            },
+            weightHistory: weightEntries,
+            weightChart: weightEntries.map((entry) => ({
+                date: entry.recordedOn,
+                value: entry.weight,
+            })),
+            bodyMeasurements: bodyMeasurementEntries,
+            bodyMeasurementsChart: this.buildMeasurementChart(bodyMeasurementEntries),
         };
     }
     async updateProfile(id, updateUserDto) {
@@ -124,17 +125,10 @@ let UsersService = class UsersService {
     }
     async listWeightEntries(id) {
         await this.findOne(id);
-        const items = await this.weightEntryRepository.find({
+        return this.weightEntryRepository.find({
             where: { user: { id } },
             order: { recordedOn: 'DESC', id: 'DESC' },
         });
-        return {
-            items,
-            total: items.length,
-            chart: [...items]
-                .reverse()
-                .map((entry) => ({ date: entry.recordedOn, value: entry.weight })),
-        };
     }
     async createWeightEntry(id, dto) {
         const user = await this.findOne(id);
@@ -162,23 +156,16 @@ let UsersService = class UsersService {
         return {
             success: true,
             message: 'Weight entry removed',
-            item: {
-                id: entry.id,
-                recordedOn: entry.recordedOn,
-            },
+            id: entry.id,
+            recordedOn: entry.recordedOn,
         };
     }
     async listBodyMeasurementEntries(id) {
         await this.findOne(id);
-        const items = await this.bodyMeasurementEntryRepository.find({
+        return this.bodyMeasurementEntryRepository.find({
             where: { user: { id } },
             order: { recordedOn: 'DESC', id: 'DESC' },
         });
-        return {
-            items,
-            total: items.length,
-            chart: this.buildMeasurementChart([...items].reverse()),
-        };
     }
     async createBodyMeasurementEntry(id, dto) {
         const user = await this.findOne(id);
@@ -199,10 +186,8 @@ let UsersService = class UsersService {
         return {
             success: true,
             message: 'Body measurement entry removed',
-            item: {
-                id: entry.id,
-                recordedOn: entry.recordedOn,
-            },
+            id: entry.id,
+            recordedOn: entry.recordedOn,
         };
     }
     async remove(id) {
@@ -211,10 +196,19 @@ let UsersService = class UsersService {
         return {
             success: true,
             message: 'User removed',
-            item: {
-                id: user.id,
-                email: user.email,
-            },
+            id: user.id,
+            email: user.email,
+        };
+    }
+    mapSessionUser(user) {
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            gender: user.gender,
+            role: user.role,
+            avatarPath: user.avatarPath ?? null,
+            avatarUrl: user.avatarPath ?? null,
         };
     }
     async findWeightEntry(userId, entryId) {

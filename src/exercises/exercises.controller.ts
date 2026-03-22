@@ -32,35 +32,21 @@ export class ExercisesController {
   @ApiOperation({ summary: 'Create exercise' })
   @ApiResponse({ status: 201, description: 'Exercise created' })
   async create(@Request() req, @Body() createExerciseDto: CreateExerciseDto) {
-    const item = await this.exercisesService.create(req.user, createExerciseDto);
-
-    return {
-      item,
-    };
+    return this.exercisesService.create(req.user, createExerciseDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'List all exercises' })
   @ApiResponse({ status: 200, description: 'Exercises retrieved' })
   async findAll(@Request() req) {
-    const items = await this.exercisesService.findAll(req.user);
-
-    return {
-      items,
-      total: items.length,
-    };
+    return this.exercisesService.findAll(req.user);
   }
 
   @Get('custom')
   @ApiOperation({ summary: 'List custom exercises available for current user' })
   @ApiResponse({ status: 200, description: 'Custom exercises retrieved' })
   async findCustom(@Request() req) {
-    const items = await this.exercisesService.findCustom(req.user);
-
-    return {
-      items,
-      total: items.length,
-    };
+    return this.exercisesService.findCustom(req.user);
   }
 
   @Get(':id')
@@ -68,11 +54,7 @@ export class ExercisesController {
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Exercise retrieved' })
   async findOne(@Request() req, @Param('id') id: string) {
-    const item = await this.exercisesService.findOne(req.user, +id);
-
-    return {
-      item,
-    };
+    return this.exercisesService.findOne(req.user, +id);
   }
 
   @Put(':id')
@@ -84,15 +66,11 @@ export class ExercisesController {
     @Param('id') id: string,
     @Body() updateExerciseDto: UpdateExerciseDto,
   ) {
-    const item = await this.exercisesService.update(
+    return this.exercisesService.update(
       req.user,
       +id,
       updateExerciseDto,
     );
-
-    return {
-      item,
-    };
   }
 
   @Delete(':id')

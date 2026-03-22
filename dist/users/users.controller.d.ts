@@ -10,88 +10,84 @@ export declare class UsersController {
     private usersService;
     constructor(usersService: UsersService);
     getProfile(req: any): Promise<{
-        item: {
-            id: number;
-            email: string;
-            name: string;
-            gender: string;
-            role: import("../entities/user.entity").UserRole;
-            avatarPath: string;
-            avatarUrl: string;
-            currentWeight: number;
-            weightHistory: {
-                items: import("../entities/user-weight-entry.entity").UserWeightEntry[];
-                total: number;
-                chart: {
-                    date: string;
-                    value: number;
-                }[];
-            };
-            bodyMeasurements: {
-                items: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
-                total: number;
-                chart: Record<string, {
-                    date: string;
-                    value: number;
-                }[]>;
-            };
-        };
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+        currentWeight: number;
+        weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
+        weightChart: {
+            date: string;
+            value: number;
+        }[];
+        bodyMeasurements: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
+        bodyMeasurementsChart: Record<string, {
+            date: string;
+            value: number;
+        }[]>;
+    }>;
+    getUserCard(req: any): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+        currentWeight: number;
+        weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
+        weightChart: {
+            date: string;
+            value: number;
+        }[];
+        bodyMeasurements: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
+        bodyMeasurementsChart: Record<string, {
+            date: string;
+            value: number;
+        }[]>;
     }>;
     updateProfile(req: any, updateUserDto: UpdateUserProfileDto): Promise<{
-        item: {
-            id: number;
-            email: string;
-            name: string;
-            gender: string;
-            role: import("../entities/user.entity").UserRole;
-            avatarPath: string;
-            avatarUrl: string;
-            currentWeight: number;
-            weightHistory: {
-                items: import("../entities/user-weight-entry.entity").UserWeightEntry[];
-                total: number;
-                chart: {
-                    date: string;
-                    value: number;
-                }[];
-            };
-            bodyMeasurements: {
-                items: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
-                total: number;
-                chart: Record<string, {
-                    date: string;
-                    value: number;
-                }[]>;
-            };
-        };
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+        currentWeight: number;
+        weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
+        weightChart: {
+            date: string;
+            value: number;
+        }[];
+        bodyMeasurements: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
+        bodyMeasurementsChart: Record<string, {
+            date: string;
+            value: number;
+        }[]>;
     }>;
     updateEmail(req: any, updateEmailDto: UpdateEmailDto): Promise<{
-        item: {
-            id: number;
-            email: string;
-            name: string;
-            gender: string;
-            role: import("../entities/user.entity").UserRole;
-            avatarPath: string;
-            avatarUrl: string;
-            currentWeight: number;
-            weightHistory: {
-                items: import("../entities/user-weight-entry.entity").UserWeightEntry[];
-                total: number;
-                chart: {
-                    date: string;
-                    value: number;
-                }[];
-            };
-            bodyMeasurements: {
-                items: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
-                total: number;
-                chart: Record<string, {
-                    date: string;
-                    value: number;
-                }[]>;
-            };
-        };
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+        currentWeight: number;
+        weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
+        weightChart: {
+            date: string;
+            value: number;
+        }[];
+        bodyMeasurements: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
+        bodyMeasurementsChart: Record<string, {
+            date: string;
+            value: number;
+        }[]>;
     }>;
     updatePassword(req: any, updatePasswordDto: UpdatePasswordDto): Promise<{
         success: boolean;
@@ -100,83 +96,47 @@ export declare class UsersController {
     uploadAvatar(req: any, file: {
         filename: string;
     }): Promise<{
-        item: {
-            id: number;
-            email: string;
-            name: string;
-            gender: string;
-            role: import("../entities/user.entity").UserRole;
-            avatarPath: string;
-            avatarUrl: string;
-            currentWeight: number;
-            weightHistory: {
-                items: import("../entities/user-weight-entry.entity").UserWeightEntry[];
-                total: number;
-                chart: {
-                    date: string;
-                    value: number;
-                }[];
-            };
-            bodyMeasurements: {
-                items: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
-                total: number;
-                chart: Record<string, {
-                    date: string;
-                    value: number;
-                }[]>;
-            };
-        };
-    }>;
-    getWeights(req: any): Promise<{
-        items: import("../entities/user-weight-entry.entity").UserWeightEntry[];
-        total: number;
-        chart: {
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+        currentWeight: number;
+        weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
+        weightChart: {
             date: string;
             value: number;
         }[];
-    }>;
-    createWeight(req: any, dto: CreateWeightEntryDto): Promise<{
-        item: import("../entities/user-weight-entry.entity").UserWeightEntry;
-    }>;
-    updateWeight(req: any, id: number, dto: UpdateWeightEntryDto): Promise<{
-        item: import("../entities/user-weight-entry.entity").UserWeightEntry;
-    }>;
-    deleteWeight(req: any, id: number): Promise<{
-        success: boolean;
-        message: string;
-        item: {
-            id: number;
-            recordedOn: string;
-        };
-    }>;
-    getBodyMeasurements(req: any): Promise<{
-        items: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
-        total: number;
-        chart: Record<string, {
+        bodyMeasurements: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[];
+        bodyMeasurementsChart: Record<string, {
             date: string;
             value: number;
         }[]>;
     }>;
-    createBodyMeasurement(req: any, dto: CreateBodyMeasurementEntryDto): Promise<{
-        item: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry;
+    getWeights(req: any): Promise<import("../entities/user-weight-entry.entity").UserWeightEntry[]>;
+    createWeight(req: any, dto: CreateWeightEntryDto): Promise<import("../entities/user-weight-entry.entity").UserWeightEntry>;
+    updateWeight(req: any, id: number, dto: UpdateWeightEntryDto): Promise<import("../entities/user-weight-entry.entity").UserWeightEntry>;
+    deleteWeight(req: any, id: number): Promise<{
+        success: boolean;
+        message: string;
+        id: number;
+        recordedOn: string;
     }>;
-    updateBodyMeasurement(req: any, id: number, dto: UpdateBodyMeasurementEntryDto): Promise<{
-        item: import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry;
-    }>;
+    getBodyMeasurements(req: any): Promise<import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry[]>;
+    createBodyMeasurement(req: any, dto: CreateBodyMeasurementEntryDto): Promise<import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry>;
+    updateBodyMeasurement(req: any, id: number, dto: UpdateBodyMeasurementEntryDto): Promise<import("../entities/user-body-measurement-entry.entity").UserBodyMeasurementEntry>;
     deleteBodyMeasurement(req: any, id: number): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            recordedOn: string;
-        };
+        id: number;
+        recordedOn: string;
     }>;
     deleteProfile(req: any): Promise<{
         success: boolean;
         message: string;
-        item: {
-            id: number;
-            email: string;
-        };
+        id: number;
+        email: string;
     }>;
 }

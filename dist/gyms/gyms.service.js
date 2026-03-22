@@ -45,10 +45,8 @@ let GymsService = class GymsService {
         return {
             success: true,
             message: 'Gym removed',
-            item: {
-                id: gym.id,
-                name: gym.name,
-            },
+            id: gym.id,
+            name: gym.name,
         };
     }
 };

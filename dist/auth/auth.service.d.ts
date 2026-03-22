@@ -13,4 +13,13 @@ export declare class AuthService {
     login(loginDto: LoginDto): Promise<{
         access_token: string;
     }>;
+    getMe(user: User): {
+        id: number;
+        email: string;
+        name: string;
+        gender: string;
+        role: import("../entities/user.entity").UserRole;
+        avatarPath: string;
+        avatarUrl: string;
+    };
 }

@@ -9,185 +9,164 @@ export declare class WorkoutTemplatesController {
     private readonly workoutTemplatesService;
     constructor(workoutTemplatesService: WorkoutTemplatesService);
     create(req: any, createDto: CreateWorkoutTemplateDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     findAll(req: any): Promise<{
-        items: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
         }[];
-        total: number;
-    }>;
+    }[]>;
     findOne(req: any, id: number): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     update(req: any, id: number, updateDto: UpdateWorkoutTemplateDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     patch(req: any, id: number, updateDto: UpdateWorkoutTemplateDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     addExercise(req: any, id: number, dto: AddWorkoutTemplateExerciseDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     changeExercisePosition(req: any, id: number, exerciseEntryId: number, dto: ChangeWorkoutTemplateExercisePositionDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     changeExercise(req: any, id: number, exerciseEntryId: number, dto: ChangeWorkoutTemplateExerciseDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     changeExerciseSetsCount(req: any, id: number, exerciseEntryId: number, dto: ChangeWorkoutTemplateExerciseSetsDto): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     removeExercise(req: any, id: number, exerciseEntryId: number): Promise<{
-        item: {
+        id: number;
+        name: string;
+        exercises: {
             id: number;
-            name: string;
-            exercises: {
+            exerciseId: number;
+            order: number;
+            setsCount: number;
+            exercise: {
                 id: number;
-                exerciseId: number;
-                order: number;
-                setsCount: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-            }[];
-        };
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+        }[];
     }>;
     remove(req: any, id: number): Promise<{
         message: string;

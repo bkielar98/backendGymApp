@@ -18,9 +18,7 @@ let AppController = class AppController {
     }
     getHello() {
         return {
-            item: {
-                message: this.appService.getHello(),
-            },
+            message: this.appService.getHello(),
         };
     }
 };
