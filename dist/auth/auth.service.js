@@ -32,9 +32,7 @@ let AuthService = class AuthService {
         });
         await this.userRepository.save(user);
         const payload = { email: user.email, sub: user.id };
-        return {
-            access_token: this.jwtService.sign(payload),
-        };
+        return this.buildAuthResponse(user, this.jwtService.sign(payload));
     }
     async login(loginDto) {
         const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
@@ -42,11 +40,18 @@ let AuthService = class AuthService {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const payload = { email: user.email, sub: user.id };
-        return {
-            access_token: this.jwtService.sign(payload),
-        };
+        return this.buildAuthResponse(user, this.jwtService.sign(payload));
     }
     getMe(user) {
+        return this.buildUserPayload(user);
+    }
+    buildAuthResponse(user, accessToken) {
+        return {
+            access_token: accessToken,
+            ...this.buildUserPayload(user),
+        };
+    }
+    buildUserPayload(user) {
         return {
             id: user.id,
             email: user.email,

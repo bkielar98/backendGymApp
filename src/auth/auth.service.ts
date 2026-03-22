@@ -15,7 +15,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<{ access_token: string }> {
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<Record<string, unknown>> {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const user = this.userRepository.create({
       ...registerDto,
@@ -23,23 +25,32 @@ export class AuthService {
     });
     await this.userRepository.save(user);
     const payload = { email: user.email, sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    return this.buildAuthResponse(user, this.jwtService.sign(payload));
   }
 
-  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<Record<string, unknown>> {
     const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
     if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
     const payload = { email: user.email, sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    return this.buildAuthResponse(user, this.jwtService.sign(payload));
   }
 
   getMe(user: User) {
+    return this.buildUserPayload(user);
+  }
+
+  private buildAuthResponse(user: User, accessToken: string | null) {
+    return {
+      access_token: accessToken,
+      ...this.buildUserPayload(user),
+    };
+  }
+
+  private buildUserPayload(user: User) {
     return {
       id: user.id,
       email: user.email,
