@@ -15,6 +15,8 @@ const class_transformer_1 = require("class-transformer");
 const workout_template_entity_1 = require("./workout-template.entity");
 const muscle_status_entity_1 = require("./muscle-status.entity");
 const workout_entity_1 = require("./workout.entity");
+const user_weight_entry_entity_1 = require("./user-weight-entry.entity");
+const user_body_measurement_entry_entity_1 = require("./user-body-measurement-entry.entity");
 var UserRole;
 (function (UserRole) {
     UserRole["ADMIN"] = "admin";
@@ -49,6 +51,10 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "gender", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "avatarPath", void 0);
+__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: UserRole,
@@ -68,6 +74,14 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => workout_entity_1.Workout, (workout) => workout.user),
     __metadata("design:type", Array)
 ], User.prototype, "workouts", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => user_weight_entry_entity_1.UserWeightEntry, (entry) => entry.user),
+    __metadata("design:type", Array)
+], User.prototype, "weightEntries", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => user_body_measurement_entry_entity_1.UserBodyMeasurementEntry, (entry) => entry.user),
+    __metadata("design:type", Array)
+], User.prototype, "bodyMeasurementEntries", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

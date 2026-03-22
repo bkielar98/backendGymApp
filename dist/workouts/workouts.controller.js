@@ -53,6 +53,13 @@ let WorkoutsController = class WorkoutsController {
             total: items.length,
         };
     }
+    async findHistory(req) {
+        const items = await this.workoutsService.findHistory(req.user.id);
+        return {
+            items,
+            total: items.length,
+        };
+    }
     async findOne(req, id) {
         const item = await this.workoutsService.findOne(req.user.id, id);
         return {
@@ -153,6 +160,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], WorkoutsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('history'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], WorkoutsController.prototype, "findHistory", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Request)()),

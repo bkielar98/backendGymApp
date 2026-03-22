@@ -1,16 +1,11 @@
-import { IsOptional, IsNumber, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
-export class UpdateUserDto {
+export class UpdateUserProfileDto {
   @ApiProperty({ example: 'Updated Name', required: false })
   @IsOptional()
   @IsString()
   name?: string;
-
-  @ApiProperty({ example: 75.0, required: false })
-  @IsOptional()
-  @IsNumber()
-  weight?: number;
 
   @ApiProperty({ example: 'male', required: false })
   @IsOptional()

@@ -5,6 +5,8 @@ const common_1 = require("@nestjs/common");
 const app_module_1 = require("./app.module");
 const swagger_1 = require("@nestjs/swagger");
 const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
+const path_1 = require("path");
+const express = require("express");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.useGlobalPipes(new common_1.ValidationPipe({
@@ -22,6 +24,7 @@ async function bootstrap() {
         },
     }));
     app.useGlobalFilters(new all_exceptions_filter_1.AllExceptionsFilter());
+    app.use('/uploads', express.static((0, path_1.join)(process.cwd(), 'uploads')));
     const config = new swagger_1.DocumentBuilder()
         .setTitle('Gym API')
         .setDescription('API aplikacji treningowej')

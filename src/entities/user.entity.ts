@@ -3,6 +3,8 @@ import { Exclude } from 'class-transformer';
 import { WorkoutTemplate } from './workout-template.entity';
 import { MuscleStatus } from './muscle-status.entity';
 import { Workout } from './workout.entity';
+import { UserWeightEntry } from './user-weight-entry.entity';
+import { UserBodyMeasurementEntry } from './user-body-measurement-entry.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -30,6 +32,9 @@ export class User {
   @Column({ nullable: true })
   gender: string;
 
+  @Column({ nullable: true })
+  avatarPath: string;
+
   @Column({
     type: 'enum',
     enum: UserRole,
@@ -45,4 +50,10 @@ export class User {
 
   @OneToMany(() => Workout, (workout) => workout.user)
   workouts: Workout[];
+
+  @OneToMany(() => UserWeightEntry, (entry) => entry.user)
+  weightEntries: UserWeightEntry[];
+
+  @OneToMany(() => UserBodyMeasurementEntry, (entry) => entry.user)
+  bodyMeasurementEntries: UserBodyMeasurementEntry[];
 }
