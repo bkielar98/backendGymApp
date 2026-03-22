@@ -11,6 +11,7 @@ import { GymsModule } from './gyms/gyms.module';
 import { MuscleStatusModule } from './muscle-status/muscle-status.module';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { GymModule } from './gym/gym.module';
+import { SchemaFixService } from './database/schema-fix.service';
 
 @Module({
   imports: [
@@ -40,6 +41,6 @@ import { GymModule } from './gym/gym.module';
     GymModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SchemaFixService],
 })
 export class AppModule {}
