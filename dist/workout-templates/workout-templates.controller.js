@@ -16,7 +16,6 @@ exports.WorkoutTemplatesController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
-const add_workout_template_exercise_dto_1 = require("./dto/add-workout-template-exercise.dto");
 const change_workout_template_exercise_position_dto_1 = require("./dto/change-workout-template-exercise-position.dto");
 const change_workout_template_exercise_sets_dto_1 = require("./dto/change-workout-template-exercise-sets.dto");
 const change_workout_template_exercise_dto_1 = require("./dto/change-workout-template-exercise.dto");
@@ -43,7 +42,7 @@ let WorkoutTemplatesController = class WorkoutTemplatesController {
         return this.workoutTemplatesService.update(req.user.id, id, updateDto);
     }
     async addExercise(req, id, dto) {
-        return this.workoutTemplatesService.addExercise(req.user.id, id, dto);
+        return this.workoutTemplatesService.addExercises(req.user.id, id, dto);
     }
     async changeExercisePosition(req, id, exerciseEntryId, dto) {
         return this.workoutTemplatesService.changeExercisePosition(req.user.id, id, exerciseEntryId, dto.order);
@@ -109,7 +108,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, add_workout_template_exercise_dto_1.AddWorkoutTemplateExerciseDto]),
+    __metadata("design:paramtypes", [Object, Number, Array]),
     __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "addExercise", null);
 __decorate([

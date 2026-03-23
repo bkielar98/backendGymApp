@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddWorkoutTemplateExerciseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class AddWorkoutTemplateExerciseDto {
 }
@@ -21,6 +22,7 @@ __decorate([
         description: 'ID ćwiczenia do dodania do planu',
     }),
     (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], AddWorkoutTemplateExerciseDto.prototype, "exerciseId", void 0);
 __decorate([
@@ -30,6 +32,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], AddWorkoutTemplateExerciseDto.prototype, "setsCount", void 0);
 __decorate([
@@ -39,6 +42,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], AddWorkoutTemplateExerciseDto.prototype, "order", void 0);
 //# sourceMappingURL=add-workout-template-exercise.dto.js.map

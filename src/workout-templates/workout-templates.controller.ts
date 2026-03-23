@@ -65,9 +65,9 @@ export class WorkoutTemplatesController {
   async addExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: AddWorkoutTemplateExerciseDto,
+    @Body() dto: AddWorkoutTemplateExerciseDto[],
   ) {
-    return this.workoutTemplatesService.addExercise(req.user.id, id, dto);
+    return this.workoutTemplatesService.addExercises(req.user.id, id, dto);
   }
 
   @Patch(':id/exercises/:exerciseEntryId/position')

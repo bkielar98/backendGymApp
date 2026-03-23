@@ -88,7 +88,7 @@ export declare class WorkoutTemplatesController {
             };
         }[];
     }>;
-    addExercise(req: any, id: number, dto: AddWorkoutTemplateExerciseDto): Promise<{
+    addExercise(req: any, id: number, dto: AddWorkoutTemplateExerciseDto[]): Promise<{
         id: number;
         name: string;
         exercises: {

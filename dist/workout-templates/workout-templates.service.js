@@ -120,31 +120,42 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         await this.templateRepository.save(template);
         return this.findOne(userId, template.id);
     }
-    async addExercise(userId, templateId, dto) {
+    async addExercises(userId, templateId, dtos) {
+        if (!Array.isArray(dtos) || dtos.length === 0) {
+            throw new common_1.BadRequestException('At least one exercise is required');
+        }
+        this.validateTemplateExercises(dtos);
         const template = await this.getTemplateEntityForUser(userId, templateId);
         const templateExercises = [...(template.exercises || [])];
-        const exercise = await this.exerciseRepository.findOne({
-            where: { id: dto.exerciseId },
+        const exerciseIds = dtos.map((dto) => dto.exerciseId);
+        const exercises = await this.exerciseRepository.find({
+            where: { id: (0, typeorm_2.In)(exerciseIds) },
         });
-        if (!exercise) {
-            throw new common_1.NotFoundException(`Exercise ${dto.exerciseId} not found`);
-        }
-        const insertOrder = Math.min(dto.order, templateExercises.length);
-        for (const item of templateExercises) {
-            if (item.order >= insertOrder) {
-                item.order += 1;
+        const exerciseMap = new Map(exercises.map((exercise) => [exercise.id, exercise]));
+        for (const exerciseId of exerciseIds) {
+            if (!exerciseMap.has(exerciseId)) {
+                throw new common_1.NotFoundException(`Exercise ${exerciseId} not found`);
             }
         }
+        const sortedDtos = [...dtos].sort((a, b) => a.order - b.order);
+        for (const dto of sortedDtos) {
+            const insertOrder = Math.min(dto.order, templateExercises.length);
+            for (const item of templateExercises) {
+                if (item.order >= insertOrder) {
+                    item.order += 1;
+                }
+            }
+            const newTemplateExercise = this.templateExerciseRepository.create({
+                templateId: template.id,
+                template,
+                exerciseId: dto.exerciseId,
+                exercise: exerciseMap.get(dto.exerciseId),
+                setsCount: dto.setsCount,
+                order: insertOrder,
+            });
+            templateExercises.push(newTemplateExercise);
+        }
         await this.templateExerciseRepository.save(templateExercises);
-        const templateExercise = this.templateExerciseRepository.create({
-            templateId: template.id,
-            template,
-            exerciseId: dto.exerciseId,
-            exercise,
-            setsCount: dto.setsCount,
-            order: insertOrder,
-        });
-        await this.templateExerciseRepository.save(templateExercise);
         return this.findOne(userId, template.id);
     }
     async changeExercisePosition(userId, templateId, templateExerciseId, order) {

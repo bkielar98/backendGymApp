@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt, Min } from 'class-validator';
 
 export class AddWorkoutTemplateExerciseDto {
@@ -7,6 +8,7 @@ export class AddWorkoutTemplateExerciseDto {
     description: 'ID ćwiczenia do dodania do planu',
   })
   @IsInt()
+  @Type(() => Number)
   exerciseId: number;
 
   @ApiProperty({
@@ -15,6 +17,7 @@ export class AddWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(1)
+  @Type(() => Number)
   setsCount: number;
 
   @ApiProperty({
@@ -23,5 +26,6 @@ export class AddWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   order: number;
 }

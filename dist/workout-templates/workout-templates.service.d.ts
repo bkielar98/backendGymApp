@@ -74,7 +74,7 @@ export declare class WorkoutTemplatesService {
             };
         }[];
     }>;
-    addExercise(userId: number, templateId: number, dto: AddWorkoutTemplateExerciseDto): Promise<{
+    addExercises(userId: number, templateId: number, dtos: AddWorkoutTemplateExerciseDto[]): Promise<{
         id: number;
         name: string;
         exercises: {

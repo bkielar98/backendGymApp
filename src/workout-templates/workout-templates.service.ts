@@ -144,41 +144,55 @@ export class WorkoutTemplatesService {
     return this.findOne(userId, template.id);
   }
 
-  async addExercise(
+  async addExercises(
     userId: number,
     templateId: number,
-    dto: AddWorkoutTemplateExerciseDto,
+    dtos: AddWorkoutTemplateExerciseDto[],
   ) {
-    const template = await this.getTemplateEntityForUser(userId, templateId);
-    const templateExercises = [...(template.exercises || [])];
-    const exercise = await this.exerciseRepository.findOne({
-      where: { id: dto.exerciseId },
-    });
-
-    if (!exercise) {
-      throw new NotFoundException(`Exercise ${dto.exerciseId} not found`);
+    if (!Array.isArray(dtos) || dtos.length === 0) {
+      throw new BadRequestException('At least one exercise is required');
     }
 
-    const insertOrder = Math.min(dto.order, templateExercises.length);
+    this.validateTemplateExercises(dtos);
 
-    for (const item of templateExercises) {
-      if (item.order >= insertOrder) {
-        item.order += 1;
+    const template = await this.getTemplateEntityForUser(userId, templateId);
+    const templateExercises = [...(template.exercises || [])];
+    const exerciseIds = dtos.map((dto) => dto.exerciseId);
+    const exercises = await this.exerciseRepository.find({
+      where: { id: In(exerciseIds) },
+    });
+    const exerciseMap = new Map(exercises.map((exercise) => [exercise.id, exercise]));
+
+    for (const exerciseId of exerciseIds) {
+      if (!exerciseMap.has(exerciseId)) {
+        throw new NotFoundException(`Exercise ${exerciseId} not found`);
       }
     }
 
+    const sortedDtos = [...dtos].sort((a, b) => a.order - b.order);
+
+    for (const dto of sortedDtos) {
+      const insertOrder = Math.min(dto.order, templateExercises.length);
+
+      for (const item of templateExercises) {
+        if (item.order >= insertOrder) {
+          item.order += 1;
+        }
+      }
+
+      const newTemplateExercise = this.templateExerciseRepository.create({
+        templateId: template.id,
+        template,
+        exerciseId: dto.exerciseId,
+        exercise: exerciseMap.get(dto.exerciseId),
+        setsCount: dto.setsCount,
+        order: insertOrder,
+      });
+
+      templateExercises.push(newTemplateExercise);
+    }
+
     await this.templateExerciseRepository.save(templateExercises);
-
-    const templateExercise = this.templateExerciseRepository.create({
-      templateId: template.id,
-      template,
-      exerciseId: dto.exerciseId,
-      exercise,
-      setsCount: dto.setsCount,
-      order: insertOrder,
-    });
-
-    await this.templateExerciseRepository.save(templateExercise);
 
     return this.findOne(userId, template.id);
   }
