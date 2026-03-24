@@ -15,6 +15,9 @@ export class SchemaFixService implements OnApplicationBootstrap {
     await this.dataSource.query(
       'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "avatarPath" character varying',
     );
+    await this.dataSource.query(
+      'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "refreshTokenHash" character varying',
+    );
 
     await this.dataSource.query(`
       CREATE TABLE IF NOT EXISTS "user_weight_entry" (

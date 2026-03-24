@@ -15,14 +15,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const bcrypt = require("bcrypt");
 const user_entity_1 = require("../entities/user.entity");
 let AuthService = class AuthService {
-    constructor(userRepository, jwtService) {
+    constructor(userRepository, jwtService, configService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.configService = configService;
     }
     async register(registerDto) {
         const existingUser = await this.userRepository.findOne({
@@ -32,30 +34,86 @@ let AuthService = class AuthService {
             throw new common_1.ConflictException('User with this email already exists');
         }
         const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+        const { rememberMe, ...userData } = registerDto;
         const user = this.userRepository.create({
-            ...registerDto,
+            ...userData,
             password: hashedPassword,
         });
         await this.userRepository.save(user);
-        const payload = { email: user.email, sub: user.id };
-        return this.buildAuthResponse(user, this.jwtService.sign(payload));
+        return this.createSessionResponse(user, rememberMe);
     }
     async login(loginDto) {
         const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
         if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        const payload = { email: user.email, sub: user.id };
-        return this.buildAuthResponse(user, this.jwtService.sign(payload));
+        return this.createSessionResponse(user, loginDto.rememberMe);
+    }
+    async refresh(refreshToken) {
+        const payload = await this.verifyRefreshToken(refreshToken);
+        const user = await this.userRepository.findOne({ where: { id: payload.sub } });
+        if (!user || !user.refreshTokenHash) {
+            throw new common_1.UnauthorizedException('Invalid or expired token');
+        }
+        const matches = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+        if (!matches) {
+            throw new common_1.UnauthorizedException('Invalid or expired token');
+        }
+        return this.createSessionResponse(user, true);
+    }
+    async logout(userId) {
+        await this.userRepository.update(userId, {
+            refreshTokenHash: null,
+        });
+        return {
+            success: true,
+            message: 'Logged out',
+        };
     }
     getMe(user) {
         return this.buildUserPayload(user);
     }
-    buildAuthResponse(user, accessToken) {
+    buildAuthResponse(user, accessToken, refreshToken) {
         return {
             access_token: accessToken,
+            refresh_token: refreshToken,
             ...this.buildUserPayload(user),
         };
+    }
+    async createSessionResponse(user, rememberMe) {
+        const payload = { email: user.email, sub: user.id };
+        const accessToken = await this.jwtService.signAsync(payload, {
+            secret: this.getJwtSecret(),
+            expiresIn: '15m',
+        });
+        const refreshToken = await this.jwtService.signAsync({
+            ...payload,
+            type: 'refresh',
+        }, {
+            secret: this.getJwtSecret(),
+            expiresIn: rememberMe ? '180d' : '30d',
+        });
+        await this.userRepository.update(user.id, {
+            refreshTokenHash: await bcrypt.hash(refreshToken, 10),
+        });
+        return this.buildAuthResponse(user, accessToken, refreshToken);
+    }
+    async verifyRefreshToken(refreshToken) {
+        try {
+            const payload = await this.jwtService.verifyAsync(refreshToken, {
+                secret: this.getJwtSecret(),
+            });
+            if (payload?.type !== 'refresh') {
+                throw new common_1.UnauthorizedException('Invalid or expired token');
+            }
+            return payload;
+        }
+        catch {
+            throw new common_1.UnauthorizedException('Invalid or expired token');
+        }
+    }
+    getJwtSecret() {
+        return this.configService.get('JWT_SECRET') || 'your-secret-key';
     }
     buildUserPayload(user) {
         return {
@@ -74,6 +132,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        config_1.ConfigService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

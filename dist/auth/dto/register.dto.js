@@ -13,6 +13,7 @@ exports.RegisterDto = void 0;
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const swagger_2 = require("@nestjs/swagger");
 class RegisterDto {
 }
 exports.RegisterDto = RegisterDto;
@@ -51,4 +52,10 @@ __decorate([
     (0, class_validator_1.IsIn)(['male', 'female']),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "gender", void 0);
+__decorate([
+    (0, swagger_2.ApiPropertyOptional)({ example: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RegisterDto.prototype, "rememberMe", void 0);
 //# sourceMappingURL=register.dto.js.map

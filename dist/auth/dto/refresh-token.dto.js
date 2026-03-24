@@ -9,28 +9,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoginDto = void 0;
+exports.RefreshTokenDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
-class LoginDto {
+class RefreshTokenDto {
 }
-exports.LoginDto = LoginDto;
+exports.RefreshTokenDto = RefreshTokenDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'user@example.com' }),
-    (0, class_validator_1.IsEmail)(),
-    __metadata("design:type", String)
-], LoginDto.prototype, "email", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'password123' }),
+    (0, swagger_1.ApiProperty)({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
-], LoginDto.prototype, "password", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Boolean)
-], LoginDto.prototype, "rememberMe", void 0);
-//# sourceMappingURL=login.dto.js.map
+], RefreshTokenDto.prototype, "refreshToken", void 0);
+//# sourceMappingURL=refresh-token.dto.js.map

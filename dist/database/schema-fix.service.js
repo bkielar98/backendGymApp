@@ -23,6 +23,7 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
     }
     async ensureUserCardSchema() {
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "avatarPath" character varying');
+        await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "refreshTokenHash" character varying');
         await this.dataSource.query(`
       CREATE TABLE IF NOT EXISTS "user_weight_entry" (
         "id" SERIAL PRIMARY KEY,
