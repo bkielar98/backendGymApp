@@ -49,6 +49,14 @@ export class ExercisesController {
     return this.exercisesService.findCustom(req.user);
   }
 
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Get exercise history by ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Exercise history retrieved' })
+  async findHistory(@Request() req, @Param('id') id: string) {
+    return this.exercisesService.findHistory(req.user, +id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get exercise by ID' })
   @ApiParam({ name: 'id', type: Number })

@@ -32,6 +32,9 @@ let ExercisesController = class ExercisesController {
     async findCustom(req) {
         return this.exercisesService.findCustom(req.user);
     }
+    async findHistory(req, id) {
+        return this.exercisesService.findHistory(req.user, +id);
+    }
     async findOne(req, id) {
         return this.exercisesService.findOne(req.user, +id);
     }
@@ -71,6 +74,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "findCustom", null);
+__decorate([
+    (0, common_1.Get)(':id/history'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get exercise history by ID' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercise history retrieved' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ExercisesController.prototype, "findHistory", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get exercise by ID' }),

@@ -7,6 +7,7 @@ describe('ExercisesController', () => {
     create: any;
     findAll: any;
     findCustom: any;
+    findHistory: any;
     findOne: any;
     update: any;
     remove: any;
@@ -17,6 +18,7 @@ describe('ExercisesController', () => {
       create: jest.fn(),
       findAll: jest.fn(),
       findCustom: jest.fn(),
+      findHistory: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
@@ -49,5 +51,19 @@ describe('ExercisesController', () => {
         { name: 'Lat Pulldown', muscleGroups: ['back'] },
       ),
     ).resolves.toEqual(item);
+  });
+
+  it('returns exercise history directly', async () => {
+    const history = [
+      {
+        date: '2026-03-23',
+        sets: [{ id: 10, setNumber: 1, currentWeight: 80, currentReps: 8 }],
+      },
+    ];
+    exercisesService.findHistory.mockResolvedValue(history);
+
+    await expect(
+      controller.findHistory({ user: { id: 15 } }, '1'),
+    ).resolves.toEqual(history);
   });
 });

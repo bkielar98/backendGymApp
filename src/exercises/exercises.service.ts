@@ -9,12 +9,16 @@ import { Exercise } from '../entities/exercise.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { User, UserRole } from '../entities/user.entity';
+import { WorkoutExercise } from '../entities/workout-exercise.entity';
+import { WorkoutStatus } from '../entities/workout.entity';
 
 @Injectable()
 export class ExercisesService {
   constructor(
     @InjectRepository(Exercise)
     private exerciseRepository: Repository<Exercise>,
+    @InjectRepository(WorkoutExercise)
+    private workoutExerciseRepository: Repository<WorkoutExercise>,
   ) {}
 
   async create(user: User, createExerciseDto: CreateExerciseDto): Promise<Exercise> {
@@ -83,6 +87,80 @@ export class ExercisesService {
     return exercise;
   }
 
+  async findHistory(user: User, id: number) {
+    const exercise = await this.findOne(user, id);
+    const workoutExercises = await this.workoutExerciseRepository.find({
+      where: {
+        exerciseId: exercise.id,
+        workout: {
+          userId: user.id,
+          status: WorkoutStatus.COMPLETED,
+        },
+      },
+      relations: {
+        workout: true,
+      },
+      order: {
+        workout: {
+          finishedAt: 'DESC',
+          startedAt: 'DESC',
+        },
+        order: 'ASC',
+        sets: {
+          setNumber: 'ASC',
+        },
+      },
+    });
+
+    const groupedByDate = new Map<
+      string,
+      {
+        date: string;
+        sets: Array<{
+          id: number;
+          setNumber: number;
+          previousWeight: number | null;
+          previousReps: number | null;
+          currentWeight: number | null;
+          currentReps: number | null;
+          repMax: number | null;
+          confirmed: boolean;
+        }>;
+      }
+    >();
+
+    for (const workoutExercise of workoutExercises) {
+      const workoutDate =
+        workoutExercise.workout.finishedAt || workoutExercise.workout.startedAt;
+      const dateKey = this.toDateKey(workoutDate);
+      const entry = groupedByDate.get(dateKey) || {
+        date: dateKey,
+        sets: [],
+      };
+
+      entry.sets.push(
+        ...(workoutExercise.sets || [])
+          .sort((a, b) => a.setNumber - b.setNumber)
+          .map((set) => ({
+            id: set.id,
+            setNumber: set.setNumber,
+            previousWeight: set.previousWeight,
+            previousReps: set.previousReps,
+            currentWeight: set.currentWeight,
+            currentReps: set.currentReps,
+            repMax: set.repMax,
+            confirmed: set.confirmed,
+          })),
+      );
+
+      groupedByDate.set(dateKey, entry);
+    }
+
+    return Array.from(groupedByDate.values()).sort((a, b) =>
+      b.date.localeCompare(a.date),
+    );
+  }
+
   async update(
     user: User,
     id: number,
@@ -134,5 +212,9 @@ export class ExercisesService {
     }
 
     throw new ForbiddenException('You cannot modify this exercise');
+  }
+
+  private toDateKey(date: Date) {
+    return new Date(date).toISOString().slice(0, 10);
   }
 }

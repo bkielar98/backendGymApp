@@ -18,9 +18,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const exercise_entity_1 = require("../entities/exercise.entity");
 const user_entity_1 = require("../entities/user.entity");
+const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
+const workout_entity_1 = require("../entities/workout.entity");
 let ExercisesService = class ExercisesService {
-    constructor(exerciseRepository) {
+    constructor(exerciseRepository, workoutExerciseRepository) {
         this.exerciseRepository = exerciseRepository;
+        this.workoutExerciseRepository = workoutExerciseRepository;
     }
     async create(user, createExerciseDto) {
         const exercise = this.exerciseRepository.create({
@@ -76,6 +79,54 @@ let ExercisesService = class ExercisesService {
         this.ensureUserCanAccessExercise(user, exercise);
         return exercise;
     }
+    async findHistory(user, id) {
+        const exercise = await this.findOne(user, id);
+        const workoutExercises = await this.workoutExerciseRepository.find({
+            where: {
+                exerciseId: exercise.id,
+                workout: {
+                    userId: user.id,
+                    status: workout_entity_1.WorkoutStatus.COMPLETED,
+                },
+            },
+            relations: {
+                workout: true,
+            },
+            order: {
+                workout: {
+                    finishedAt: 'DESC',
+                    startedAt: 'DESC',
+                },
+                order: 'ASC',
+                sets: {
+                    setNumber: 'ASC',
+                },
+            },
+        });
+        const groupedByDate = new Map();
+        for (const workoutExercise of workoutExercises) {
+            const workoutDate = workoutExercise.workout.finishedAt || workoutExercise.workout.startedAt;
+            const dateKey = this.toDateKey(workoutDate);
+            const entry = groupedByDate.get(dateKey) || {
+                date: dateKey,
+                sets: [],
+            };
+            entry.sets.push(...(workoutExercise.sets || [])
+                .sort((a, b) => a.setNumber - b.setNumber)
+                .map((set) => ({
+                id: set.id,
+                setNumber: set.setNumber,
+                previousWeight: set.previousWeight,
+                previousReps: set.previousReps,
+                currentWeight: set.currentWeight,
+                currentReps: set.currentReps,
+                repMax: set.repMax,
+                confirmed: set.confirmed,
+            })));
+            groupedByDate.set(dateKey, entry);
+        }
+        return Array.from(groupedByDate.values()).sort((a, b) => b.date.localeCompare(a.date));
+    }
     async update(user, id, updateExerciseDto) {
         const exercise = await this.findOne(user, id);
         this.ensureUserCanManageExercise(user, exercise);
@@ -114,11 +165,16 @@ let ExercisesService = class ExercisesService {
         }
         throw new common_1.ForbiddenException('You cannot modify this exercise');
     }
+    toDateKey(date) {
+        return new Date(date).toISOString().slice(0, 10);
+    }
 };
 exports.ExercisesService = ExercisesService;
 exports.ExercisesService = ExercisesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(exercise_entity_1.Exercise)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(workout_exercise_entity_1.WorkoutExercise)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], ExercisesService);
 //# sourceMappingURL=exercises.service.js.map

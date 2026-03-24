@@ -10,6 +10,7 @@ const exercises_controller_1 = require("./exercises.controller");
             create: globals_1.jest.fn(),
             findAll: globals_1.jest.fn(),
             findCustom: globals_1.jest.fn(),
+            findHistory: globals_1.jest.fn(),
             findOne: globals_1.jest.fn(),
             update: globals_1.jest.fn(),
             remove: globals_1.jest.fn(),
@@ -30,6 +31,16 @@ const exercises_controller_1 = require("./exercises.controller");
         const item = { id: 3, name: 'Lat Pulldown' };
         exercisesService.create.mockResolvedValue(item);
         await (0, globals_1.expect)(controller.create({ user: { id: 15 } }, { name: 'Lat Pulldown', muscleGroups: ['back'] })).resolves.toEqual(item);
+    });
+    (0, globals_1.it)('returns exercise history directly', async () => {
+        const history = [
+            {
+                date: '2026-03-23',
+                sets: [{ id: 10, setNumber: 1, currentWeight: 80, currentReps: 8 }],
+            },
+        ];
+        exercisesService.findHistory.mockResolvedValue(history);
+        await (0, globals_1.expect)(controller.findHistory({ user: { id: 15 } }, '1')).resolves.toEqual(history);
     });
 });
 //# sourceMappingURL=exercises.controller.spec.js.map

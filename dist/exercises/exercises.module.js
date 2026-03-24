@@ -12,12 +12,13 @@ const typeorm_1 = require("@nestjs/typeorm");
 const exercises_service_1 = require("./exercises.service");
 const exercises_controller_1 = require("./exercises.controller");
 const exercise_entity_1 = require("../entities/exercise.entity");
+const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
 let ExercisesModule = class ExercisesModule {
 };
 exports.ExercisesModule = ExercisesModule;
 exports.ExercisesModule = ExercisesModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([exercise_entity_1.Exercise])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([exercise_entity_1.Exercise, workout_exercise_entity_1.WorkoutExercise])],
         providers: [exercises_service_1.ExercisesService],
         controllers: [exercises_controller_1.ExercisesController],
     })
