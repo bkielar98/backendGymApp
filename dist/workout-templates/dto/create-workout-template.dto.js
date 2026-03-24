@@ -22,6 +22,7 @@ __decorate([
         description: 'ID ćwiczenia',
     }),
     (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateWorkoutTemplateExerciseDto.prototype, "exerciseId", void 0);
 __decorate([
@@ -31,6 +32,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateWorkoutTemplateExerciseDto.prototype, "setsCount", void 0);
 __decorate([
@@ -40,6 +42,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateWorkoutTemplateExerciseDto.prototype, "order", void 0);
 class CreateWorkoutTemplateDto {
@@ -52,6 +55,7 @@ __decorate([
     }),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], CreateWorkoutTemplateDto.prototype, "name", void 0);
 __decorate([
@@ -64,6 +68,7 @@ __decorate([
         description: 'Lista ćwiczeń w planie',
     }),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMinSize)(1),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => CreateWorkoutTemplateExerciseDto),
     __metadata("design:type", Array)

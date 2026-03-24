@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt } from 'class-validator';
 
 export class ChangeWorkoutTemplateExerciseDto {
@@ -7,5 +8,6 @@ export class ChangeWorkoutTemplateExerciseDto {
     description: 'Nowe ID ćwiczenia przypisanego do pozycji w planie',
   })
   @IsInt()
+  @Type(() => Number)
   exerciseId: number;
 }

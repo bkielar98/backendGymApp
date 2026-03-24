@@ -22,6 +22,7 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdateWorkoutDto.prototype, "name", void 0);
 //# sourceMappingURL=update-workout.dto.js.map

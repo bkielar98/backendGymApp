@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateMuscleStatusDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class CreateMuscleStatusDto {
@@ -19,11 +20,14 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 'chest' }),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(50),
     __metadata("design:type", String)
 ], CreateMuscleStatusDto.prototype, "muscleGroup", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: '2023-10-01T10:00:00Z', required: false }),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Date)
+    (0, class_validator_1.IsDateString)(),
+    (0, class_transformer_1.Type)(() => String),
+    __metadata("design:type", String)
 ], CreateMuscleStatusDto.prototype, "lastTrainedAt", void 0);
 //# sourceMappingURL=create-muscle-status.dto.js.map

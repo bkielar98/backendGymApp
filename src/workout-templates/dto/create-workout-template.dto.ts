@@ -4,6 +4,8 @@ import {
   IsNotEmpty,
   IsString,
   Min,
+  MaxLength,
+  ArrayMinSize,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -15,6 +17,7 @@ export class CreateWorkoutTemplateExerciseDto {
     description: 'ID ćwiczenia',
   })
   @IsInt()
+  @Type(() => Number)
   exerciseId: number;
 
   @ApiProperty({
@@ -23,6 +26,7 @@ export class CreateWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(1)
+  @Type(() => Number)
   setsCount: number;
 
   @ApiProperty({
@@ -31,6 +35,7 @@ export class CreateWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   order: number;
 }
 
@@ -41,6 +46,7 @@ export class CreateWorkoutTemplateDto {
   })
   @IsNotEmpty()
   @IsString()
+  @MaxLength(100)
   name: string;
 
   @ApiProperty({
@@ -52,6 +58,7 @@ export class CreateWorkoutTemplateDto {
     description: 'Lista ćwiczeń w planie',
   })
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateWorkoutTemplateExerciseDto)
   exercises: CreateWorkoutTemplateExerciseDto[];

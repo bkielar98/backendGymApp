@@ -19,12 +19,14 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 'Updated Name', required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdateUserProfileDto.prototype, "name", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'male', required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsIn)(['male', 'female']),
     __metadata("design:type", String)
 ], UpdateUserProfileDto.prototype, "gender", void 0);
 //# sourceMappingURL=update-user-profile.dto.js.map

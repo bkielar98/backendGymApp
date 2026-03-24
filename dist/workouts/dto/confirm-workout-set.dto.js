@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConfirmWorkoutSetDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class ConfirmWorkoutSetDto {
@@ -22,6 +23,7 @@ __decorate([
     }),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], ConfirmWorkoutSetDto.prototype, "currentWeight", void 0);
 __decorate([
@@ -31,6 +33,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], ConfirmWorkoutSetDto.prototype, "currentReps", void 0);
 //# sourceMappingURL=confirm-workout-set.dto.js.map

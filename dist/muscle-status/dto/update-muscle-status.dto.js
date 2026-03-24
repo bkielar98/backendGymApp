@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateMuscleStatusDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class UpdateMuscleStatusDto {
@@ -18,6 +19,8 @@ exports.UpdateMuscleStatusDto = UpdateMuscleStatusDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ example: '2023-10-02T10:00:00Z', required: false }),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Date)
+    (0, class_validator_1.IsDateString)(),
+    (0, class_transformer_1.Type)(() => String),
+    __metadata("design:type", String)
 ], UpdateMuscleStatusDto.prototype, "lastTrainedAt", void 0);
 //# sourceMappingURL=update-muscle-status.dto.js.map

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChangeWorkoutExerciseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class ChangeWorkoutExerciseDto {
 }
@@ -21,6 +22,7 @@ __decorate([
         description: 'Nowe ID cwiczenia przypisanego do pozycji w aktywnym treningu',
     }),
     (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], ChangeWorkoutExerciseDto.prototype, "exerciseId", void 0);
 //# sourceMappingURL=change-workout-exercise.dto.js.map

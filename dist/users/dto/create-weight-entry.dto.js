@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateWeightEntryDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class CreateWeightEntryDto {
 }
@@ -23,6 +24,8 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 80.2 }),
     (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateWeightEntryDto.prototype, "weight", void 0);
 //# sourceMappingURL=create-weight-entry.dto.js.map

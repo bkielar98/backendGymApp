@@ -1,4 +1,5 @@
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class StartWorkoutDto {
@@ -9,6 +10,7 @@ export class StartWorkoutDto {
   })
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   templateId?: number;
 
   @ApiPropertyOptional({
@@ -17,5 +19,6 @@ export class StartWorkoutDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   name?: string;
 }

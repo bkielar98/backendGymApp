@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsString,
   Min,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -17,6 +18,7 @@ export class UpdateWorkoutTemplateExerciseDto {
   })
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   id?: number;
 
   @ApiProperty({
@@ -24,6 +26,7 @@ export class UpdateWorkoutTemplateExerciseDto {
     description: 'ID ćwiczenia, które ma być przypisane do planu',
   })
   @IsInt()
+  @Type(() => Number)
   exerciseId: number;
 
   @ApiProperty({
@@ -32,6 +35,7 @@ export class UpdateWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(1)
+  @Type(() => Number)
   setsCount: number;
 
   @ApiProperty({
@@ -40,6 +44,7 @@ export class UpdateWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   order: number;
 }
 
@@ -50,6 +55,7 @@ export class UpdateWorkoutTemplateDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   name?: string;
 
   @ApiPropertyOptional({

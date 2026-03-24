@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateGymDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class CreateGymDto {
@@ -19,21 +20,26 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 'Local Gym' }),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], CreateGymDto.prototype, "name", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 40.7128 }),
     (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateGymDto.prototype, "latitude", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: -74.0060 }),
     (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateGymDto.prototype, "longitude", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 100.0 }),
     (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateGymDto.prototype, "radius", void 0);
 //# sourceMappingURL=create-gym.dto.js.map

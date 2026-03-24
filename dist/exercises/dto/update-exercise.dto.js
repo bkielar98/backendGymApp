@@ -19,18 +19,21 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 'Updated Bench Press', required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdateExerciseDto.prototype, "name", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'Updated description', required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(500),
     __metadata("design:type", String)
 ], UpdateExerciseDto.prototype, "description", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: ['chest', 'triceps', 'shoulders'], type: [String], required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMinSize)(1),
     (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], UpdateExerciseDto.prototype, "muscleGroups", void 0);

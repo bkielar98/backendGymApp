@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChangeWorkoutTemplateExercisePositionDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class ChangeWorkoutTemplateExercisePositionDto {
 }
@@ -22,6 +23,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], ChangeWorkoutTemplateExercisePositionDto.prototype, "order", void 0);
 //# sourceMappingURL=change-workout-template-exercise-position.dto.js.map

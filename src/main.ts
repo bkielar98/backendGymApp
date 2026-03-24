@@ -1,5 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import {
+  ValidationPipe,
+  BadRequestException,
+  ValidationError,
+} from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -15,15 +19,7 @@ async function bootstrap() {
       transform: true,
       forbidNonWhitelisted: true,
       exceptionFactory: (errors) => {
-        const messages = errors.flatMap((error) => {
-          if (!error.constraints) {
-            return [`Pole ${error.property} zawiera nieprawidłową wartość.`];
-          }
-
-          return Object.values(error.constraints).map(
-            (message) => `${error.property}: ${message}`,
-          );
-        });
+        const messages = flattenValidationErrors(errors);
 
         return new BadRequestException(messages);
       },
@@ -48,3 +44,30 @@ async function bootstrap() {
   await app.listen(process.env.PORT ? Number(process.env.PORT) : 3000, '0.0.0.0');
 }
 bootstrap();
+
+function flattenValidationErrors(
+  errors: ValidationError[],
+  parentPath = '',
+): string[] {
+  return errors.flatMap((error) => {
+    const path = parentPath
+      ? /^\d+$/.test(error.property)
+        ? `${parentPath}[${error.property}]`
+        : `${parentPath}.${error.property}`
+      : error.property;
+
+    const ownMessages = error.constraints
+      ? Object.values(error.constraints).map((message) => `${path}: ${message}`)
+      : [];
+
+    if (error.children?.length) {
+      return [...ownMessages, ...flattenValidationErrors(error.children, path)];
+    }
+
+    if (ownMessages.length > 0) {
+      return ownMessages;
+    }
+
+    return [`Pole ${path} zawiera nieprawidlowa wartosc.`];
+  });
+}

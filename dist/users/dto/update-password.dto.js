@@ -18,12 +18,16 @@ exports.UpdatePasswordDto = UpdatePasswordDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'current-password-123' }),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdatePasswordDto.prototype, "currentPassword", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'new-password-123' }),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.MinLength)(8),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdatePasswordDto.prototype, "newPassword", void 0);
 //# sourceMappingURL=update-password.dto.js.map

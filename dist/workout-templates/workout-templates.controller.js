@@ -16,6 +16,7 @@ exports.WorkoutTemplatesController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const add_workout_template_exercise_dto_1 = require("./dto/add-workout-template-exercise.dto");
 const change_workout_template_exercise_position_dto_1 = require("./dto/change-workout-template-exercise-position.dto");
 const change_workout_template_exercise_sets_dto_1 = require("./dto/change-workout-template-exercise-sets.dto");
 const change_workout_template_exercise_dto_1 = require("./dto/change-workout-template-exercise.dto");
@@ -106,7 +107,11 @@ __decorate([
     (0, common_1.Post)(':id/exercises'),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Body)()),
+    __param(2, (0, common_1.Body)(new common_1.ParseArrayPipe({
+        items: add_workout_template_exercise_dto_1.AddWorkoutTemplateExerciseDto,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+    }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Array]),
     __metadata("design:returntype", Promise)

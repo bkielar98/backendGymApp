@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseArrayPipe,
   Patch,
   ParseIntPipe,
   Post,
@@ -65,7 +66,14 @@ export class WorkoutTemplatesController {
   async addExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: AddWorkoutTemplateExerciseDto[],
+    @Body(
+      new ParseArrayPipe({
+        items: AddWorkoutTemplateExerciseDto,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    dto: AddWorkoutTemplateExerciseDto[],
   ) {
     return this.workoutTemplatesService.addExercises(req.user.id, id, dto);
   }

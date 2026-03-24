@@ -23,6 +23,7 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], UpdateWorkoutTemplateExerciseDto.prototype, "id", void 0);
 __decorate([
@@ -31,6 +32,7 @@ __decorate([
         description: 'ID ćwiczenia, które ma być przypisane do planu',
     }),
     (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], UpdateWorkoutTemplateExerciseDto.prototype, "exerciseId", void 0);
 __decorate([
@@ -40,6 +42,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], UpdateWorkoutTemplateExerciseDto.prototype, "setsCount", void 0);
 __decorate([
@@ -49,6 +52,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], UpdateWorkoutTemplateExerciseDto.prototype, "order", void 0);
 class UpdateWorkoutTemplateDto {
@@ -61,6 +65,7 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdateWorkoutTemplateDto.prototype, "name", void 0);
 __decorate([

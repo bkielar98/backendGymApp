@@ -25,6 +25,12 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(registerDto) {
+        const existingUser = await this.userRepository.findOne({
+            where: { email: registerDto.email },
+        });
+        if (existingUser) {
+            throw new common_1.ConflictException('User with this email already exists');
+        }
         const hashedPassword = await bcrypt.hash(registerDto.password, 10);
         const user = this.userRepository.create({
             ...registerDto,

@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsInt, IsNumber, IsOptional, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -9,6 +10,7 @@ export class UpdateWorkoutSetDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Type(() => Number)
   currentWeight?: number;
 
   @ApiPropertyOptional({
@@ -18,5 +20,6 @@ export class UpdateWorkoutSetDto {
   @IsOptional()
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   currentReps?: number;
 }
