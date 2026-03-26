@@ -6,4 +6,5 @@ export declare class SchemaFixService implements OnApplicationBootstrap {
     constructor(dataSource: DataSource);
     onApplicationBootstrap(): Promise<void>;
     private ensureUserCardSchema;
+    private ensureFriendshipSchema;
 }

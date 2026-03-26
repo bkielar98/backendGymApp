@@ -9,6 +9,7 @@ export class SchemaFixService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     await this.ensureUserCardSchema();
+    await this.ensureFriendshipSchema();
   }
 
   private async ensureUserCardSchema() {
@@ -58,5 +59,39 @@ export class SchemaFixService implements OnApplicationBootstrap {
     `);
 
     this.logger.log('User card schema verified');
+  }
+
+  private async ensureFriendshipSchema() {
+    await this.dataSource.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'friendship_status_enum') THEN
+          CREATE TYPE "friendship_status_enum" AS ENUM ('pending', 'accepted', 'rejected');
+        END IF;
+      END$$;
+    `);
+
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS "friendship" (
+        "id" SERIAL PRIMARY KEY,
+        "requesterUserId" integer NOT NULL,
+        "receiverUserId" integer NOT NULL,
+        "status" "friendship_status_enum" NOT NULL DEFAULT 'pending',
+        "respondedAt" TIMESTAMP NULL,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "FK_friendship_requester" FOREIGN KEY ("requesterUserId") REFERENCES "user"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_friendship_receiver" FOREIGN KEY ("receiverUserId") REFERENCES "user"("id") ON DELETE CASCADE
+      )
+    `);
+
+    await this.dataSource.query(`
+      CREATE INDEX IF NOT EXISTS "IDX_friendship_requester" ON "friendship" ("requesterUserId")
+    `);
+    await this.dataSource.query(`
+      CREATE INDEX IF NOT EXISTS "IDX_friendship_receiver" ON "friendship" ("receiverUserId")
+    `);
+
+    this.logger.log('Friendship schema verified');
   }
 }

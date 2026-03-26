@@ -1,3 +1,3 @@
 export declare class UpdateMuscleStatusDto {
-    lastTrainedAt?: Date;
+    lastTrainedAt?: string;
 }

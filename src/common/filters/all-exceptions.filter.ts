@@ -15,7 +15,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Wystąpił nieoczekiwany błąd serwera.';
+    let message = 'Wystapil nieoczekiwany blad serwera.';
     let details: string[] = [];
 
     if (exception instanceof HttpException) {
@@ -48,7 +48,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }
       }
     } else if (exception instanceof Error) {
-      message = 'Wewnętrzny błąd serwera.';
+      message = 'Wewnetrzny blad serwera.';
       details = [exception.message];
     }
 
@@ -64,42 +64,51 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private getDefaultMessageForStatus(statusCode: number): string {
     switch (statusCode) {
       case 400:
-        return 'Nieprawidłowe dane.';
+        return 'Nieprawidlowe dane.';
       case 401:
         return 'Brak autoryzacji.';
       case 403:
-        return 'Brak dostępu do tego zasobu.';
+        return 'Brak dostepu do tego zasobu.';
       case 404:
         return 'Nie znaleziono zasobu.';
       case 409:
         return 'Konflikt danych.';
       case 422:
-        return 'Dane zawierają błędy.';
+        return 'Dane zawieraja bledy.';
       default:
-        return 'Wystąpił błąd.';
+        return 'Wystapil blad.';
     }
   }
 
   private translateMessage(message: string): string {
     const dictionary: Record<string, string> = {
-      'Invalid credentials': 'Nieprawidłowy email lub hasło.',
-      'User with this email already exists': 'Użytkownik z takim adresem e-mail już istnieje.',
-      'User already exists': 'Użytkownik już istnieje.',
+      'Invalid credentials': 'Nieprawidlowy email lub haslo.',
+      'User with this email already exists':
+        'Uzytkownik z takim adresem e-mail juz istnieje.',
+      'User already exists': 'Uzytkownik juz istnieje.',
       'Workout not found': 'Nie znaleziono treningu.',
       'Active workout not found': 'Nie znaleziono aktywnego treningu.',
-      'Workout exercise not found': 'Nie znaleziono ćwiczenia w treningu.',
+      'Workout exercise not found': 'Nie znaleziono cwiczenia w treningu.',
       'Workout set not found': 'Nie znaleziono serii treningowej.',
       'Workout template not found': 'Nie znaleziono planu treningowego.',
-      'Exercise not found': 'Nie znaleziono ćwiczenia.',
-      'User already has an active workout': 'Masz już aktywny trening.',
-      'Invalid or expired token': 'Nieprawidłowy lub wygasły token.',
-      'Token expired': 'Token wygasł.',
-      'Could not send confirmation email': 'Nie udało się wysłać wiadomości potwierdzającej.',
+      'Exercise not found': 'Nie znaleziono cwiczenia.',
+      'User not found': 'Nie znaleziono uzytkownika.',
+      'You cannot send a friend request to yourself':
+        'Nie mozna wyslac zaproszenia do samego siebie.',
+      'Friend request already exists': 'Zaproszenie do znajomych juz istnieje.',
+      'Users are already friends': 'Uzytkownicy sa juz znajomymi.',
+      'Friend request not found': 'Nie znaleziono zaproszenia do znajomych.',
+      'Friendship not found': 'Nie znaleziono znajomosci.',
+      'User already has an active workout': 'Masz juz aktywny trening.',
+      'Invalid or expired token': 'Nieprawidlowy lub wygasly token.',
+      'Token expired': 'Token wygasl.',
+      'Could not send confirmation email':
+        'Nie udalo sie wyslac wiadomosci potwierdzajacej.',
       Unauthorized: 'Brak autoryzacji.',
-      Forbidden: 'Brak dostępu.',
-      'Bad Request': 'Nieprawidłowe żądanie.',
+      Forbidden: 'Brak dostepu.',
+      'Bad Request': 'Nieprawidlowe zadanie.',
       'Not Found': 'Nie znaleziono zasobu.',
-      Conflict: 'Wystąpił konflikt danych.',
+      Conflict: 'Wystapil konflikt danych.',
     };
 
     return dictionary[message] || message;
@@ -107,16 +116,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   private translateValidationMessage(message: string): string {
     const translations: Array<[RegExp, string]> = [
-      [/must be an email/i, 'musi być poprawnym adresem e-mail'],
-      [/must be a string/i, 'musi być tekstem'],
-      [/must be a number conforming to the specified constraints/i, 'musi być poprawną liczbą'],
-      [/must be an integer number/i, 'musi być liczbą całkowitą'],
-      [/must not be less than (\d+)/i, 'musi być większe lub równe $1'],
-      [/must be longer than or equal to (\d+) characters/i, 'musi mieć co najmniej $1 znaków'],
+      [/must be an email/i, 'musi byc poprawnym adresem e-mail'],
+      [/must be a string/i, 'musi byc tekstem'],
+      [
+        /must be a number conforming to the specified constraints/i,
+        'musi byc poprawna liczba',
+      ],
+      [/must be an integer number/i, 'musi byc liczba calkowita'],
+      [/must not be less than (\d+)/i, 'musi byc wieksze lub rowne $1'],
+      [
+        /must be longer than or equal to (\d+) characters/i,
+        'musi miec co najmniej $1 znakow',
+      ],
       [/should not be empty/i, 'pole jest wymagane'],
-      [/must be an array/i, 'musi być tablicą'],
-      [/each value in nested property .* must be either object or array/i, 'zawiera nieprawidłową strukturę danych'],
-      [/property (.+) should not exist/i, 'pole $1 nie powinno zostać przesłane'],
+      [/must be an array/i, 'musi byc tablica'],
+      [
+        /each value in nested property .* must be either object or array/i,
+        'zawiera nieprawidlowa strukture danych',
+      ],
+      [/property (.+) should not exist/i, 'pole $1 nie powinno zostac przeslane'],
     ];
 
     let translated = message;

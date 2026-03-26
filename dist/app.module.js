@@ -21,6 +21,7 @@ const muscle_status_module_1 = require("./muscle-status/muscle-status.module");
 const workouts_module_1 = require("./workouts/workouts.module");
 const gym_module_1 = require("./gym/gym.module");
 const schema_fix_service_1 = require("./database/schema-fix.service");
+const friends_module_1 = require("./friends/friends.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -51,6 +52,7 @@ exports.AppModule = AppModule = __decorate([
             muscle_status_module_1.MuscleStatusModule,
             workouts_module_1.WorkoutsModule,
             gym_module_1.GymModule,
+            friends_module_1.FriendsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, schema_fix_service_1.SchemaFixService],

@@ -14,6 +14,9 @@ import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly accessTokenTtl = '30d';
+  private readonly refreshTokenTtl = '365d';
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -101,7 +104,7 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.getJwtSecret(),
-      expiresIn: '15m',
+      expiresIn: this.accessTokenTtl,
     });
     const refreshToken = await this.jwtService.signAsync(
       {
@@ -110,7 +113,7 @@ export class AuthService {
       },
       {
         secret: this.getJwtSecret(),
-        expiresIn: rememberMe ? '180d' : '30d',
+        expiresIn: rememberMe ? this.refreshTokenTtl : this.accessTokenTtl,
       },
     );
 

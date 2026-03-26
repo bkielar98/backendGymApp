@@ -4,4 +4,5 @@ export declare class RegisterDto {
     name: string;
     weight?: number;
     gender?: string;
+    rememberMe?: boolean;
 }

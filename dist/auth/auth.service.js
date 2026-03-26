@@ -25,6 +25,8 @@ let AuthService = class AuthService {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.configService = configService;
+        this.accessTokenTtl = '30d';
+        this.refreshTokenTtl = '365d';
     }
     async register(registerDto) {
         const existingUser = await this.userRepository.findOne({
@@ -84,14 +86,14 @@ let AuthService = class AuthService {
         const payload = { email: user.email, sub: user.id };
         const accessToken = await this.jwtService.signAsync(payload, {
             secret: this.getJwtSecret(),
-            expiresIn: '15m',
+            expiresIn: this.accessTokenTtl,
         });
         const refreshToken = await this.jwtService.signAsync({
             ...payload,
             type: 'refresh',
         }, {
             secret: this.getJwtSecret(),
-            expiresIn: rememberMe ? '180d' : '30d',
+            expiresIn: rememberMe ? this.refreshTokenTtl : this.accessTokenTtl,
         });
         await this.userRepository.update(user.id, {
             refreshTokenHash: await bcrypt.hash(refreshToken, 10),

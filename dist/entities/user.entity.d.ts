@@ -11,6 +11,7 @@ export declare class User {
     id: number;
     email: string;
     password: string;
+    refreshTokenHash: string | null;
     name: string;
     weight: number;
     gender: string;

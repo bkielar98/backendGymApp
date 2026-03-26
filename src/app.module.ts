@@ -12,6 +12,7 @@ import { MuscleStatusModule } from './muscle-status/muscle-status.module';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { GymModule } from './gym/gym.module';
 import { SchemaFixService } from './database/schema-fix.service';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SchemaFixService } from './database/schema-fix.service';
     MuscleStatusModule,
     WorkoutsModule,
     GymModule,
+    FriendsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SchemaFixService],
