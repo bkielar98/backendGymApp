@@ -13,6 +13,7 @@ import { WorkoutsModule } from './workouts/workouts.module';
 import { GymModule } from './gym/gym.module';
 import { SchemaFixService } from './database/schema-fix.service';
 import { FriendsModule } from './friends/friends.module';
+import { CommonWorkoutsModule } from './common-workouts/common-workouts.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { FriendsModule } from './friends/friends.module';
     WorkoutsModule,
     GymModule,
     FriendsModule,
+    CommonWorkoutsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SchemaFixService],

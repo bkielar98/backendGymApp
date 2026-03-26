@@ -10,6 +10,7 @@ export class SchemaFixService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     await this.ensureUserCardSchema();
     await this.ensureFriendshipSchema();
+    await this.ensureCommonWorkoutSchema();
   }
 
   private async ensureUserCardSchema() {
@@ -93,5 +94,70 @@ export class SchemaFixService implements OnApplicationBootstrap {
     `);
 
     this.logger.log('Friendship schema verified');
+  }
+
+  private async ensureCommonWorkoutSchema() {
+    await this.dataSource.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'common_workout_status_enum') THEN
+          CREATE TYPE "common_workout_status_enum" AS ENUM ('active', 'completed');
+        END IF;
+      END$$;
+    `);
+
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS "common_workout" (
+        "id" SERIAL PRIMARY KEY,
+        "createdByUserId" integer NOT NULL,
+        "templateId" integer NULL,
+        "name" character varying NOT NULL,
+        "status" "common_workout_status_enum" NOT NULL DEFAULT 'active',
+        "startedAt" TIMESTAMP NOT NULL,
+        "finishedAt" TIMESTAMP NULL,
+        CONSTRAINT "FK_common_workout_creator" FOREIGN KEY ("createdByUserId") REFERENCES "user"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_common_workout_template" FOREIGN KEY ("templateId") REFERENCES "workout_template"("id") ON DELETE SET NULL
+      )
+    `);
+
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS "common_workout_participant" (
+        "id" SERIAL PRIMARY KEY,
+        "commonWorkoutId" integer NOT NULL,
+        "userId" integer NOT NULL,
+        CONSTRAINT "FK_common_workout_participant_workout" FOREIGN KEY ("commonWorkoutId") REFERENCES "common_workout"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_common_workout_participant_user" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE
+      )
+    `);
+
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS "common_workout_exercise" (
+        "id" SERIAL PRIMARY KEY,
+        "commonWorkoutId" integer NOT NULL,
+        "exerciseId" integer NOT NULL,
+        "order" integer NOT NULL DEFAULT 0,
+        CONSTRAINT "FK_common_workout_exercise_workout" FOREIGN KEY ("commonWorkoutId") REFERENCES "common_workout"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_common_workout_exercise_exercise" FOREIGN KEY ("exerciseId") REFERENCES "exercise"("id") ON DELETE CASCADE
+      )
+    `);
+
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS "common_workout_participant_set" (
+        "id" SERIAL PRIMARY KEY,
+        "participantId" integer NOT NULL,
+        "commonWorkoutExerciseId" integer NOT NULL,
+        "setNumber" integer NOT NULL,
+        "previousWeight" double precision NULL,
+        "previousReps" integer NULL,
+        "currentWeight" double precision NULL,
+        "currentReps" integer NULL,
+        "repMax" double precision NULL,
+        "confirmed" boolean NOT NULL DEFAULT false,
+        CONSTRAINT "FK_common_workout_set_participant" FOREIGN KEY ("participantId") REFERENCES "common_workout_participant"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_common_workout_set_exercise" FOREIGN KEY ("commonWorkoutExerciseId") REFERENCES "common_workout_exercise"("id") ON DELETE CASCADE
+      )
+    `);
+
+    this.logger.log('Common workout schema verified');
   }
 }

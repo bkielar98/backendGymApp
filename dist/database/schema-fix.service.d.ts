@@ -7,4 +7,5 @@ export declare class SchemaFixService implements OnApplicationBootstrap {
     onApplicationBootstrap(): Promise<void>;
     private ensureUserCardSchema;
     private ensureFriendshipSchema;
+    private ensureCommonWorkoutSchema;
 }
