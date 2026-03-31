@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { existsSync, mkdirSync, readdirSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { User } from '../entities/user.entity';
 import { UserWeightEntry } from '../entities/user-weight-entry.entity';
@@ -196,6 +196,28 @@ export class UsersService {
       deletedFiles,
       clearedUsers: updateResult.affected ?? 0,
       usersWithAvatarsBeforePurge: usersWithAvatars,
+    };
+  }
+
+  async removeAvatarDirectory() {
+    const hadDirectory = existsSync(AVATARS_ROOT);
+
+    await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ avatarPath: null })
+      .where('avatarPath IS NOT NULL')
+      .execute();
+
+    if (hadDirectory) {
+      rmSync(AVATARS_ROOT, { recursive: true, force: true });
+    }
+
+    return {
+      success: true,
+      message: 'Avatar directory has been deleted from server storage',
+      removedDirectory: hadDirectory,
+      path: '/uploads/avatars',
     };
   }
 

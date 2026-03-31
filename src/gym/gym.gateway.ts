@@ -1,8 +1,7 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: '/gym' })
-export class GymGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class GymGateway {
   server: Server;
 
   handleConnection(client: Socket) {

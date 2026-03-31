@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
 import { UserRole } from '../entities/user.entity';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let service: UsersService;
   let userRepository: {
+    createQueryBuilder: any;
     findOne: any;
     update: any;
     delete: any;
@@ -25,9 +27,22 @@ describe('UsersService', () => {
     save: any;
     remove: any;
   };
+  let queryBuilder: {
+    update: any;
+    set: any;
+    where: any;
+    execute: any;
+  };
 
   beforeEach(() => {
+    queryBuilder = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue({ affected: 0 } as never),
+    };
     userRepository = {
+      createQueryBuilder: jest.fn(() => queryBuilder),
       findOne: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -157,5 +172,27 @@ describe('UsersService', () => {
         waist: 82,
       },
     ]);
+  });
+
+  it('removes avatar directory and clears avatar paths', async () => {
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const rmSpy = jest.spyOn(fs, 'rmSync').mockImplementation(() => undefined);
+
+    await expect(service.removeAvatarDirectory()).resolves.toEqual({
+      success: true,
+      message: 'Avatar directory has been deleted from server storage',
+      removedDirectory: true,
+      path: '/uploads/avatars',
+    });
+
+    expect(userRepository.createQueryBuilder).toHaveBeenCalled();
+    expect(queryBuilder.update).toHaveBeenCalled();
+    expect(queryBuilder.set).toHaveBeenCalledWith({ avatarPath: null });
+    expect(queryBuilder.where).toHaveBeenCalledWith('avatarPath IS NOT NULL');
+    expect(queryBuilder.execute).toHaveBeenCalled();
+    expect(rmSpy).toHaveBeenCalled();
+
+    existsSpy.mockRestore();
+    rmSpy.mockRestore();
   });
 });

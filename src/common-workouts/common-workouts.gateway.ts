@@ -1,11 +1,7 @@
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
   SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
@@ -15,9 +11,7 @@ import { Repository } from 'typeorm';
 import { CommonWorkoutParticipant } from '../entities/common-workout-participant.entity';
 import { User } from '../entities/user.entity';
 
-@WebSocketGateway({ namespace: '/common-workouts' })
 export class CommonWorkoutsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
 {
   constructor(
     private readonly jwtService: JwtService,
@@ -27,7 +21,6 @@ export class CommonWorkoutsGateway
     private readonly participantRepository: Repository<CommonWorkoutParticipant>,
   ) {}
 
-  @WebSocketServer()
   server: Server;
 
   async handleConnection(client: Socket) {

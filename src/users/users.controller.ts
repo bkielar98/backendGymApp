@@ -131,6 +131,17 @@ export class UsersController {
     return this.usersService.purgeAllAvatars();
   }
 
+  @Post('admin/remove-avatar-directory')
+  @ApiOperation({ summary: 'Delete avatar directory from server storage' })
+  @ApiResponse({ status: 200, description: 'Avatar directory deleted' })
+  async removeAvatarDirectory(@Request() req) {
+    if (req.user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can remove avatar directory');
+    }
+
+    return this.usersService.removeAvatarDirectory();
+  }
+
   @Get('weights')
   @ApiOperation({ summary: 'Get user weight history' })
   @ApiResponse({ status: 200, description: 'Weight history retrieved' })
