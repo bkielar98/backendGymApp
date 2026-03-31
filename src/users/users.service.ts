@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { existsSync, mkdirSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { User } from '../entities/user.entity';
 import { UserWeightEntry } from '../entities/user-weight-entry.entity';
@@ -22,6 +22,7 @@ import { CreateBodyMeasurementEntryDto } from './dto/create-body-measurement-ent
 import { UpdateBodyMeasurementEntryDto } from './dto/update-body-measurement-entry.dto';
 
 const UPLOADS_ROOT = join(process.cwd(), 'uploads');
+const AVATARS_ROOT = join(UPLOADS_ROOT, 'avatars');
 
 @Injectable()
 export class UsersService {
@@ -159,6 +160,43 @@ export class UsersService {
     });
 
     return this.findOne(id);
+  }
+
+  async purgeAllAvatars() {
+    const usersWithAvatars = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.avatarPath IS NOT NULL')
+      .getCount();
+
+    let deletedFiles = 0;
+
+    if (existsSync(AVATARS_ROOT)) {
+      const files = readdirSync(AVATARS_ROOT, { withFileTypes: true });
+
+      for (const file of files) {
+        if (!file.isFile()) {
+          continue;
+        }
+
+        unlinkSync(join(AVATARS_ROOT, file.name));
+        deletedFiles += 1;
+      }
+    }
+
+    const updateResult = await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ avatarPath: null })
+      .where('avatarPath IS NOT NULL')
+      .execute();
+
+    return {
+      success: true,
+      message: 'All avatar files have been deleted from server storage',
+      deletedFiles,
+      clearedUsers: updateResult.affected ?? 0,
+      usersWithAvatarsBeforePurge: usersWithAvatars,
+    };
   }
 
   async listWeightEntries(id: number) {

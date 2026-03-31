@@ -3,6 +3,7 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseIntPipe,
@@ -34,6 +35,7 @@ import { CreateWeightEntryDto } from './dto/create-weight-entry.dto';
 import { UpdateWeightEntryDto } from './dto/update-weight-entry.dto';
 import { CreateBodyMeasurementEntryDto } from './dto/create-body-measurement-entry.dto';
 import { UpdateBodyMeasurementEntryDto } from './dto/update-body-measurement-entry.dto';
+import { UserRole } from '../entities/user.entity';
 
 const avatarStorage = diskStorage({
   destination: './uploads/avatars',
@@ -116,6 +118,17 @@ export class UsersController {
     await this.usersService.updateAvatar(req.user.id, file);
 
     return this.usersService.getUserCard(req.user.id);
+  }
+
+  @Post('admin/purge-avatars')
+  @ApiOperation({ summary: 'Delete all avatar files from server storage' })
+  @ApiResponse({ status: 200, description: 'All avatar files deleted' })
+  async purgeAllAvatars(@Request() req) {
+    if (req.user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can purge avatars');
+    }
+
+    return this.usersService.purgeAllAvatars();
   }
 
   @Get('weights')
