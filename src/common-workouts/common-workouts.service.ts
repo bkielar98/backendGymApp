@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,6 +27,8 @@ import { ConfirmCommonWorkoutSetDto } from './dto/confirm-common-workout-set.dto
 
 @Injectable()
 export class CommonWorkoutsService {
+  private readonly logger = new Logger(CommonWorkoutsService.name);
+
   constructor(
     @InjectRepository(CommonWorkout)
     private readonly commonWorkoutRepository: Repository<CommonWorkout>,
@@ -106,7 +109,7 @@ export class CommonWorkoutsService {
     }
 
     const payload = await this.getByIdForUser(userId, savedWorkout.id);
-    this.gateway.emitUpdated(savedWorkout.id, payload);
+    this.emitUpdatedIfSubscribed(savedWorkout.id, payload);
     return payload;
   }
 
@@ -144,7 +147,7 @@ export class CommonWorkoutsService {
     }
 
     const payload = await this.getByIdForUser(userId, commonWorkout.id);
-    this.gateway.emitUpdated(commonWorkout.id, payload);
+    this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
     return payload;
   }
 
@@ -167,7 +170,7 @@ export class CommonWorkoutsService {
     await this.createCommonExercise(commonWorkout.id, exercise.id, insertOrder, dto.setsCount ?? 0);
 
     const payload = await this.getByIdForUser(userId, commonWorkout.id);
-    this.gateway.emitUpdated(commonWorkout.id, payload);
+    this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
     return payload;
   }
 
@@ -207,7 +210,7 @@ export class CommonWorkoutsService {
     }
 
     const payload = await this.getByIdForUser(userId, commonWorkout.id);
-    this.gateway.emitUpdated(commonWorkout.id, payload);
+    this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
     return payload;
   }
 
@@ -257,7 +260,7 @@ export class CommonWorkoutsService {
     await this.participantSetRepository.save(participantSets);
 
     const payload = await this.getByIdForUser(userId, commonWorkout.id);
-    this.gateway.emitUpdated(commonWorkout.id, payload);
+    this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
     return payload;
   }
 
@@ -286,7 +289,7 @@ export class CommonWorkoutsService {
     await this.commonWorkoutExerciseRepository.save(remainingExercises);
 
     const payload = await this.getByIdForUser(userId, commonWorkout.id);
-    this.gateway.emitUpdated(commonWorkout.id, payload);
+    this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
     return payload;
   }
 
@@ -323,7 +326,7 @@ export class CommonWorkoutsService {
     }
 
     const payload = await this.getByIdForUser(userId, commonWorkoutExercise.commonWorkoutId);
-    this.gateway.emitUpdated(commonWorkoutExercise.commonWorkoutId, payload);
+    this.emitUpdatedIfSubscribed(commonWorkoutExercise.commonWorkoutId, payload);
     return payload;
   }
 
@@ -374,7 +377,7 @@ export class CommonWorkoutsService {
     }
 
     const payload = await this.getByIdForUser(userId, commonWorkoutId);
-    this.gateway.emitUpdated(commonWorkoutId, payload);
+    this.emitUpdatedIfSubscribed(commonWorkoutId, payload);
     return payload;
   }
 
@@ -400,7 +403,7 @@ export class CommonWorkoutsService {
       userId,
       participantSet.commonWorkoutExercise.commonWorkoutId,
     );
-    this.gateway.emitUpdated(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
+    this.emitUpdatedIfSubscribed(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
     return payload;
   }
 
@@ -421,7 +424,7 @@ export class CommonWorkoutsService {
       userId,
       participantSet.commonWorkoutExercise.commonWorkoutId,
     );
-    this.gateway.emitUpdated(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
+    this.emitUpdatedIfSubscribed(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
     return payload;
   }
 
@@ -437,8 +440,42 @@ export class CommonWorkoutsService {
     }
 
     const payload = await this.getByIdForUser(userId, commonWorkout.id);
-    this.gateway.emitFinished(commonWorkout.id, payload);
+    this.emitFinishedIfSubscribed(commonWorkout.id, payload);
     return payload;
+  }
+
+  private emitUpdatedIfSubscribed(commonWorkoutId: number, payload: unknown) {
+    if (!this.gateway.hasSubscribers(commonWorkoutId)) {
+      return;
+    }
+
+    this.logPayloadMetrics('commonWorkoutUpdated', commonWorkoutId, payload);
+    this.gateway.emitUpdated(commonWorkoutId, payload);
+  }
+
+  private emitFinishedIfSubscribed(commonWorkoutId: number, payload: unknown) {
+    if (!this.gateway.hasSubscribers(commonWorkoutId)) {
+      return;
+    }
+
+    this.logPayloadMetrics('commonWorkoutFinished', commonWorkoutId, payload);
+    this.gateway.emitFinished(commonWorkoutId, payload);
+  }
+
+  private logPayloadMetrics(eventName: string, commonWorkoutId: number, payload: unknown) {
+    try {
+      const payloadSizeBytes = Buffer.byteLength(JSON.stringify(payload), 'utf8');
+
+      if (payloadSizeBytes >= 100_000) {
+        this.logger.warn(
+          `${eventName} payload for common workout ${commonWorkoutId} is ${payloadSizeBytes} bytes`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Could not measure payload size for ${eventName} in common workout ${commonWorkoutId}`,
+      );
+    }
   }
 
   private async createCommonExercise(
@@ -816,7 +853,8 @@ export class CommonWorkoutsService {
       commonWorkout.finishedAt,
     );
 
-    const participants = [...(commonWorkout.participants || [])].map((participant) => ({
+    const participantList = [...(commonWorkout.participants || [])];
+    const participantSummaries = participantList.map((participant) => ({
       id: participant.id,
       user: {
         id: participant.user.id,
@@ -826,15 +864,21 @@ export class CommonWorkoutsService {
         avatarUrl: participant.user.avatarPath ?? null,
       },
     }));
+    const participantById = new Map(participantList.map((participant) => [participant.id, participant]));
 
     const exercises = [...(commonWorkout.exercises || [])]
       .sort((a, b) => a.order - b.order)
       .map((exercise) => {
-        const participantEntries = participants.map((participantSummary) => {
-          const participant = (commonWorkout.participants || []).find(
-            (item) => item.id === participantSummary.id,
-          );
-          const sets = (exercise.participantSets || [])
+        const setsByParticipantId = new Map<number, CommonWorkoutParticipantSet[]>();
+        for (const set of exercise.participantSets || []) {
+          const items = setsByParticipantId.get(set.participantId) || [];
+          items.push(set);
+          setsByParticipantId.set(set.participantId, items);
+        }
+
+        const participantEntries = participantSummaries.map((participantSummary) => {
+          const participant = participantById.get(participantSummary.id);
+          const sets = (setsByParticipantId.get(participantSummary.id) || [])
             .filter((set) => set.participantId === participantSummary.id)
             .sort((a, b) => a.setNumber - b.setNumber)
             .map((set) => ({
@@ -893,7 +937,7 @@ export class CommonWorkoutsService {
             name: commonWorkout.template.name,
           }
         : null,
-      participants,
+      participants: participantSummaries,
       exercises,
     };
   }
