@@ -5,7 +5,6 @@ import {
   IsString,
   Min,
   MaxLength,
-  ArrayMinSize,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -58,7 +57,6 @@ export class CreateWorkoutTemplateDto {
     description: 'Lista ćwiczeń w planie',
   })
   @IsArray()
-  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateWorkoutTemplateExerciseDto)
   exercises: CreateWorkoutTemplateExerciseDto[];

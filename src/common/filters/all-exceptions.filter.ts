@@ -17,9 +17,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Wystapil nieoczekiwany blad serwera.';
     let details: string[] = [];
+    let error = 'INTERNAL_SERVER_ERROR';
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
+      error = 'HTTP_EXCEPTION';
 
       const exceptionResponse = exception.getResponse();
 
@@ -32,7 +34,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const responseObject = exceptionResponse as {
           message?: string | string[];
           error?: string;
+          details?: string | string[];
         };
+
+        if (typeof responseObject.error === 'string') {
+          error = responseObject.error;
+        }
 
         if (Array.isArray(responseObject.message)) {
           details = responseObject.message.map((item) =>
@@ -41,6 +48,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
           message = this.getDefaultMessageForStatus(statusCode);
         } else if (typeof responseObject.message === 'string') {
           message = this.translateMessage(responseObject.message);
+          if (Array.isArray(responseObject.details)) {
+            details = responseObject.details.map((item) => this.translateMessage(item));
+          } else if (typeof responseObject.details === 'string') {
+            details = [this.translateMessage(responseObject.details)];
+          }
         } else if (typeof responseObject.error === 'string') {
           message = this.translateMessage(responseObject.error);
         } else {
@@ -54,6 +66,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     response.status(statusCode).json({
       statusCode,
+      error,
       message,
       details,
       timestamp: new Date().toISOString(),
@@ -73,6 +86,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         return 'Nie znaleziono zasobu.';
       case 409:
         return 'Konflikt danych.';
+      case 429:
+        return 'Zbyt wiele powtorzonych zadan.';
       case 422:
         return 'Dane zawieraja bledy.';
       default:
@@ -118,6 +133,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       'Bad Request': 'Nieprawidlowe zadanie.',
       'Not Found': 'Nie znaleziono zasobu.',
       Conflict: 'Wystapil konflikt danych.',
+      'Repeated request blocked. Frontend may be stuck in an update loop.':
+        'Powtorzone zadanie zostalo zablokowane. Frontend prawdopodobnie wpadl w petle aktualizacji.',
+      'The same request was received multiple times in a very short time window.':
+        'To samo zadanie zostalo wyslane wielokrotnie w bardzo krotkim czasie.',
+      'Retry after frontend state stabilizes.':
+        'Sprobuj ponownie, gdy stan frontendu sie ustabilizuje.',
     };
 
     return dictionary[message] || message;

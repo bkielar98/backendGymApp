@@ -23,9 +23,11 @@ export class WorkoutTemplatesService {
     this.validateTemplateExercises(createDto.exercises);
 
     const exerciseIds = createDto.exercises.map((item) => item.exerciseId);
-    const exercises = await this.exerciseRepository.find({
-      where: { id: In(exerciseIds) },
-    });
+    const exercises = exerciseIds.length
+      ? await this.exerciseRepository.find({
+          where: { id: In(exerciseIds) },
+        })
+      : [];
 
     const exerciseMap = new Map(exercises.map((exercise) => [exercise.id, exercise]));
 

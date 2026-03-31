@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -14,6 +15,7 @@ import { GymModule } from './gym/gym.module';
 import { SchemaFixService } from './database/schema-fix.service';
 import { FriendsModule } from './friends/friends.module';
 import { CommonWorkoutsModule } from './common-workouts/common-workouts.module';
+import { LoopProtectionInterceptor } from './common/interceptors/loop-protection.interceptor';
 
 @Module({
   imports: [
@@ -45,6 +47,13 @@ import { CommonWorkoutsModule } from './common-workouts/common-workouts.module';
     CommonWorkoutsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, SchemaFixService],
+  providers: [
+    AppService,
+    SchemaFixService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoopProtectionInterceptor,
+    },
+  ],
 })
 export class AppModule {}

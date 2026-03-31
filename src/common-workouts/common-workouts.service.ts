@@ -127,7 +127,7 @@ export class CommonWorkoutsService {
     });
 
     if (!participant) {
-      throw new NotFoundException('Active common workout not found');
+      return null;
     }
 
     return this.getByIdForUser(userId, participant.commonWorkoutId);

@@ -131,7 +131,7 @@ export class WorkoutsService {
     });
 
     if (!workout) {
-      throw new NotFoundException('Active workout not found');
+      return null;
     }
 
     return this.mapWorkout(workout);
