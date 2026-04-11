@@ -25,12 +25,11 @@ export class CommonWorkoutParticipant {
   @Column()
   userId: number;
 
-  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   @OneToMany(() => CommonWorkoutParticipantSet, (set) => set.participant, {
     cascade: true,
-    eager: true,
   })
   sets: CommonWorkoutParticipantSet[];
 }

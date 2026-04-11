@@ -25,7 +25,7 @@ export class CommonWorkoutExercise {
   @Column()
   exerciseId: number;
 
-  @ManyToOne(() => Exercise, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => Exercise, { onDelete: 'CASCADE' })
   exercise: Exercise;
 
   @Column({ default: 0 })
@@ -33,7 +33,6 @@ export class CommonWorkoutExercise {
 
   @OneToMany(() => CommonWorkoutParticipantSet, (set) => set.commonWorkoutExercise, {
     cascade: true,
-    eager: true,
   })
   participantSets: CommonWorkoutParticipantSet[];
 }

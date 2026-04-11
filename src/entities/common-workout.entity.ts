@@ -50,13 +50,11 @@ export class CommonWorkout {
 
   @OneToMany(() => CommonWorkoutParticipant, (participant) => participant.commonWorkout, {
     cascade: true,
-    eager: true,
   })
   participants: CommonWorkoutParticipant[];
 
   @OneToMany(() => CommonWorkoutExercise, (exercise) => exercise.commonWorkout, {
     cascade: true,
-    eager: true,
   })
   exercises: CommonWorkoutExercise[];
 }
