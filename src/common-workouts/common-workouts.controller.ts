@@ -38,6 +38,15 @@ export class CommonWorkoutsController {
     return this.commonWorkoutsService.getActive(req.user.id);
   }
 
+  @Get(':id/exercises/:exerciseId')
+  async findExercise(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+  ) {
+    return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseId);
+  }
+
   @Get(':id')
   async findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
     return this.commonWorkoutsService.getByIdForUser(req.user.id, id);

@@ -52,50 +52,40 @@ describe('CommonWorkoutsService', () => {
     });
   });
 
-  it('keeps participants and exercises shape in mapped payload', () => {
-    const payload = (service as any).mapCommonWorkout({
-      id: 9,
-      name: 'Common workout',
-      status: 'active',
-      startedAt: new Date('2026-03-31T10:00:00.000Z'),
-      finishedAt: null,
-      template: null,
-      participants: [
-        {
-          id: 101,
-          user: {
-            id: 1,
-            email: 'user@example.com',
-            name: 'User',
-            avatarPath: '/uploads/avatars/u.jpg',
-          },
-        },
-      ],
-      exercises: [
-        {
-          id: 201,
-          order: 0,
-          exercise: {
-            id: 44,
-            name: 'Bench Press',
-            description: 'Chest',
-            muscleGroups: ['chest'],
-          },
-          participantSets: [
-            {
-              id: 301,
-              participantId: 101,
-              setNumber: 1,
-              previousWeight: 80,
-              previousReps: 8,
-              currentWeight: 85,
-              currentReps: 6,
-              repMax: 102,
-              confirmed: true,
+  it('maps lightweight common workout summary', () => {
+    const payload = (service as any).mapCommonWorkoutSummary({
+      commonWorkout: {
+        id: 9,
+        name: 'Common workout',
+        status: 'active',
+        startedAt: new Date('2026-03-31T10:00:00.000Z'),
+        finishedAt: null,
+        template: null,
+        participants: [
+          {
+            id: 101,
+            user: {
+              id: 1,
+              email: 'user@example.com',
+              name: 'User',
+              avatarPath: '/uploads/avatars/u.jpg',
             },
-          ],
-        },
-      ],
+          },
+        ],
+        exercises: [
+          {
+            id: 201,
+            order: 0,
+            exercise: {
+              id: 44,
+              name: 'Bench Press',
+              description: 'Chest',
+              muscleGroups: ['chest'],
+            },
+          },
+        ],
+      },
+      setsCountByExerciseId: new Map([[201, 1]]),
     });
 
     expect(payload.participants).toEqual([
@@ -121,31 +111,82 @@ describe('CommonWorkoutsService', () => {
           muscleGroups: ['chest'],
         },
         setsCount: 1,
+      },
+    ]);
+  });
+
+  it('maps common workout exercise detail separately', () => {
+    const payload = (service as any).mapCommonWorkoutExerciseDetail({
+      id: 201,
+      order: 0,
+      exercise: {
+        id: 44,
+        name: 'Bench Press',
+        description: 'Chest',
+        muscleGroups: ['chest'],
+      },
+      commonWorkout: {
         participants: [
           {
-            participantId: 101,
+            id: 101,
             user: {
               id: 1,
               email: 'user@example.com',
               name: 'User',
               avatarPath: '/uploads/avatars/u.jpg',
-              avatarUrl: '/uploads/avatars/u.jpg',
             },
-            sets: [
-              {
-                id: 301,
-                setNumber: 1,
-                previousWeight: 80,
-                previousReps: 8,
-                currentWeight: 85,
-                currentReps: 6,
-                repMax: 102,
-                confirmed: true,
-              },
-            ],
           },
         ],
       },
-    ]);
+      participantSets: [
+        {
+          id: 301,
+          participantId: 101,
+          setNumber: 1,
+          previousWeight: 80,
+          previousReps: 8,
+          currentWeight: 85,
+          currentReps: 6,
+          repMax: 102,
+          confirmed: true,
+        },
+      ],
+    });
+
+    expect(payload).toEqual({
+      id: 201,
+      order: 0,
+      exercise: {
+        id: 44,
+        name: 'Bench Press',
+        description: 'Chest',
+        muscleGroups: ['chest'],
+      },
+      setsCount: 1,
+      participants: [
+        {
+          participantId: 101,
+          user: {
+            id: 1,
+            email: 'user@example.com',
+            name: 'User',
+            avatarPath: '/uploads/avatars/u.jpg',
+            avatarUrl: '/uploads/avatars/u.jpg',
+          },
+          sets: [
+            {
+              id: 301,
+              setNumber: 1,
+              previousWeight: 80,
+              previousReps: 8,
+              currentWeight: 85,
+              currentReps: 6,
+              repMax: 102,
+              confirmed: true,
+            },
+          ],
+        },
+      ],
+    });
   });
 });
