@@ -165,7 +165,10 @@ export class CommonWorkoutsService {
   }
 
   async addExercise(userId: number, commonWorkoutId: number, dto: AddCommonWorkoutExerciseDto) {
-    const commonWorkout = await this.getActiveCommonWorkoutEntityForUser(userId, commonWorkoutId);
+    const commonWorkout = await this.getActiveCommonWorkoutStructureEntityForUser(
+      userId,
+      commonWorkoutId,
+    );
     const exercise = await this.getAccessibleExerciseForUsers(
       commonWorkout.participants.map((participant) => participant.userId),
       dto.exerciseId,
@@ -185,6 +188,7 @@ export class CommonWorkoutsService {
       exercise.id,
       insertOrder,
       dto.setsCount ?? 0,
+      commonWorkout.participants,
     );
 
     const payload = await this.getWorkoutExerciseResponse(
@@ -202,7 +206,10 @@ export class CommonWorkoutsService {
     commonWorkoutExerciseId: number,
     dto: ChangeCommonWorkoutExercisePositionDto,
   ) {
-    const commonWorkout = await this.getActiveCommonWorkoutEntityForUser(userId, commonWorkoutId);
+    const commonWorkout = await this.getActiveCommonWorkoutStructureEntityForUser(
+      userId,
+      commonWorkoutId,
+    );
     const exercises = [...(commonWorkout.exercises || [])];
     const currentExercise = this.getCommonWorkoutExerciseFromWorkout(
       commonWorkout,
@@ -242,7 +249,10 @@ export class CommonWorkoutsService {
     commonWorkoutExerciseId: number,
     dto: ChangeCommonWorkoutExerciseDto,
   ) {
-    const commonWorkout = await this.getActiveCommonWorkoutEntityForUser(userId, commonWorkoutId);
+    const commonWorkout = await this.getActiveCommonWorkoutStructureEntityForUser(
+      userId,
+      commonWorkoutId,
+    );
     const currentExercise = this.getCommonWorkoutExerciseFromWorkout(
       commonWorkout,
       commonWorkoutExerciseId,
@@ -268,12 +278,13 @@ export class CommonWorkoutsService {
       },
     });
 
+    const previousSetsByUserId = await this.getPreviousSetsByUserIdForExercise(
+      [...new Set(participantSets.map((set) => set.participant.userId))],
+      exercise.id,
+    );
+
     for (const set of participantSets) {
-      const previousSet = await this.getPreviousSetForUserExerciseSetNumber(
-        set.participant.userId,
-        exercise.id,
-        set.setNumber,
-      );
+      const previousSet = previousSetsByUserId.get(set.participant.userId)?.get(set.setNumber);
 
       set.previousWeight = previousSet?.currentWeight ?? null;
       set.previousReps = previousSet?.currentReps ?? null;
@@ -287,7 +298,10 @@ export class CommonWorkoutsService {
   }
 
   async removeExercise(userId: number, commonWorkoutId: number, commonWorkoutExerciseId: number) {
-    const commonWorkout = await this.getActiveCommonWorkoutEntityForUser(userId, commonWorkoutId);
+    const commonWorkout = await this.getActiveCommonWorkoutStructureEntityForUser(
+      userId,
+      commonWorkoutId,
+    );
     const currentExercise = this.getCommonWorkoutExerciseFromWorkout(
       commonWorkout,
       commonWorkoutExerciseId,
@@ -323,18 +337,18 @@ export class CommonWorkoutsService {
     const existingSets = commonWorkoutExercise.participantSets || [];
     const nextSetNumber = Math.max(0, ...existingSets.map((set) => set.setNumber)) + 1;
 
-    for (const participant of commonWorkoutExercise.commonWorkout.participants || []) {
-      const previousSet = await this.getPreviousSetForUserExerciseSetNumber(
-        participant.userId,
-        commonWorkoutExercise.exerciseId,
-        nextSetNumber,
-      );
+    const participants = commonWorkoutExercise.commonWorkout.participants || [];
+    const previousSetsByUserId = await this.getPreviousSetsByUserIdForExercise(
+      participants.map((participant) => participant.userId),
+      commonWorkoutExercise.exerciseId,
+    );
 
-      const newSet = this.participantSetRepository.create({
+    const newSets = participants.map((participant) => {
+      const previousSet = previousSetsByUserId.get(participant.userId)?.get(nextSetNumber);
+
+      return this.participantSetRepository.create({
         participantId: participant.id,
-        participant,
         commonWorkoutExerciseId: commonWorkoutExercise.id,
-        commonWorkoutExercise,
         setNumber: nextSetNumber,
         previousWeight: previousSet?.currentWeight ?? null,
         previousReps: previousSet?.currentReps ?? null,
@@ -343,9 +357,9 @@ export class CommonWorkoutsService {
         repMax: null,
         confirmed: false,
       });
+    });
 
-      await this.participantSetRepository.save(newSet);
-    }
+    await this.participantSetRepository.save(newSets);
 
     const payload = await this.getWorkoutExerciseResponse(
       userId,
@@ -531,15 +545,16 @@ export class CommonWorkoutsService {
     exerciseId: number,
     order: number,
     setsCount: number,
+    participantsOverride?: CommonWorkoutParticipant[],
   ) {
-    const commonWorkout = await this.commonWorkoutRepository.findOne({
-      where: { id: commonWorkoutId },
-      relations: {
-        participants: true,
-      },
-    });
+    const participants =
+      participantsOverride ||
+      (await this.participantRepository.find({
+        where: { commonWorkoutId },
+        order: { id: 'ASC' },
+      }));
 
-    if (!commonWorkout) {
+    if (participants.length === 0) {
       throw new NotFoundException('Common workout not found');
     }
 
@@ -550,7 +565,6 @@ export class CommonWorkoutsService {
 
     const commonWorkoutExercise = this.commonWorkoutExerciseRepository.create({
       commonWorkoutId,
-      commonWorkout,
       exerciseId,
       exercise,
       order,
@@ -559,30 +573,34 @@ export class CommonWorkoutsService {
 
     const savedExercise = await this.commonWorkoutExerciseRepository.save(commonWorkoutExercise);
 
-    for (const participant of commonWorkout.participants || []) {
-      for (let i = 1; i <= setsCount; i += 1) {
-        const previousSet = await this.getPreviousSetForUserExerciseSetNumber(
-          participant.userId,
-          exerciseId,
-          i,
-        );
+    if (setsCount > 0) {
+      const previousSetsByUserId = await this.getPreviousSetsByUserIdForExercise(
+        participants.map((participant) => participant.userId),
+        exerciseId,
+      );
+      const participantSets: CommonWorkoutParticipantSet[] = [];
 
-        const participantSet = this.participantSetRepository.create({
-          participantId: participant.id,
-          participant,
-          commonWorkoutExerciseId: savedExercise.id,
-          commonWorkoutExercise: savedExercise,
-          setNumber: i,
-          previousWeight: previousSet?.currentWeight ?? null,
-          previousReps: previousSet?.currentReps ?? null,
-          currentWeight: null,
-          currentReps: null,
-          repMax: null,
-          confirmed: false,
-        });
+      for (const participant of participants) {
+        for (let i = 1; i <= setsCount; i += 1) {
+          const previousSet = previousSetsByUserId.get(participant.userId)?.get(i);
 
-        await this.participantSetRepository.save(participantSet);
+          participantSets.push(
+            this.participantSetRepository.create({
+              participantId: participant.id,
+              commonWorkoutExerciseId: savedExercise.id,
+              setNumber: i,
+              previousWeight: previousSet?.currentWeight ?? null,
+              previousReps: previousSet?.currentReps ?? null,
+              currentWeight: null,
+              currentReps: null,
+              repMax: null,
+              confirmed: false,
+            }),
+          );
+        }
       }
+
+      await this.participantSetRepository.save(participantSets);
     }
 
     return savedExercise;
@@ -687,6 +705,18 @@ export class CommonWorkoutsService {
     return commonWorkout;
   }
 
+  private async getActiveCommonWorkoutStructureEntityForUser(
+    userId: number,
+    commonWorkoutId: number,
+  ) {
+    const commonWorkout = await this.getCommonWorkoutStructureEntityForUser(userId, commonWorkoutId);
+    if (commonWorkout.status !== CommonWorkoutStatus.ACTIVE) {
+      throw new NotFoundException('Active common workout not found');
+    }
+
+    return commonWorkout;
+  }
+
   private async getCommonWorkoutEntityForUser(userId: number, commonWorkoutId: number) {
     const commonWorkout = await this.commonWorkoutRepository.findOne({
       where: { id: commonWorkoutId },
@@ -774,6 +804,40 @@ export class CommonWorkoutsService {
       commonWorkout,
       setsCountByExerciseId,
     };
+  }
+
+  private async getCommonWorkoutStructureEntityForUser(userId: number, commonWorkoutId: number) {
+    const commonWorkout = await this.commonWorkoutRepository.findOne({
+      where: { id: commonWorkoutId },
+      relations: {
+        participants: true,
+        exercises: {
+          exercise: true,
+        },
+      },
+      order: {
+        exercises: {
+          order: 'ASC',
+        },
+        participants: {
+          id: 'ASC',
+        },
+      },
+    });
+
+    if (!commonWorkout) {
+      throw new NotFoundException('Common workout not found');
+    }
+
+    const isParticipant = (commonWorkout.participants || []).some(
+      (participant) => participant.userId === userId,
+    );
+
+    if (!isParticipant) {
+      throw new NotFoundException('Common workout not found');
+    }
+
+    return commonWorkout;
   }
 
   private getCommonWorkoutExerciseFromWorkout(
@@ -925,6 +989,44 @@ export class CommonWorkoutsService {
     });
 
     return previousWorkoutExercise?.sets?.find((set) => set.setNumber === setNumber) || null;
+  }
+
+  private async getPreviousSetsByUserIdForExercise(userIds: number[], exerciseId: number) {
+    const uniqueUserIds = [...new Set(userIds)];
+    const previousSets = await Promise.all(
+      uniqueUserIds.map(async (userId) => {
+        const previousWorkoutExercise = await this.workoutExerciseRepository.findOne({
+          where: {
+            exerciseId,
+            workout: {
+              userId,
+              status: WorkoutStatus.COMPLETED,
+            },
+          },
+          relations: {
+            workout: true,
+            sets: true,
+          },
+          order: {
+            workout: {
+              finishedAt: 'DESC',
+            },
+            sets: {
+              setNumber: 'ASC',
+            },
+          },
+        });
+
+        return [
+          userId,
+          new Map<number, WorkoutSet>(
+            (previousWorkoutExercise?.sets || []).map((set) => [set.setNumber, set]),
+          ),
+        ] as const;
+      }),
+    );
+
+    return new Map<number, Map<number, WorkoutSet>>(previousSets);
   }
 
   private async getAccessibleExerciseForUsers(userIds: number[], exerciseId: number) {
