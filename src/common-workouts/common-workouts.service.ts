@@ -842,21 +842,20 @@ export class CommonWorkoutsService {
     userId: number,
     commonWorkoutExerciseId: number,
   ) {
-    const exercise = await this.commonWorkoutExerciseRepository.findOne({
-      where: {
-        id: commonWorkoutExerciseId,
-        commonWorkout: {
-          status: CommonWorkoutStatus.ACTIVE,
-        },
-      },
-      relations: {
-        exercise: true,
-        commonWorkout: {
-          participants: true,
-        },
-        participantSets: true,
-      },
-    });
+    const exercise = await this.commonWorkoutExerciseRepository
+      .createQueryBuilder('commonWorkoutExercise')
+      .leftJoinAndSelect('commonWorkoutExercise.exercise', 'exercise')
+      .leftJoinAndSelect('commonWorkoutExercise.commonWorkout', 'commonWorkout')
+      .leftJoinAndSelect('commonWorkout.participants', 'participant')
+      .leftJoinAndSelect('commonWorkoutExercise.participantSets', 'participantSet')
+      .where('commonWorkoutExercise.id = :commonWorkoutExerciseId', {
+        commonWorkoutExerciseId,
+      })
+      .andWhere('commonWorkout.status = :status', {
+        status: CommonWorkoutStatus.ACTIVE,
+      })
+      .orderBy('participantSet.setNumber', 'ASC')
+      .getOne();
 
     if (!exercise) {
       throw new NotFoundException('Common workout exercise not found');
@@ -911,27 +910,20 @@ export class CommonWorkoutsService {
   }
 
   private async getParticipantSetForUser(userId: number, participantSetId: number) {
-    const participantSet = await this.participantSetRepository.findOne({
-      where: {
-        id: participantSetId,
-        participant: {
-          userId,
-          commonWorkout: {
-            status: CommonWorkoutStatus.ACTIVE,
-          },
-        },
-      },
-      relations: {
-        participant: {
-          user: true,
-          commonWorkout: true,
-        },
-        commonWorkoutExercise: {
-          commonWorkout: true,
-          exercise: true,
-        },
-      },
-    });
+    const participantSet = await this.participantSetRepository
+      .createQueryBuilder('participantSet')
+      .leftJoinAndSelect('participantSet.participant', 'participant')
+      .leftJoinAndSelect('participant.user', 'participantUser')
+      .leftJoinAndSelect('participant.commonWorkout', 'participantWorkout')
+      .leftJoinAndSelect('participantSet.commonWorkoutExercise', 'commonWorkoutExercise')
+      .leftJoinAndSelect('commonWorkoutExercise.commonWorkout', 'commonWorkout')
+      .leftJoinAndSelect('commonWorkoutExercise.exercise', 'exercise')
+      .where('participantSet.id = :participantSetId', { participantSetId })
+      .andWhere('participant.userId = :userId', { userId })
+      .andWhere('participantWorkout.status = :status', {
+        status: CommonWorkoutStatus.ACTIVE,
+      })
+      .getOne();
 
     if (!participantSet) {
       throw new NotFoundException('Common workout set not found');
