@@ -19,7 +19,9 @@ import { ChangeWorkoutTemplateExercisePositionDto } from './dto/change-workout-t
 import { ChangeWorkoutTemplateExerciseSetsDto } from './dto/change-workout-template-exercise-sets.dto';
 import { ChangeWorkoutTemplateExerciseDto } from './dto/change-workout-template-exercise.dto';
 import { CreateWorkoutTemplateDto } from './dto/create-workout-template.dto';
+import { ShareWorkoutTemplateDto } from './dto/share-workout-template.dto';
 import { UpdateWorkoutTemplateDto } from './dto/update-workout-template.dto';
+import { UpdateWorkoutTemplateMembersDto } from './dto/update-workout-template-members.dto';
 import { WorkoutTemplatesService } from './workout-templates.service';
 
 @ApiTags('workout-templates')
@@ -37,6 +39,16 @@ export class WorkoutTemplatesController {
   @Get()
   async findAll(@Request() req) {
     return this.workoutTemplatesService.findAll(req.user.id);
+  }
+
+  @Get('shared/with-me')
+  async findSharedWithMe(@Request() req) {
+    return this.workoutTemplatesService.findSharedWithMe(req.user.id);
+  }
+
+  @Get('shared/:shareCode')
+  async findSharedByCode(@Request() req, @Param('shareCode') shareCode: string) {
+    return this.workoutTemplatesService.findSharedByCode(req.user.id, shareCode);
   }
 
   @Get(':id')
@@ -60,6 +72,24 @@ export class WorkoutTemplatesController {
     @Body() updateDto: UpdateWorkoutTemplateDto,
   ) {
     return this.workoutTemplatesService.update(req.user.id, id, updateDto);
+  }
+
+  @Put(':id/members')
+  async updateMembers(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateWorkoutTemplateMembersDto,
+  ) {
+    return this.workoutTemplatesService.updateMembers(req.user.id, id, dto.memberUserIds);
+  }
+
+  @Post(':id/share')
+  async share(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ShareWorkoutTemplateDto,
+  ) {
+    return this.workoutTemplatesService.share(req.user.id, id, dto.memberUserIds ?? []);
   }
 
   @Post(':id/exercises')

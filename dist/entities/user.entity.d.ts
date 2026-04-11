@@ -3,6 +3,7 @@ import { MuscleStatus } from './muscle-status.entity';
 import { Workout } from './workout.entity';
 import { UserWeightEntry } from './user-weight-entry.entity';
 import { UserBodyMeasurementEntry } from './user-body-measurement-entry.entity';
+import { WorkoutTemplateMember } from './workout-template-member.entity';
 export declare enum UserRole {
     ADMIN = "admin",
     USER = "user"
@@ -18,6 +19,7 @@ export declare class User {
     avatarPath: string;
     role: UserRole;
     workoutTemplates: WorkoutTemplate[];
+    sharedWorkoutTemplates: WorkoutTemplateMember[];
     muscleStatuses: MuscleStatus[];
     workouts: Workout[];
     weightEntries: UserWeightEntry[];

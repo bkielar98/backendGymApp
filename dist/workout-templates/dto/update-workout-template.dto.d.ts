@@ -6,5 +6,11 @@ export declare class UpdateWorkoutTemplateExerciseDto {
 }
 export declare class UpdateWorkoutTemplateDto {
     name?: string;
+    description?: string;
+    labels?: string[];
+    startDate?: string | null;
+    endDate?: string | null;
+    tasks?: string[];
+    memberUserIds?: number[];
     exercises?: UpdateWorkoutTemplateExerciseDto[];
 }

@@ -21,7 +21,9 @@ const change_workout_template_exercise_position_dto_1 = require("./dto/change-wo
 const change_workout_template_exercise_sets_dto_1 = require("./dto/change-workout-template-exercise-sets.dto");
 const change_workout_template_exercise_dto_1 = require("./dto/change-workout-template-exercise.dto");
 const create_workout_template_dto_1 = require("./dto/create-workout-template.dto");
+const share_workout_template_dto_1 = require("./dto/share-workout-template.dto");
 const update_workout_template_dto_1 = require("./dto/update-workout-template.dto");
+const update_workout_template_members_dto_1 = require("./dto/update-workout-template-members.dto");
 const workout_templates_service_1 = require("./workout-templates.service");
 let WorkoutTemplatesController = class WorkoutTemplatesController {
     constructor(workoutTemplatesService) {
@@ -33,6 +35,12 @@ let WorkoutTemplatesController = class WorkoutTemplatesController {
     async findAll(req) {
         return this.workoutTemplatesService.findAll(req.user.id);
     }
+    async findSharedWithMe(req) {
+        return this.workoutTemplatesService.findSharedWithMe(req.user.id);
+    }
+    async findSharedByCode(req, shareCode) {
+        return this.workoutTemplatesService.findSharedByCode(req.user.id, shareCode);
+    }
     async findOne(req, id) {
         return this.workoutTemplatesService.findOne(req.user.id, id);
     }
@@ -41,6 +49,12 @@ let WorkoutTemplatesController = class WorkoutTemplatesController {
     }
     async patch(req, id, updateDto) {
         return this.workoutTemplatesService.update(req.user.id, id, updateDto);
+    }
+    async updateMembers(req, id, dto) {
+        return this.workoutTemplatesService.updateMembers(req.user.id, id, dto.memberUserIds);
+    }
+    async share(req, id, dto) {
+        return this.workoutTemplatesService.share(req.user.id, id, dto.memberUserIds ?? []);
     }
     async addExercise(req, id, dto) {
         return this.workoutTemplatesService.addExercises(req.user.id, id, dto);
@@ -78,6 +92,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('shared/with-me'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], WorkoutTemplatesController.prototype, "findSharedWithMe", null);
+__decorate([
+    (0, common_1.Get)('shared/:shareCode'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('shareCode')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], WorkoutTemplatesController.prototype, "findSharedByCode", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -103,6 +132,24 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, update_workout_template_dto_1.UpdateWorkoutTemplateDto]),
     __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "patch", null);
+__decorate([
+    (0, common_1.Put)(':id/members'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, update_workout_template_members_dto_1.UpdateWorkoutTemplateMembersDto]),
+    __metadata("design:returntype", Promise)
+], WorkoutTemplatesController.prototype, "updateMembers", null);
+__decorate([
+    (0, common_1.Post)(':id/share'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, share_workout_template_dto_1.ShareWorkoutTemplateDto]),
+    __metadata("design:returntype", Promise)
+], WorkoutTemplatesController.prototype, "share", null);
 __decorate([
     (0, common_1.Post)(':id/exercises'),
     __param(0, (0, common_1.Request)()),

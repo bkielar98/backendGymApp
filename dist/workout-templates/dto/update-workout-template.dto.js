@@ -70,6 +70,70 @@ __decorate([
 ], UpdateWorkoutTemplateDto.prototype, "name", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
+        example: 'Np znajomemu poprzez link lub system znajomych',
+        description: 'Opis planu treningowego',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(1000),
+    __metadata("design:type", String)
+], UpdateWorkoutTemplateDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: ['push', 'klatka', '4 dni'],
+        description: 'Etykiety planu treningowego',
+        type: [String],
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.MaxLength)(30, { each: true }),
+    __metadata("design:type", Array)
+], UpdateWorkoutTemplateDto.prototype, "labels", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: '2026-04-11T10:00:00.000Z',
+        description: 'Data rozpoczecia planu',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateWorkoutTemplateDto.prototype, "startDate", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: '2026-05-11T10:00:00.000Z',
+        description: 'Data zakonczenia planu',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateWorkoutTemplateDto.prototype, "endDate", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: ['Dodaj progresje ciezaru', 'Sprawdz regeneracje barkow'],
+        description: 'Lista zadan powiazanych z planem',
+        type: [String],
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.MaxLength)(120, { each: true }),
+    __metadata("design:type", Array)
+], UpdateWorkoutTemplateDto.prototype, "tasks", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: [2, 7],
+        description: 'Pelna lista czlonkow, ktorzy maja miec dostep do planu',
+        type: [Number],
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsInt)({ each: true }),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Array)
+], UpdateWorkoutTemplateDto.prototype, "memberUserIds", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
         type: [UpdateWorkoutTemplateExerciseDto],
         example: [
             { id: 11, exerciseId: 5, setsCount: 5, order: 0 },

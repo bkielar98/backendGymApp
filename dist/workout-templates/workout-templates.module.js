@@ -14,12 +14,24 @@ const workout_templates_controller_1 = require("./workout-templates.controller")
 const workout_template_entity_1 = require("../entities/workout-template.entity");
 const workout_template_exercise_entity_1 = require("../entities/workout-template-exercise.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
+const workout_template_member_entity_1 = require("../entities/workout-template-member.entity");
+const friendship_entity_1 = require("../entities/friendship.entity");
+const user_entity_1 = require("../entities/user.entity");
 let WorkoutTemplatesModule = class WorkoutTemplatesModule {
 };
 exports.WorkoutTemplatesModule = WorkoutTemplatesModule;
 exports.WorkoutTemplatesModule = WorkoutTemplatesModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([workout_template_entity_1.WorkoutTemplate, workout_template_exercise_entity_1.WorkoutTemplateExercise, exercise_entity_1.Exercise])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([
+                workout_template_entity_1.WorkoutTemplate,
+                workout_template_exercise_entity_1.WorkoutTemplateExercise,
+                workout_template_member_entity_1.WorkoutTemplateMember,
+                exercise_entity_1.Exercise,
+                friendship_entity_1.Friendship,
+                user_entity_1.User,
+            ]),
+        ],
         providers: [workout_templates_service_1.WorkoutTemplatesService],
         controllers: [workout_templates_controller_1.WorkoutTemplatesController],
     })

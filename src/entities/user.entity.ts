@@ -5,6 +5,7 @@ import { MuscleStatus } from './muscle-status.entity';
 import { Workout } from './workout.entity';
 import { UserWeightEntry } from './user-weight-entry.entity';
 import { UserBodyMeasurementEntry } from './user-body-measurement-entry.entity';
+import { WorkoutTemplateMember } from './workout-template-member.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -48,6 +49,9 @@ export class User {
 
   @OneToMany(() => WorkoutTemplate, (template) => template.user)
   workoutTemplates: WorkoutTemplate[];
+
+  @OneToMany(() => WorkoutTemplateMember, (member) => member.user)
+  sharedWorkoutTemplates: WorkoutTemplateMember[];
 
   @OneToMany(() => MuscleStatus, (status) => status.user)
   muscleStatuses: MuscleStatus[];

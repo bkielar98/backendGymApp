@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDateString,
   IsInt,
   IsOptional,
   IsString,
@@ -57,6 +58,64 @@ export class UpdateWorkoutTemplateDto {
   @IsString()
   @MaxLength(100)
   name?: string;
+
+  @ApiPropertyOptional({
+    example: 'Np znajomemu poprzez link lub system znajomych',
+    description: 'Opis planu treningowego',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  description?: string;
+
+  @ApiPropertyOptional({
+    example: ['push', 'klatka', '4 dni'],
+    description: 'Etykiety planu treningowego',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(30, { each: true })
+  labels?: string[];
+
+  @ApiPropertyOptional({
+    example: '2026-04-11T10:00:00.000Z',
+    description: 'Data rozpoczecia planu',
+  })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string | null;
+
+  @ApiPropertyOptional({
+    example: '2026-05-11T10:00:00.000Z',
+    description: 'Data zakonczenia planu',
+  })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string | null;
+
+  @ApiPropertyOptional({
+    example: ['Dodaj progresje ciezaru', 'Sprawdz regeneracje barkow'],
+    description: 'Lista zadan powiazanych z planem',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(120, { each: true })
+  tasks?: string[];
+
+  @ApiPropertyOptional({
+    example: [2, 7],
+    description: 'Pelna lista czlonkow, ktorzy maja miec dostep do planu',
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Type(() => Number)
+  memberUserIds?: number[];
 
   @ApiPropertyOptional({
     type: [UpdateWorkoutTemplateExerciseDto],

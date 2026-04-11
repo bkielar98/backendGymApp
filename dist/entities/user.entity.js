@@ -17,6 +17,7 @@ const muscle_status_entity_1 = require("./muscle-status.entity");
 const workout_entity_1 = require("./workout.entity");
 const user_weight_entry_entity_1 = require("./user-weight-entry.entity");
 const user_body_measurement_entry_entity_1 = require("./user-body-measurement-entry.entity");
+const workout_template_member_entity_1 = require("./workout-template-member.entity");
 var UserRole;
 (function (UserRole) {
     UserRole["ADMIN"] = "admin";
@@ -71,6 +72,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => workout_template_entity_1.WorkoutTemplate, (template) => template.user),
     __metadata("design:type", Array)
 ], User.prototype, "workoutTemplates", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => workout_template_member_entity_1.WorkoutTemplateMember, (member) => member.user),
+    __metadata("design:type", Array)
+], User.prototype, "sharedWorkoutTemplates", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => muscle_status_entity_1.MuscleStatus, (status) => status.user),
     __metadata("design:type", Array)
