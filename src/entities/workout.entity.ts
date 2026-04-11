@@ -43,7 +43,6 @@ export class Workout {
 
   @OneToMany(() => WorkoutExercise, (exercise) => exercise.workout, {
     cascade: true,
-    eager: true,
   })
   exercises: WorkoutExercise[];
 }

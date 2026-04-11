@@ -427,21 +427,17 @@ export class CommonWorkoutsService {
 
   async updateSet(userId: number, participantSetId: number, dto: UpdateCommonWorkoutSetDto) {
     const participantSet = await this.getParticipantSetForUser(userId, participantSetId);
+    const nextWeight =
+      typeof dto.currentWeight === 'number' ? dto.currentWeight : participantSet.currentWeight;
+    const nextReps =
+      typeof dto.currentReps === 'number' ? dto.currentReps : participantSet.currentReps;
+    const nextRepMax = this.calculateRepMax(nextWeight, nextReps);
 
-    if (typeof dto.currentWeight === 'number') {
-      participantSet.currentWeight = dto.currentWeight;
-    }
-
-    if (typeof dto.currentReps === 'number') {
-      participantSet.currentReps = dto.currentReps;
-    }
-
-    participantSet.repMax = this.calculateRepMax(
-      participantSet.currentWeight,
-      participantSet.currentReps,
-    );
-
-    await this.participantSetRepository.save(participantSet);
+    await this.participantSetRepository.update(participantSetId, {
+      currentWeight: nextWeight,
+      currentReps: nextReps,
+      repMax: nextRepMax,
+    });
 
     const payload = await this.getWorkoutExerciseResponse(
       userId,
@@ -454,16 +450,14 @@ export class CommonWorkoutsService {
 
   async confirmSet(userId: number, participantSetId: number, dto: ConfirmCommonWorkoutSetDto) {
     const participantSet = await this.getParticipantSetForUser(userId, participantSetId);
+    const repMax = this.calculateRepMax(dto.currentWeight, dto.currentReps);
 
-    participantSet.currentWeight = dto.currentWeight;
-    participantSet.currentReps = dto.currentReps;
-    participantSet.repMax = this.calculateRepMax(
-      participantSet.currentWeight,
-      participantSet.currentReps,
-    );
-    participantSet.confirmed = true;
-
-    await this.participantSetRepository.save(participantSet);
+    await this.participantSetRepository.update(participantSetId, {
+      currentWeight: dto.currentWeight,
+      currentReps: dto.currentReps,
+      repMax,
+      confirmed: true,
+    });
 
     const payload = await this.getWorkoutExerciseResponse(
       userId,
@@ -625,25 +619,42 @@ export class CommonWorkoutsService {
       (a, b) => a.order - b.order,
     );
 
-    for (const commonExercise of orderedExercises) {
-      const workoutExercise = this.workoutExerciseRepository.create({
-        workoutId: savedWorkout.id,
-        workout: savedWorkout,
-        exerciseId: commonExercise.exerciseId,
-        exercise: commonExercise.exercise,
-        order: commonExercise.order,
-        sets: [],
-      });
+    if (orderedExercises.length === 0) {
+      return;
+    }
 
-      const savedWorkoutExercise = await this.workoutExerciseRepository.save(workoutExercise);
-      const participantSets = (commonExercise.participantSets || [])
+    const exerciseInsertResult = await this.workoutExerciseRepository
+      .createQueryBuilder()
+      .insert()
+      .into(WorkoutExercise)
+      .values(
+        orderedExercises.map((commonExercise) => ({
+          workoutId: savedWorkout.id,
+          exerciseId: commonExercise.exerciseId,
+          order: commonExercise.order,
+        })),
+      )
+      .returning(['id'])
+      .execute();
+
+    const insertedExerciseIds = exerciseInsertResult.identifiers.map((item) => Number(item.id));
+    const exerciseIdByOrder = new Map<number, number>();
+
+    for (let index = 0; index < orderedExercises.length; index += 1) {
+      exerciseIdByOrder.set(orderedExercises[index].order, insertedExerciseIds[index]);
+    }
+
+    const setsToInsert = orderedExercises.flatMap((commonExercise) => {
+      const workoutExerciseId = exerciseIdByOrder.get(commonExercise.order);
+      if (!workoutExerciseId) {
+        return [];
+      }
+
+      return (commonExercise.participantSets || [])
         .filter((set) => set.participantId === participant.id)
-        .sort((a, b) => a.setNumber - b.setNumber);
-
-      const setsToCreate = participantSets.map((set) =>
-        this.workoutSetRepository.create({
-          workoutExerciseId: savedWorkoutExercise.id,
-          workoutExercise: savedWorkoutExercise,
+        .sort((a, b) => a.setNumber - b.setNumber)
+        .map((set) => ({
+          workoutExerciseId,
           setNumber: set.setNumber,
           previousWeight: set.previousWeight,
           previousReps: set.previousReps,
@@ -651,10 +662,16 @@ export class CommonWorkoutsService {
           currentReps: set.currentReps,
           repMax: set.repMax,
           confirmed: set.confirmed,
-        }),
-      );
+        }));
+    });
 
-      await this.workoutSetRepository.save(setsToCreate);
+    if (setsToInsert.length > 0) {
+      await this.workoutSetRepository
+        .createQueryBuilder()
+        .insert()
+        .into(WorkoutSet)
+        .values(setsToInsert)
+        .execute();
     }
   }
 
