@@ -764,26 +764,17 @@ export class CommonWorkoutsService {
   }
 
   private async getCommonWorkoutSummaryEntityForUser(userId: number, commonWorkoutId: number) {
-    const commonWorkout = await this.commonWorkoutRepository.findOne({
-      where: { id: commonWorkoutId },
-      relations: {
-        template: true,
-        participants: {
-          user: true,
-        },
-        exercises: {
-          exercise: true,
-        },
-      },
-      order: {
-        exercises: {
-          order: 'ASC',
-        },
-        participants: {
-          id: 'ASC',
-        },
-      },
-    });
+    const commonWorkout = await this.commonWorkoutRepository
+      .createQueryBuilder('commonWorkout')
+      .leftJoinAndSelect('commonWorkout.template', 'template')
+      .leftJoinAndSelect('commonWorkout.participants', 'participant')
+      .leftJoinAndSelect('participant.user', 'participantUser')
+      .leftJoinAndSelect('commonWorkout.exercises', 'exerciseEntry')
+      .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
+      .where('commonWorkout.id = :commonWorkoutId', { commonWorkoutId })
+      .orderBy('exerciseEntry.order', 'ASC')
+      .addOrderBy('participant.id', 'ASC')
+      .getOne();
 
     if (!commonWorkout) {
       throw new NotFoundException('Common workout not found');
@@ -807,23 +798,15 @@ export class CommonWorkoutsService {
   }
 
   private async getCommonWorkoutStructureEntityForUser(userId: number, commonWorkoutId: number) {
-    const commonWorkout = await this.commonWorkoutRepository.findOne({
-      where: { id: commonWorkoutId },
-      relations: {
-        participants: true,
-        exercises: {
-          exercise: true,
-        },
-      },
-      order: {
-        exercises: {
-          order: 'ASC',
-        },
-        participants: {
-          id: 'ASC',
-        },
-      },
-    });
+    const commonWorkout = await this.commonWorkoutRepository
+      .createQueryBuilder('commonWorkout')
+      .leftJoinAndSelect('commonWorkout.participants', 'participant')
+      .leftJoinAndSelect('commonWorkout.exercises', 'exerciseEntry')
+      .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
+      .where('commonWorkout.id = :commonWorkoutId', { commonWorkoutId })
+      .orderBy('exerciseEntry.order', 'ASC')
+      .addOrderBy('participant.id', 'ASC')
+      .getOne();
 
     if (!commonWorkout) {
       throw new NotFoundException('Common workout not found');
@@ -895,26 +878,22 @@ export class CommonWorkoutsService {
     commonWorkoutId: number,
     commonWorkoutExerciseId: number,
   ) {
-    const exercise = await this.commonWorkoutExerciseRepository.findOne({
-      where: {
-        id: commonWorkoutExerciseId,
+    const exercise = await this.commonWorkoutExerciseRepository
+      .createQueryBuilder('commonWorkoutExercise')
+      .leftJoinAndSelect('commonWorkoutExercise.exercise', 'exercise')
+      .leftJoinAndSelect('commonWorkoutExercise.commonWorkout', 'commonWorkout')
+      .leftJoinAndSelect('commonWorkout.participants', 'participant')
+      .leftJoinAndSelect('participant.user', 'participantUser')
+      .leftJoinAndSelect('commonWorkoutExercise.participantSets', 'participantSet')
+      .where('commonWorkoutExercise.id = :commonWorkoutExerciseId', {
+        commonWorkoutExerciseId,
+      })
+      .andWhere('commonWorkoutExercise.commonWorkoutId = :commonWorkoutId', {
         commonWorkoutId,
-      },
-      relations: {
-        exercise: true,
-        commonWorkout: {
-          participants: {
-            user: true,
-          },
-        },
-        participantSets: true,
-      },
-      order: {
-        participantSets: {
-          setNumber: 'ASC',
-        },
-      },
-    });
+      })
+      .orderBy('participantSet.setNumber', 'ASC')
+      .addOrderBy('participant.id', 'ASC')
+      .getOne();
 
     if (!exercise) {
       throw new NotFoundException('Common workout exercise not found');
