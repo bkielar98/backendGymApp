@@ -26,6 +26,7 @@ import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exer
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
 import { ConfirmCommonWorkoutSetDto } from './dto/confirm-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
+import { calculateBrzyckiRepMax } from '../common/utils/rep-max.util';
 import {
   MAX_COMMON_WORKOUT_EXERCISES,
   MAX_COMMON_WORKOUT_PARTICIPANTS,
@@ -1249,17 +1250,7 @@ export class CommonWorkoutsService {
   }
 
   private calculateRepMax(weight?: number | null, reps?: number | null) {
-    if (
-      typeof weight !== 'number' ||
-      typeof reps !== 'number' ||
-      weight <= 0 ||
-      reps <= 0
-    ) {
-      return null;
-    }
-
-    const repMax = weight * (1 + reps / 30);
-    return Math.round(repMax * 100) / 100;
+    return calculateBrzyckiRepMax(weight, reps);
   }
 
   private getDurationSeconds(startedAt: Date, finishedAt: Date | null) {

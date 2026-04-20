@@ -22,6 +22,7 @@ const workout_set_entity_1 = require("../entities/workout-set.entity");
 const workout_template_entity_1 = require("../entities/workout-template.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
 const workout_constants_1 = require("../common/constants/workout.constants");
+const rep_max_util_1 = require("../common/utils/rep-max.util");
 let WorkoutsService = class WorkoutsService {
     constructor(workoutRepository, workoutExerciseRepository, workoutSetRepository, templateRepository, exerciseRepository) {
         this.workoutRepository = workoutRepository;
@@ -486,14 +487,7 @@ let WorkoutsService = class WorkoutsService {
         throw new common_1.NotFoundException('Exercise not found');
     }
     calculateRepMax(weight, reps) {
-        if (typeof weight !== 'number' ||
-            typeof reps !== 'number' ||
-            weight <= 0 ||
-            reps <= 0) {
-            return null;
-        }
-        const repMax = weight * (1 + reps / 30);
-        return Math.round(repMax * 100) / 100;
+        return (0, rep_max_util_1.calculateBrzyckiRepMax)(weight, reps);
     }
     ensureWorkoutExerciseLimit(count) {
         if (count > workout_constants_1.MAX_ACTIVE_WORKOUT_EXERCISES) {

@@ -20,6 +20,7 @@ import {
   MAX_EXERCISE_SETS,
   MAX_TOTAL_SETS,
 } from '../common/constants/workout.constants';
+import { calculateBrzyckiRepMax } from '../common/utils/rep-max.util';
 
 @Injectable()
 export class WorkoutsService {
@@ -673,17 +674,7 @@ export class WorkoutsService {
   }
 
   private calculateRepMax(weight?: number | null, reps?: number | null) {
-    if (
-      typeof weight !== 'number' ||
-      typeof reps !== 'number' ||
-      weight <= 0 ||
-      reps <= 0
-    ) {
-      return null;
-    }
-
-    const repMax = weight * (1 + reps / 30);
-    return Math.round(repMax * 100) / 100;
+    return calculateBrzyckiRepMax(weight, reps);
   }
 
   private ensureWorkoutExerciseLimit(count: number) {

@@ -29,6 +29,7 @@ const exercise_entity_1 = require("../entities/exercise.entity");
 const user_entity_1 = require("../entities/user.entity");
 const user_exercise_personal_best_entity_1 = require("../entities/user-exercise-personal-best.entity");
 const common_workouts_gateway_1 = require("./common-workouts.gateway");
+const rep_max_util_1 = require("../common/utils/rep-max.util");
 const workout_constants_1 = require("../common/constants/workout.constants");
 let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsService {
     constructor(commonWorkoutRepository, participantRepository, commonWorkoutExerciseRepository, participantSetRepository, workoutRepository, workoutExerciseRepository, workoutSetRepository, templateRepository, exerciseRepository, userRepository, personalBestRepository, gateway) {
@@ -898,14 +899,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         await this.personalBestRepository.save(payload);
     }
     calculateRepMax(weight, reps) {
-        if (typeof weight !== 'number' ||
-            typeof reps !== 'number' ||
-            weight <= 0 ||
-            reps <= 0) {
-            return null;
-        }
-        const repMax = weight * (1 + reps / 30);
-        return Math.round(repMax * 100) / 100;
+        return (0, rep_max_util_1.calculateBrzyckiRepMax)(weight, reps);
     }
     getDurationSeconds(startedAt, finishedAt) {
         const start = new Date(startedAt).getTime();
