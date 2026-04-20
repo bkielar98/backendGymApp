@@ -6,6 +6,7 @@ import { CreateWeightEntryDto } from './dto/create-weight-entry.dto';
 import { UpdateWeightEntryDto } from './dto/update-weight-entry.dto';
 import { CreateBodyMeasurementEntryDto } from './dto/create-body-measurement-entry.dto';
 import { UpdateBodyMeasurementEntryDto } from './dto/update-body-measurement-entry.dto';
+import { UserRole } from '../entities/user.entity';
 export declare class UsersController {
     private usersService;
     constructor(usersService: UsersService);
@@ -14,7 +15,7 @@ export declare class UsersController {
         email: string;
         name: string;
         gender: string;
-        role: import("../entities/user.entity").UserRole;
+        role: UserRole;
         avatarPath: string;
         avatarUrl: string;
         currentWeight: number;
@@ -34,7 +35,7 @@ export declare class UsersController {
         email: string;
         name: string;
         gender: string;
-        role: import("../entities/user.entity").UserRole;
+        role: UserRole;
         avatarPath: string;
         avatarUrl: string;
         currentWeight: number;
@@ -54,7 +55,7 @@ export declare class UsersController {
         email: string;
         name: string;
         gender: string;
-        role: import("../entities/user.entity").UserRole;
+        role: UserRole;
         avatarPath: string;
         avatarUrl: string;
         currentWeight: number;
@@ -74,7 +75,7 @@ export declare class UsersController {
         email: string;
         name: string;
         gender: string;
-        role: import("../entities/user.entity").UserRole;
+        role: UserRole;
         avatarPath: string;
         avatarUrl: string;
         currentWeight: number;
@@ -100,7 +101,7 @@ export declare class UsersController {
         email: string;
         name: string;
         gender: string;
-        role: import("../entities/user.entity").UserRole;
+        role: UserRole;
         avatarPath: string;
         avatarUrl: string;
         currentWeight: number;
@@ -114,6 +115,19 @@ export declare class UsersController {
             date: string;
             value: number;
         }[]>;
+    }>;
+    purgeAllAvatars(req: any): Promise<{
+        success: boolean;
+        message: string;
+        deletedFiles: number;
+        clearedUsers: number;
+        usersWithAvatarsBeforePurge: number;
+    }>;
+    removeAvatarDirectory(req: any): Promise<{
+        success: boolean;
+        message: string;
+        removedDirectory: boolean;
+        path: string;
     }>;
     getWeights(req: any): Promise<import("../entities/user-weight-entry.entity").UserWeightEntry[]>;
     createWeight(req: any, dto: CreateWeightEntryDto): Promise<import("../entities/user-weight-entry.entity").UserWeightEntry>;

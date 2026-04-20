@@ -158,6 +158,7 @@ __decorate([
         items: add_workout_template_exercise_dto_1.AddWorkoutTemplateExerciseDto,
         whitelist: true,
         forbidNonWhitelisted: true,
+        stopAtFirstError: true,
     }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number, Array]),

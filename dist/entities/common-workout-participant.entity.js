@@ -36,13 +36,12 @@ __decorate([
     __metadata("design:type", Number)
 ], CommonWorkoutParticipant.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true, onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'CASCADE' }),
     __metadata("design:type", user_entity_1.User)
 ], CommonWorkoutParticipant.prototype, "user", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => common_workout_participant_set_entity_1.CommonWorkoutParticipantSet, (set) => set.participant, {
         cascade: true,
-        eager: true,
     }),
     __metadata("design:type", Array)
 ], CommonWorkoutParticipant.prototype, "sets", void 0);

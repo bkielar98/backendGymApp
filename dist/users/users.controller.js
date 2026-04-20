@@ -27,6 +27,7 @@ const create_weight_entry_dto_1 = require("./dto/create-weight-entry.dto");
 const update_weight_entry_dto_1 = require("./dto/update-weight-entry.dto");
 const create_body_measurement_entry_dto_1 = require("./dto/create-body-measurement-entry.dto");
 const update_body_measurement_entry_dto_1 = require("./dto/update-body-measurement-entry.dto");
+const user_entity_1 = require("../entities/user.entity");
 const avatarStorage = (0, multer_1.diskStorage)({
     destination: './uploads/avatars',
     filename: (_, file, callback) => {
@@ -62,6 +63,18 @@ let UsersController = class UsersController {
     async uploadAvatar(req, file) {
         await this.usersService.updateAvatar(req.user.id, file);
         return this.usersService.getUserCard(req.user.id);
+    }
+    async purgeAllAvatars(req) {
+        if (req.user.role !== user_entity_1.UserRole.ADMIN) {
+            throw new common_1.ForbiddenException('Only admins can purge avatars');
+        }
+        return this.usersService.purgeAllAvatars();
+    }
+    async removeAvatarDirectory(req) {
+        if (req.user.role !== user_entity_1.UserRole.ADMIN) {
+            throw new common_1.ForbiddenException('Only admins can remove avatar directory');
+        }
+        return this.usersService.removeAvatarDirectory();
     }
     async getWeights(req) {
         return this.usersService.listWeightEntries(req.user.id);
@@ -164,6 +177,24 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "uploadAvatar", null);
+__decorate([
+    (0, common_1.Post)('admin/purge-avatars'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete all avatar files from server storage' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'All avatar files deleted' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "purgeAllAvatars", null);
+__decorate([
+    (0, common_1.Post)('admin/remove-avatar-directory'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete avatar directory from server storage' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Avatar directory deleted' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "removeAvatarDirectory", null);
 __decorate([
     (0, common_1.Get)('weights'),
     (0, swagger_1.ApiOperation)({ summary: 'Get user weight history' }),

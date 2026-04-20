@@ -31,6 +31,9 @@ import { LoopProtectionInterceptor } from './common/interceptors/loop-protection
       database: process.env.DB_DATABASE,
       synchronize: true,
       autoLoadEntities: true,
+      extra: {
+        max: Number(process.env.DB_POOL_MAX ?? 1),
+      },
       ssl: {
         rejectUnauthorized: false,
       },

@@ -24,63 +24,63 @@ __decorate([
     __metadata("design:type", String)
 ], UserBodyMeasurementEntry.prototype, "recordedOn", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "neck", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "shoulders", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "chest", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "leftBiceps", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "rightBiceps", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "leftForearm", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "rightForearm", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "upperAbs", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "waist", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "lowerAbs", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "hips", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "leftThigh", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "rightThigh", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "leftCalf", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float'),
+    (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], UserBodyMeasurementEntry.prototype, "rightCalf", void 0);
 __decorate([

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt } from 'class-validator';
+import { ArrayMaxSize, ArrayUnique, IsArray, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
+import { MAX_TEMPLATE_MEMBERS } from '../../common/constants/workout.constants';
 
 export class UpdateWorkoutTemplateMembersDto {
   @ApiProperty({
@@ -9,6 +10,8 @@ export class UpdateWorkoutTemplateMembersDto {
     type: [Number],
   })
   @IsArray()
+  @ArrayMaxSize(MAX_TEMPLATE_MEMBERS)
+  @ArrayUnique()
   @IsInt({ each: true })
   @Type(() => Number)
   memberUserIds: number[];

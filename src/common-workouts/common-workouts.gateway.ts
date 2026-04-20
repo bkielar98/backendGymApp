@@ -1,7 +1,11 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
@@ -11,7 +15,9 @@ import { Repository } from 'typeorm';
 import { CommonWorkoutParticipant } from '../entities/common-workout-participant.entity';
 import { User } from '../entities/user.entity';
 
+@WebSocketGateway({ namespace: '/common-workouts' })
 export class CommonWorkoutsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
 {
   constructor(
     private readonly jwtService: JwtService,
@@ -21,6 +27,7 @@ export class CommonWorkoutsGateway
     private readonly participantRepository: Repository<CommonWorkoutParticipant>,
   ) {}
 
+  @WebSocketServer()
   server: Server;
 
   async handleConnection(client: Socket) {
@@ -52,37 +59,29 @@ export class CommonWorkoutsGateway
     @MessageBody() data: { commonWorkoutId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    const userId = client.data.userId;
+    return this.joinWorkoutRoom(data.commonWorkoutId, client);
+  }
 
-    if (typeof userId !== 'number') {
-      throw new WsException('Unauthorized');
-    }
-
-    const participant = await this.participantRepository.findOne({
-      where: {
-        commonWorkoutId: data.commonWorkoutId,
-        userId,
-      },
-    });
-
-    if (!participant) {
-      throw new WsException('Common workout not found');
-    }
-
-    client.join(`common-workout-${data.commonWorkoutId}`);
-    return { event: 'joined', data: { commonWorkoutId: data.commonWorkoutId } };
+  @SubscribeMessage('joinWorkout')
+  async handleJoinWorkout(
+    @MessageBody() data: { workoutId?: number; commonWorkoutId?: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    return this.joinWorkoutRoom(data.workoutId ?? data.commonWorkoutId, client);
   }
 
   emitUpdated(commonWorkoutId: number, payload: unknown) {
     this.server
       .to(`common-workout-${commonWorkoutId}`)
       .emit('commonWorkoutUpdated', payload);
+    this.server.to(`common-workout-${commonWorkoutId}`).emit('workoutUpdated', payload);
   }
 
   emitFinished(commonWorkoutId: number, payload: unknown) {
     this.server
       .to(`common-workout-${commonWorkoutId}`)
       .emit('commonWorkoutFinished', payload);
+    this.server.to(`common-workout-${commonWorkoutId}`).emit('workoutFinished', payload);
   }
 
   hasSubscribers(commonWorkoutId: number) {
@@ -91,6 +90,32 @@ export class CommonWorkoutsGateway
     );
 
     return (room?.size ?? 0) > 0;
+  }
+
+  private async joinWorkoutRoom(commonWorkoutId: number | undefined, client: Socket) {
+    const userId = client.data.userId;
+
+    if (typeof userId !== 'number') {
+      throw new WsException('Unauthorized');
+    }
+
+    if (typeof commonWorkoutId !== 'number') {
+      throw new WsException('Common workout not found');
+    }
+
+    const participant = await this.participantRepository.findOne({
+      where: {
+        commonWorkoutId,
+        userId,
+      },
+    });
+
+    if (!participant) {
+      throw new WsException('Common workout not found');
+    }
+
+    client.join(`common-workout-${commonWorkoutId}`);
+    return { event: 'joined', data: { commonWorkoutId, workoutId: commonWorkoutId } };
   }
 
   private extractToken(client: Socket) {

@@ -22,6 +22,7 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
         await this.ensureUserCardSchema();
         await this.ensureFriendshipSchema();
         await this.ensureCommonWorkoutSchema();
+        await this.ensureWorkoutAnalyticsSchema();
     }
     async ensureUserCardSchema() {
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "avatarPath" character varying');
@@ -41,27 +42,47 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
       CREATE TABLE IF NOT EXISTS "user_body_measurement_entry" (
         "id" SERIAL PRIMARY KEY,
         "recordedOn" date NOT NULL,
-        "neck" double precision NOT NULL,
-        "shoulders" double precision NOT NULL,
-        "chest" double precision NOT NULL,
-        "leftBiceps" double precision NOT NULL,
-        "rightBiceps" double precision NOT NULL,
-        "leftForearm" double precision NOT NULL,
-        "rightForearm" double precision NOT NULL,
-        "upperAbs" double precision NOT NULL,
-        "waist" double precision NOT NULL,
-        "lowerAbs" double precision NOT NULL,
-        "hips" double precision NOT NULL,
-        "leftThigh" double precision NOT NULL,
-        "rightThigh" double precision NOT NULL,
-        "leftCalf" double precision NOT NULL,
-        "rightCalf" double precision NOT NULL,
+        "neck" double precision NULL,
+        "shoulders" double precision NULL,
+        "chest" double precision NULL,
+        "leftBiceps" double precision NULL,
+        "rightBiceps" double precision NULL,
+        "leftForearm" double precision NULL,
+        "rightForearm" double precision NULL,
+        "upperAbs" double precision NULL,
+        "waist" double precision NULL,
+        "lowerAbs" double precision NULL,
+        "hips" double precision NULL,
+        "leftThigh" double precision NULL,
+        "rightThigh" double precision NULL,
+        "leftCalf" double precision NULL,
+        "rightCalf" double precision NULL,
         "userId" integer,
         "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
         "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "FK_user_body_measurement_entry_user" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE
       )
     `);
+        const nullableMeasurementColumns = [
+            'neck',
+            'shoulders',
+            'chest',
+            'leftBiceps',
+            'rightBiceps',
+            'leftForearm',
+            'rightForearm',
+            'upperAbs',
+            'waist',
+            'lowerAbs',
+            'hips',
+            'leftThigh',
+            'rightThigh',
+            'leftCalf',
+            'rightCalf',
+        ];
+        for (const column of nullableMeasurementColumns) {
+            await this.dataSource.query(`ALTER TABLE "user_body_measurement_entry" ALTER COLUMN "${column}" DROP NOT NULL`);
+        }
         this.logger.log('User card schema verified');
     }
     async ensureFriendshipSchema() {
@@ -152,6 +173,30 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
       )
     `);
         this.logger.log('Common workout schema verified');
+    }
+    async ensureWorkoutAnalyticsSchema() {
+        await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS "user_exercise_personal_best" (
+        "id" SERIAL PRIMARY KEY,
+        "userId" integer NOT NULL,
+        "exerciseId" integer NOT NULL,
+        "workoutId" integer NULL,
+        "weight" double precision NOT NULL,
+        "reps" integer NOT NULL,
+        "repMax" double precision NOT NULL,
+        "achievedAt" TIMESTAMP NOT NULL,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "FK_user_exercise_personal_best_user" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_user_exercise_personal_best_exercise" FOREIGN KEY ("exerciseId") REFERENCES "exercise"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_user_exercise_personal_best_workout" FOREIGN KEY ("workoutId") REFERENCES "workout"("id") ON DELETE SET NULL
+      )
+    `);
+        await this.dataSource.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_exercise_personal_best_user_exercise"
+      ON "user_exercise_personal_best" ("userId", "exerciseId")
+    `);
+        this.logger.log('Workout analytics schema verified');
     }
 };
 exports.SchemaFixService = SchemaFixService;

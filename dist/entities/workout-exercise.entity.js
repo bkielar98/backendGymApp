@@ -36,7 +36,7 @@ __decorate([
     __metadata("design:type", Number)
 ], WorkoutExercise.prototype, "exerciseId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => exercise_entity_1.Exercise, { eager: true, onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => exercise_entity_1.Exercise, { onDelete: 'CASCADE' }),
     __metadata("design:type", exercise_entity_1.Exercise)
 ], WorkoutExercise.prototype, "exercise", void 0);
 __decorate([
@@ -46,7 +46,6 @@ __decorate([
 __decorate([
     (0, typeorm_1.OneToMany)(() => workout_set_entity_1.WorkoutSet, (set) => set.workoutExercise, {
         cascade: true,
-        eager: true,
     }),
     __metadata("design:type", Array)
 ], WorkoutExercise.prototype, "sets", void 0);

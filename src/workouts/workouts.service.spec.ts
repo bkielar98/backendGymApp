@@ -172,6 +172,10 @@ describe('WorkoutsService', () => {
       order: { startedAt: 'DESC' },
       relations: {
         template: true,
+        exercises: {
+          exercise: true,
+          sets: true,
+        },
       },
     });
     expect(result).toMatchObject([

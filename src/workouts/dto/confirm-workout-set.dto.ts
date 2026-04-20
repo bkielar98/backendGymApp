@@ -1,6 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNumber, Min } from 'class-validator';
+import { IsInt, IsNumber, Max, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  MAX_REPS_PER_SET,
+  MAX_WEIGHT_KG,
+} from '../../common/constants/workout.constants';
 
 export class ConfirmWorkoutSetDto {
   @ApiProperty({
@@ -9,6 +13,7 @@ export class ConfirmWorkoutSetDto {
   })
   @IsNumber()
   @Min(0)
+  @Max(MAX_WEIGHT_KG)
   @Type(() => Number)
   currentWeight: number;
 
@@ -18,6 +23,7 @@ export class ConfirmWorkoutSetDto {
   })
   @IsInt()
   @Min(0)
+  @Max(MAX_REPS_PER_SET)
   @Type(() => Number)
   currentReps: number;
 }

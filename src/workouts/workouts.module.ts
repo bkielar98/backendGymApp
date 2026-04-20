@@ -7,9 +7,11 @@ import { WorkoutExercise } from '../entities/workout-exercise.entity';
 import { WorkoutSet } from '../entities/workout-set.entity';
 import { WorkoutTemplate } from '../entities/workout-template.entity';
 import { Exercise } from '../entities/exercise.entity';
+import { CommonWorkoutsModule } from '../common-workouts/common-workouts.module';
 
 @Module({
   imports: [
+    CommonWorkoutsModule,
     TypeOrmModule.forFeature([
       Workout,
       WorkoutExercise,

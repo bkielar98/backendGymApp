@@ -15,22 +15,9 @@ export declare class WorkoutsService {
     private readonly workoutSetRepository;
     private readonly templateRepository;
     private readonly exerciseRepository;
+    private readonly workoutRelations;
     constructor(workoutRepository: Repository<Workout>, workoutExerciseRepository: Repository<WorkoutExercise>, workoutSetRepository: Repository<WorkoutSet>, templateRepository: Repository<WorkoutTemplate>, exerciseRepository: Repository<Exercise>);
     startWorkout(userId: number, dto: StartWorkoutDto): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -51,22 +38,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     updateWorkout(userId: number, workoutId: number, dto: UpdateWorkoutDto): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -87,22 +78,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     getActiveWorkout(userId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -123,22 +118,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     findAll(userId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -159,22 +158,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }[]>;
     findHistory(userId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -195,22 +198,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }[]>;
     findOne(userId: number, workoutId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -231,26 +238,50 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
+    }>;
+    findSummary(userId: number, workoutId: number): Promise<{
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     removeWorkout(userId: number, workoutId: number): Promise<{
         success: boolean;
         message: string;
     }>;
     addExercise(userId: number, workoutId: number, dto: AddWorkoutExerciseDto): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -271,22 +302,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     changeExercisePosition(userId: number, workoutId: number, workoutExerciseId: number, order: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -307,22 +342,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     changeExercise(userId: number, workoutId: number, workoutExerciseId: number, exerciseId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -343,22 +382,26 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     removeExercise(userId: number, workoutId: number, workoutExerciseId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -379,6 +422,24 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     updateSet(userId: number, setId: number, dto: UpdateWorkoutSetDto): Promise<{
         id: number;
@@ -481,20 +542,6 @@ export declare class WorkoutsService {
         }[];
     }>;
     finishActiveWorkout(userId: number): Promise<{
-        id: number;
-        name: string;
-        status: WorkoutStatus;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        exerciseNames: string[];
-        template: {
-            id: number;
-            name: string;
-        };
         exercises: {
             id: number;
             order: number;
@@ -515,6 +562,24 @@ export declare class WorkoutsService {
                 confirmed: boolean;
             }[];
         }[];
+        id: number;
+        name: string;
+        status: WorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
     }>;
     private getWorkoutByIdForUser;
     private getWorkoutEntityForUser;
@@ -526,8 +591,12 @@ export declare class WorkoutsService {
     private getPreviousSetsForExercise;
     private getAccessibleExerciseForUser;
     private calculateRepMax;
+    private ensureWorkoutExerciseLimit;
+    private ensureWorkoutTotalSetsLimit;
+    private getWorkoutTotalSets;
     private getDurationSeconds;
     private getDurationLabel;
     private mapWorkout;
+    private mapWorkoutSummary;
     private mapWorkoutExercise;
 }

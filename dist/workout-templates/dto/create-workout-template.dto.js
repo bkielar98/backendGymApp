@@ -13,6 +13,7 @@ exports.CreateWorkoutTemplateDto = exports.CreateWorkoutTemplateExerciseDto = vo
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+const workout_constants_1 = require("../../common/constants/workout.constants");
 class CreateWorkoutTemplateExerciseDto {
 }
 exports.CreateWorkoutTemplateExerciseDto = CreateWorkoutTemplateExerciseDto;
@@ -32,6 +33,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_EXERCISE_SETS),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateWorkoutTemplateExerciseDto.prototype, "setsCount", void 0);
@@ -53,6 +55,7 @@ __decorate([
         example: 'Upper A',
         description: 'Nazwa planu treningowego',
     }),
+    (0, class_transformer_1.Transform)(({ value }) => (typeof value === 'string' ? value.trim() : value)),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
@@ -78,6 +81,7 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMaxSize)(workout_constants_1.MAX_TEMPLATE_LABELS),
     (0, class_validator_1.IsString)({ each: true }),
     (0, class_validator_1.MaxLength)(30, { each: true }),
     __metadata("design:type", Array)
@@ -111,6 +115,7 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMaxSize)(workout_constants_1.MAX_TEMPLATE_TASKS),
     (0, class_validator_1.IsString)({ each: true }),
     (0, class_validator_1.MaxLength)(120, { each: true }),
     __metadata("design:type", Array)
@@ -124,6 +129,7 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMaxSize)(workout_constants_1.MAX_TEMPLATE_MEMBERS),
     (0, class_validator_1.IsInt)({ each: true }),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Array)
@@ -138,6 +144,7 @@ __decorate([
         description: 'Lista ćwiczeń w planie',
     }),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMaxSize)(workout_constants_1.MAX_TEMPLATE_EXERCISES),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => CreateWorkoutTemplateExerciseDto),
     __metadata("design:type", Array)

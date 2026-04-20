@@ -32,7 +32,9 @@ __decorate([
         description: 'Opcjonalna nazwa treningu.',
     }),
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (typeof value === 'string' ? value.trim() : value)),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], StartWorkoutDto.prototype, "name", void 0);

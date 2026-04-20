@@ -1,16 +1,25 @@
 import {
+  ArrayMaxSize,
   IsArray,
   IsDateString,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
   Min,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  MAX_EXERCISE_SETS,
+  MAX_TEMPLATE_EXERCISES,
+  MAX_TEMPLATE_LABELS,
+  MAX_TEMPLATE_MEMBERS,
+  MAX_TEMPLATE_TASKS,
+} from '../../common/constants/workout.constants';
 
 export class CreateWorkoutTemplateExerciseDto {
   @ApiProperty({
@@ -27,6 +36,7 @@ export class CreateWorkoutTemplateExerciseDto {
   })
   @IsInt()
   @Min(1)
+  @Max(MAX_EXERCISE_SETS)
   @Type(() => Number)
   setsCount: number;
 
@@ -45,6 +55,7 @@ export class CreateWorkoutTemplateDto {
     example: 'Upper A',
     description: 'Nazwa planu treningowego',
   })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
@@ -68,6 +79,7 @@ export class CreateWorkoutTemplateDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(MAX_TEMPLATE_LABELS)
   @IsString({ each: true })
   @MaxLength(30, { each: true })
   labels?: string[];
@@ -98,6 +110,7 @@ export class CreateWorkoutTemplateDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(MAX_TEMPLATE_TASKS)
   @IsString({ each: true })
   @MaxLength(120, { each: true })
   tasks?: string[];
@@ -110,6 +123,7 @@ export class CreateWorkoutTemplateDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(MAX_TEMPLATE_MEMBERS)
   @IsInt({ each: true })
   @Type(() => Number)
   memberUserIds?: number[];
@@ -123,6 +137,7 @@ export class CreateWorkoutTemplateDto {
     description: 'Lista ćwiczeń w planie',
   })
   @IsArray()
+  @ArrayMaxSize(MAX_TEMPLATE_EXERCISES)
   @ValidateNested({ each: true })
   @Type(() => CreateWorkoutTemplateExerciseDto)
   exercises: CreateWorkoutTemplateExerciseDto[];

@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEmail,
@@ -7,12 +7,14 @@ import {
   IsOptional,
   IsNumber,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { MAX_BODY_WEIGHT_KG } from '../../common/constants/workout.constants';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
@@ -27,6 +29,7 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({ example: 'John Doe' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -36,6 +39,7 @@ export class RegisterDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_WEIGHT_KG)
   @Type(() => Number)
   weight?: number;
 

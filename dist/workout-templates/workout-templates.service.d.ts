@@ -490,10 +490,13 @@ export declare class WorkoutTemplatesService {
     }>;
     private getTemplateEntityForUser;
     private getTemplateAccessibleToUser;
+    private getTemplatesAccessibleToUser;
     private getTemplateExerciseForTemplate;
     private mapTemplate;
     private validateTemplateExercises;
     private validateTemplateMetadata;
+    private ensureExerciseLimit;
+    private ensureTotalSetsLimit;
     private normalizeLabels;
     private normalizeTasks;
     private normalizeDate;

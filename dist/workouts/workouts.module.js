@@ -16,12 +16,14 @@ const workout_exercise_entity_1 = require("../entities/workout-exercise.entity")
 const workout_set_entity_1 = require("../entities/workout-set.entity");
 const workout_template_entity_1 = require("../entities/workout-template.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
+const common_workouts_module_1 = require("../common-workouts/common-workouts.module");
 let WorkoutsModule = class WorkoutsModule {
 };
 exports.WorkoutsModule = WorkoutsModule;
 exports.WorkoutsModule = WorkoutsModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            common_workouts_module_1.CommonWorkoutsModule,
             typeorm_1.TypeOrmModule.forFeature([
                 workout_entity_1.Workout,
                 workout_exercise_entity_1.WorkoutExercise,

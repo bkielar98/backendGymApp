@@ -50,6 +50,19 @@ export declare class UsersService {
     updateAvatar(id: number, file: {
         filename: string;
     }): Promise<User>;
+    purgeAllAvatars(): Promise<{
+        success: boolean;
+        message: string;
+        deletedFiles: number;
+        clearedUsers: number;
+        usersWithAvatarsBeforePurge: number;
+    }>;
+    removeAvatarDirectory(): Promise<{
+        success: boolean;
+        message: string;
+        removedDirectory: boolean;
+        path: string;
+    }>;
     listWeightEntries(id: number): Promise<UserWeightEntry[]>;
     createWeightEntry(id: number, dto: CreateWeightEntryDto): Promise<UserWeightEntry>;
     updateWeightEntry(id: number, entryId: number, dto: UpdateWeightEntryDto): Promise<UserWeightEntry>;

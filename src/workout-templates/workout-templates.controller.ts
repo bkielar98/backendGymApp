@@ -101,6 +101,7 @@ export class WorkoutTemplatesController {
         items: AddWorkoutTemplateExerciseDto,
         whitelist: true,
         forbidNonWhitelisted: true,
+        stopAtFirstError: true,
       }),
     )
     dto: AddWorkoutTemplateExerciseDto[],

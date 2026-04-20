@@ -16,8 +16,10 @@ let AllExceptionsFilter = class AllExceptionsFilter {
         let statusCode = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Wystapil nieoczekiwany blad serwera.';
         let details = [];
+        let error = 'INTERNAL_SERVER_ERROR';
         if (exception instanceof common_1.HttpException) {
             statusCode = exception.getStatus();
+            error = 'HTTP_EXCEPTION';
             const exceptionResponse = exception.getResponse();
             if (typeof exceptionResponse === 'string') {
                 message = this.translateMessage(exceptionResponse);
@@ -25,12 +27,21 @@ let AllExceptionsFilter = class AllExceptionsFilter {
             else if (typeof exceptionResponse === 'object' &&
                 exceptionResponse !== null) {
                 const responseObject = exceptionResponse;
+                if (typeof responseObject.error === 'string') {
+                    error = responseObject.error;
+                }
                 if (Array.isArray(responseObject.message)) {
                     details = responseObject.message.map((item) => this.translateValidationMessage(item));
                     message = this.getDefaultMessageForStatus(statusCode);
                 }
                 else if (typeof responseObject.message === 'string') {
                     message = this.translateMessage(responseObject.message);
+                    if (Array.isArray(responseObject.details)) {
+                        details = responseObject.details.map((item) => this.translateMessage(item));
+                    }
+                    else if (typeof responseObject.details === 'string') {
+                        details = [this.translateMessage(responseObject.details)];
+                    }
                 }
                 else if (typeof responseObject.error === 'string') {
                     message = this.translateMessage(responseObject.error);
@@ -46,6 +57,7 @@ let AllExceptionsFilter = class AllExceptionsFilter {
         }
         response.status(statusCode).json({
             statusCode,
+            error,
             message,
             details,
             timestamp: new Date().toISOString(),
@@ -64,6 +76,8 @@ let AllExceptionsFilter = class AllExceptionsFilter {
                 return 'Nie znaleziono zasobu.';
             case 409:
                 return 'Konflikt danych.';
+            case 429:
+                return 'Zbyt wiele powtorzonych zadan.';
             case 422:
                 return 'Dane zawieraja bledy.';
             default:
@@ -87,12 +101,12 @@ let AllExceptionsFilter = class AllExceptionsFilter {
             'Users are already friends': 'Uzytkownicy sa juz znajomymi.',
             'Friend request not found': 'Nie znaleziono zaproszenia do znajomych.',
             'Friendship not found': 'Nie znaleziono znajomosci.',
-            'Common workout not found': 'Nie znaleziono wspolnego treningu.',
-            'Active common workout not found': 'Nie znaleziono aktywnego wspolnego treningu.',
-            'Common workout exercise not found': 'Nie znaleziono cwiczenia we wspolnym treningu.',
-            'Common workout set not found': 'Nie znaleziono serii we wspolnym treningu.',
+            'Common workout not found': 'Nie znaleziono treningu.',
+            'Active common workout not found': 'Nie znaleziono aktywnego treningu.',
+            'Common workout exercise not found': 'Nie znaleziono cwiczenia w treningu.',
+            'Common workout set not found': 'Nie znaleziono serii w treningu.',
             'One of the participants already has an active workout': 'Jeden z uczestnikow ma juz aktywny trening.',
-            'One of the participants already has an active common workout': 'Jeden z uczestnikow ma juz aktywny wspolny trening.',
+            'One of the participants already has an active common workout': 'Jeden z uczestnikow ma juz aktywny trening.',
             'User already has an active workout': 'Masz juz aktywny trening.',
             'Invalid or expired token': 'Nieprawidlowy lub wygasly token.',
             'Token expired': 'Token wygasl.',
@@ -102,6 +116,9 @@ let AllExceptionsFilter = class AllExceptionsFilter {
             'Bad Request': 'Nieprawidlowe zadanie.',
             'Not Found': 'Nie znaleziono zasobu.',
             Conflict: 'Wystapil konflikt danych.',
+            'Repeated request blocked. Frontend may be stuck in an update loop.': 'Powtorzone zadanie zostalo zablokowane. Frontend prawdopodobnie wpadl w petle aktualizacji.',
+            'The same request was received multiple times in a very short time window.': 'To samo zadanie zostalo wyslane wielokrotnie w bardzo krotkim czasie.',
+            'Retry after frontend state stabilizes.': 'Sprobuj ponownie, gdy stan frontendu sie ustabilizuje.',
         };
         return dictionary[message] || message;
     }

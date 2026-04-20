@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional } from 'class-validator';
+import { ArrayMaxSize, ArrayUnique, IsArray, IsInt, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { MAX_TEMPLATE_MEMBERS } from '../../common/constants/workout.constants';
 
 export class ShareWorkoutTemplateDto {
   @ApiPropertyOptional({
@@ -10,6 +11,8 @@ export class ShareWorkoutTemplateDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(MAX_TEMPLATE_MEMBERS)
+  @ArrayUnique()
   @IsInt({ each: true })
   @Type(() => Number)
   memberUserIds?: number[];

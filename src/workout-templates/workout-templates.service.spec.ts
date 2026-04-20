@@ -142,4 +142,191 @@ describe('WorkoutTemplatesService', () => {
       exercises: [],
     });
   });
+
+  it('returns one combined templates list for owner and shared access', async () => {
+    const getMany = jest.fn().mockResolvedValue([
+      {
+        id: 20,
+        name: 'My template',
+        userId: 7,
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: false,
+        shareCode: null,
+        user: { id: 7, name: 'Owner', email: 'owner@example.com', avatarPath: null },
+        members: [],
+        exercises: [],
+      },
+      {
+        id: 19,
+        name: 'Shared template',
+        userId: 11,
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: true,
+        shareCode: 'abc',
+        user: { id: 11, name: 'Friend', email: 'friend@example.com', avatarPath: null },
+        members: [
+          {
+            userId: 7,
+            user: { id: 7, name: 'Owner', email: 'owner@example.com', avatarPath: null },
+          },
+        ],
+        exercises: [],
+      },
+    ] as never);
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      orderBy: jest.fn(),
+      addOrderBy: jest.fn(),
+      getMany,
+    };
+    queryBuilder.leftJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.where.mockReturnValue(queryBuilder);
+    queryBuilder.orderBy.mockReturnValue(queryBuilder);
+    queryBuilder.addOrderBy.mockReturnValue(queryBuilder);
+
+    templateRepository.createQueryBuilder.mockReturnValue(queryBuilder as never);
+
+    await expect(service.findAll(7)).resolves.toEqual([
+      {
+        id: 20,
+        name: 'My template',
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: false,
+        shareCode: null,
+        access: 'owner',
+        owner: {
+          id: 7,
+          name: 'Owner',
+          email: 'owner@example.com',
+          avatarPath: null,
+        },
+        members: [],
+        exercises: [],
+      },
+      {
+        id: 19,
+        name: 'Shared template',
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: true,
+        shareCode: null,
+        access: 'member',
+        owner: {
+          id: 11,
+          name: 'Friend',
+          email: 'friend@example.com',
+          avatarPath: null,
+        },
+        members: [
+          {
+            id: 7,
+            name: 'Owner',
+            email: 'owner@example.com',
+            avatarPath: null,
+          },
+        ],
+        exercises: [],
+      },
+    ]);
+  });
+
+  it('keeps shared-with-me as a filtered member-only list', async () => {
+    const accessibleTemplates = [
+      {
+        id: 20,
+        name: 'My template',
+        userId: 7,
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: false,
+        shareCode: null,
+        user: { id: 7, name: 'Owner', email: 'owner@example.com', avatarPath: null },
+        members: [],
+        exercises: [],
+      },
+      {
+        id: 19,
+        name: 'Shared template',
+        userId: 11,
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: true,
+        shareCode: 'abc',
+        user: { id: 11, name: 'Friend', email: 'friend@example.com', avatarPath: null },
+        members: [
+          {
+            userId: 7,
+            user: { id: 7, name: 'Owner', email: 'owner@example.com', avatarPath: null },
+          },
+        ],
+        exercises: [],
+      },
+    ];
+    const getMany = jest.fn().mockResolvedValue(accessibleTemplates as never);
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      orderBy: jest.fn(),
+      addOrderBy: jest.fn(),
+      getMany,
+    };
+    queryBuilder.leftJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.where.mockReturnValue(queryBuilder);
+    queryBuilder.orderBy.mockReturnValue(queryBuilder);
+    queryBuilder.addOrderBy.mockReturnValue(queryBuilder);
+
+    templateRepository.createQueryBuilder.mockReturnValue(queryBuilder as never);
+
+    await expect(service.findSharedWithMe(7)).resolves.toEqual([
+      {
+        id: 19,
+        name: 'Shared template',
+        description: null,
+        labels: [],
+        startDate: null,
+        endDate: null,
+        tasks: [],
+        isShared: true,
+        shareCode: null,
+        access: 'member',
+        owner: {
+          id: 11,
+          name: 'Friend',
+          email: 'friend@example.com',
+          avatarPath: null,
+        },
+        members: [
+          {
+            id: 7,
+            name: 'Owner',
+            email: 'owner@example.com',
+            avatarPath: null,
+          },
+        ],
+        exercises: [],
+      },
+    ]);
+  });
 });

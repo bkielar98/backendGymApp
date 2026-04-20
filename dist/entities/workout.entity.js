@@ -65,7 +65,6 @@ __decorate([
 __decorate([
     (0, typeorm_1.OneToMany)(() => workout_exercise_entity_1.WorkoutExercise, (exercise) => exercise.workout, {
         cascade: true,
-        eager: true,
     }),
     __metadata("design:type", Array)
 ], Workout.prototype, "exercises", void 0);

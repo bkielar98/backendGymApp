@@ -13,6 +13,7 @@ exports.ShareWorkoutTemplateDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+const workout_constants_1 = require("../../common/constants/workout.constants");
 class ShareWorkoutTemplateDto {
 }
 exports.ShareWorkoutTemplateDto = ShareWorkoutTemplateDto;
@@ -24,6 +25,8 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMaxSize)(workout_constants_1.MAX_TEMPLATE_MEMBERS),
+    (0, class_validator_1.ArrayUnique)(),
     (0, class_validator_1.IsInt)({ each: true }),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Array)

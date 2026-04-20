@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { MAX_EXERCISE_SETS } from '../../common/constants/workout.constants';
 
 export class AddWorkoutExerciseDto {
   @ApiProperty({
@@ -28,6 +29,7 @@ export class AddWorkoutExerciseDto {
   @IsOptional()
   @IsInt()
   @Min(0)
+  @Max(MAX_EXERCISE_SETS)
   @Type(() => Number)
   setsCount?: number;
 }

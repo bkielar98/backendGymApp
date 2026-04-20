@@ -23,6 +23,7 @@ const user_entity_1 = require("../entities/user.entity");
 const user_weight_entry_entity_1 = require("../entities/user-weight-entry.entity");
 const user_body_measurement_entry_entity_1 = require("../entities/user-body-measurement-entry.entity");
 const UPLOADS_ROOT = (0, path_1.join)(process.cwd(), 'uploads');
+const AVATARS_ROOT = (0, path_1.join)(UPLOADS_ROOT, 'avatars');
 let UsersService = class UsersService {
     constructor(userRepository, weightEntryRepository, bodyMeasurementEntryRepository) {
         this.userRepository = userRepository;
@@ -122,6 +123,54 @@ let UsersService = class UsersService {
             avatarPath: `/uploads/avatars/${file.filename}`,
         });
         return this.findOne(id);
+    }
+    async purgeAllAvatars() {
+        const usersWithAvatars = await this.userRepository
+            .createQueryBuilder('user')
+            .where('user.avatarPath IS NOT NULL')
+            .getCount();
+        let deletedFiles = 0;
+        if ((0, fs_1.existsSync)(AVATARS_ROOT)) {
+            const files = (0, fs_1.readdirSync)(AVATARS_ROOT, { withFileTypes: true });
+            for (const file of files) {
+                if (!file.isFile()) {
+                    continue;
+                }
+                (0, fs_1.unlinkSync)((0, path_1.join)(AVATARS_ROOT, file.name));
+                deletedFiles += 1;
+            }
+        }
+        const updateResult = await this.userRepository
+            .createQueryBuilder()
+            .update(user_entity_1.User)
+            .set({ avatarPath: null })
+            .where('avatarPath IS NOT NULL')
+            .execute();
+        return {
+            success: true,
+            message: 'All avatar files have been deleted from server storage',
+            deletedFiles,
+            clearedUsers: updateResult.affected ?? 0,
+            usersWithAvatarsBeforePurge: usersWithAvatars,
+        };
+    }
+    async removeAvatarDirectory() {
+        const hadDirectory = (0, fs_1.existsSync)(AVATARS_ROOT);
+        await this.userRepository
+            .createQueryBuilder()
+            .update(user_entity_1.User)
+            .set({ avatarPath: null })
+            .where('avatarPath IS NOT NULL')
+            .execute();
+        if (hadDirectory) {
+            (0, fs_1.rmSync)(AVATARS_ROOT, { recursive: true, force: true });
+        }
+        return {
+            success: true,
+            message: 'Avatar directory has been deleted from server storage',
+            removedDirectory: hadDirectory,
+            path: '/uploads/avatars',
+        };
     }
     async listWeightEntries(id) {
         await this.findOne(id);
@@ -259,7 +308,9 @@ let UsersService = class UsersService {
             'rightCalf',
         ];
         return metricKeys.reduce((chart, key) => {
-            chart[key] = entries.map((entry) => ({
+            chart[key] = entries
+                .filter((entry) => typeof entry[key] === 'number')
+                .map((entry) => ({
                 date: entry.recordedOn,
                 value: entry[key],
             }));

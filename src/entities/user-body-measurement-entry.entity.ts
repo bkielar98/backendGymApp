@@ -16,50 +16,50 @@ export class UserBodyMeasurementEntry {
   @Column('date')
   recordedOn: string;
 
-  @Column('float')
-  neck: number;
+  @Column('float', { nullable: true })
+  neck: number | null;
 
-  @Column('float')
-  shoulders: number;
+  @Column('float', { nullable: true })
+  shoulders: number | null;
 
-  @Column('float')
-  chest: number;
+  @Column('float', { nullable: true })
+  chest: number | null;
 
-  @Column('float')
-  leftBiceps: number;
+  @Column('float', { nullable: true })
+  leftBiceps: number | null;
 
-  @Column('float')
-  rightBiceps: number;
+  @Column('float', { nullable: true })
+  rightBiceps: number | null;
 
-  @Column('float')
-  leftForearm: number;
+  @Column('float', { nullable: true })
+  leftForearm: number | null;
 
-  @Column('float')
-  rightForearm: number;
+  @Column('float', { nullable: true })
+  rightForearm: number | null;
 
-  @Column('float')
-  upperAbs: number;
+  @Column('float', { nullable: true })
+  upperAbs: number | null;
 
-  @Column('float')
-  waist: number;
+  @Column('float', { nullable: true })
+  waist: number | null;
 
-  @Column('float')
-  lowerAbs: number;
+  @Column('float', { nullable: true })
+  lowerAbs: number | null;
 
-  @Column('float')
-  hips: number;
+  @Column('float', { nullable: true })
+  hips: number | null;
 
-  @Column('float')
-  leftThigh: number;
+  @Column('float', { nullable: true })
+  leftThigh: number | null;
 
-  @Column('float')
-  rightThigh: number;
+  @Column('float', { nullable: true })
+  rightThigh: number | null;
 
-  @Column('float')
-  leftCalf: number;
+  @Column('float', { nullable: true })
+  leftCalf: number | null;
 
-  @Column('float')
-  rightCalf: number;
+  @Column('float', { nullable: true })
+  rightCalf: number | null;
 
   @ManyToOne(() => User, (user) => user.bodyMeasurementEntries, {
     onDelete: 'CASCADE',

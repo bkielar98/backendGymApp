@@ -29,6 +29,10 @@ let GymGateway = class GymGateway {
 };
 exports.GymGateway = GymGateway;
 __decorate([
+    (0, websockets_1.WebSocketServer)(),
+    __metadata("design:type", socket_io_1.Server)
+], GymGateway.prototype, "server", void 0);
+__decorate([
     (0, websockets_1.SubscribeMessage)('joinGym'),
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),

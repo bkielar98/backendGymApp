@@ -23,6 +23,7 @@ const workout_template_exercise_entity_1 = require("../entities/workout-template
 const workout_template_member_entity_1 = require("../entities/workout-template-member.entity");
 const friendship_entity_1 = require("../entities/friendship.entity");
 const user_entity_1 = require("../entities/user.entity");
+const workout_constants_1 = require("../common/constants/workout.constants");
 let WorkoutTemplatesService = class WorkoutTemplatesService {
     constructor(templateRepository, templateExerciseRepository, templateMemberRepository, exerciseRepository, friendshipRepository, userRepository) {
         this.templateRepository = templateRepository;
@@ -34,6 +35,8 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
     }
     async create(userId, createDto) {
         this.validateTemplateExercises(createDto.exercises);
+        this.ensureExerciseLimit(createDto.exercises.length);
+        this.ensureTotalSetsLimit(createDto.exercises.map((item) => item.setsCount));
         this.validateTemplateMetadata(createDto.startDate, createDto.endDate);
         const exerciseIds = createDto.exercises.map((item) => item.exerciseId);
         const exercises = exerciseIds.length
@@ -70,23 +73,14 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         return this.findOne(userId, saved.id);
     }
     async findAll(userId) {
-        const templates = await this.templateRepository.find({
-            where: { userId },
-            order: { id: 'DESC' },
-        });
-        return templates.map((template) => this.mapTemplate(template));
+        const templates = await this.getTemplatesAccessibleToUser(userId);
+        return templates.map((template) => this.mapTemplate(template, userId));
     }
     async findSharedWithMe(userId) {
-        const memberships = await this.templateMemberRepository.find({
-            where: { userId },
-            relations: {
-                template: true,
-            },
-            order: {
-                id: 'DESC',
-            },
-        });
-        return Promise.all(memberships.map(({ templateId }) => this.findOne(userId, templateId)));
+        const templates = await this.getTemplatesAccessibleToUser(userId);
+        return templates
+            .filter((template) => template.userId !== userId)
+            .map((template) => this.mapTemplate(template, userId));
     }
     async findSharedByCode(userId, shareCode) {
         const template = await this.templateRepository.findOne({
@@ -135,6 +129,8 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         }
         if (updateDto.exercises) {
             this.validateTemplateExercises(updateDto.exercises);
+            this.ensureExerciseLimit(updateDto.exercises.length);
+            this.ensureTotalSetsLimit(updateDto.exercises.map((item) => item.setsCount));
             const existingItems = template.exercises || [];
             const existingItemsById = new Map(existingItems.map((item) => [item.id, item]));
             const exerciseIds = updateDto.exercises.map((item) => item.exerciseId);
@@ -213,6 +209,11 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         this.validateTemplateExercises(dtos);
         const template = await this.getTemplateEntityForUser(userId, templateId);
         const templateExercises = [...(template.exercises || [])];
+        this.ensureExerciseLimit(templateExercises.length + dtos.length);
+        this.ensureTotalSetsLimit([
+            ...templateExercises.map((item) => item.setsCount),
+            ...dtos.map((dto) => dto.setsCount),
+        ]);
         const exerciseIds = dtos.map((dto) => dto.exerciseId);
         const exercises = await this.exerciseRepository.find({
             where: { id: (0, typeorm_2.In)(exerciseIds) },
@@ -288,6 +289,7 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
     async changeExerciseSetsCount(userId, templateId, templateExerciseId, setsCount) {
         const template = await this.getTemplateEntityForUser(userId, templateId);
         const templateExercise = this.getTemplateExerciseForTemplate(template, templateExerciseId);
+        this.ensureTotalSetsLimit((template.exercises || []).map((item) => item.id === templateExercise.id ? setsCount : item.setsCount));
         templateExercise.setsCount = setsCount;
         await this.templateExerciseRepository.save(templateExercise);
         return this.findOne(userId, template.id);
@@ -335,6 +337,22 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
             qb.where('template.userId = :userId', { userId }).orWhere('member.userId = :userId', { userId });
         }))
             .getOne();
+    }
+    async getTemplatesAccessibleToUser(userId) {
+        return this.templateRepository
+            .createQueryBuilder('template')
+            .leftJoinAndSelect('template.user', 'user')
+            .leftJoinAndSelect('template.exercises', 'exerciseEntry')
+            .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
+            .leftJoinAndSelect('template.members', 'member')
+            .leftJoinAndSelect('member.user', 'memberUser')
+            .where(new typeorm_2.Brackets((qb) => {
+            qb.where('template.userId = :userId', { userId }).orWhere('member.userId = :userId', { userId });
+        }))
+            .orderBy('template.id', 'DESC')
+            .addOrderBy('exerciseEntry.order', 'ASC')
+            .addOrderBy('member.id', 'ASC')
+            .getMany();
     }
     getTemplateExerciseForTemplate(template, templateExerciseId) {
         const templateExercise = (template.exercises || []).find((item) => item.id === templateExerciseId);
@@ -410,6 +428,17 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
             throw new common_1.BadRequestException('Start date cannot be later than end date');
         }
     }
+    ensureExerciseLimit(count) {
+        if (count > workout_constants_1.MAX_TEMPLATE_EXERCISES) {
+            throw new common_1.BadRequestException(`Workout template cannot have more than ${workout_constants_1.MAX_TEMPLATE_EXERCISES} exercises`);
+        }
+    }
+    ensureTotalSetsLimit(setsCounts) {
+        const totalSets = setsCounts.reduce((sum, setsCount) => sum + setsCount, 0);
+        if (totalSets > workout_constants_1.MAX_TOTAL_SETS) {
+            throw new common_1.BadRequestException(`Workout template cannot have more than ${workout_constants_1.MAX_TOTAL_SETS} total sets`);
+        }
+    }
     normalizeLabels(labels) {
         if (!labels) {
             return [];
@@ -430,6 +459,9 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
     }
     async syncMembers(template, ownerUserId, memberUserIds) {
         const nextMemberUserIds = [...new Set(memberUserIds)].filter((memberUserId) => memberUserId !== ownerUserId);
+        if (nextMemberUserIds.length > workout_constants_1.MAX_TEMPLATE_MEMBERS) {
+            throw new common_1.BadRequestException(`Workout template cannot be shared with more than ${workout_constants_1.MAX_TEMPLATE_MEMBERS} users`);
+        }
         if (nextMemberUserIds.length === 0) {
             if ((template.members || []).length > 0) {
                 await this.templateMemberRepository.delete({ templateId: template.id });

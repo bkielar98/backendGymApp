@@ -8,4 +8,5 @@ export declare class SchemaFixService implements OnApplicationBootstrap {
     private ensureUserCardSchema;
     private ensureFriendshipSchema;
     private ensureCommonWorkoutSchema;
+    private ensureWorkoutAnalyticsSchema;
 }

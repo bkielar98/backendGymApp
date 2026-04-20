@@ -13,6 +13,7 @@ exports.CreateWeightEntryDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
+const workout_constants_1 = require("../../common/constants/workout.constants");
 class CreateWeightEntryDto {
 }
 exports.CreateWeightEntryDto = CreateWeightEntryDto;
@@ -25,6 +26,7 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 80.2 }),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_WEIGHT_KG),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateWeightEntryDto.prototype, "weight", void 0);

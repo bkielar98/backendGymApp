@@ -1,99 +1,130 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDateString, IsNumber, Min } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { MAX_BODY_MEASUREMENT_CM } from '../../common/constants/workout.constants';
 
 export class CreateBodyMeasurementEntryDto {
   @ApiProperty({ example: '2026-03-11' })
   @IsDateString()
   recordedOn: string;
 
-  @ApiProperty({ example: 37 })
+  @ApiPropertyOptional({ example: 37, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  neck: number;
+  neck?: number | null;
 
-  @ApiProperty({ example: 118 })
+  @ApiPropertyOptional({ example: 118, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  shoulders: number;
+  shoulders?: number | null;
 
-  @ApiProperty({ example: 104 })
+  @ApiPropertyOptional({ example: 104, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  chest: number;
+  chest?: number | null;
 
-  @ApiProperty({ example: 33 })
+  @ApiPropertyOptional({ example: 33, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  leftBiceps: number;
+  leftBiceps?: number | null;
 
-  @ApiProperty({ example: 33.2 })
+  @ApiPropertyOptional({ example: 33.2, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  rightBiceps: number;
+  rightBiceps?: number | null;
 
-  @ApiProperty({ example: 29 })
+  @ApiPropertyOptional({ example: 29, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  leftForearm: number;
+  leftForearm?: number | null;
 
-  @ApiProperty({ example: 29.1 })
+  @ApiPropertyOptional({ example: 29.1, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  rightForearm: number;
+  rightForearm?: number | null;
 
-  @ApiProperty({ example: 90 })
+  @ApiPropertyOptional({ example: 90, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  upperAbs: number;
+  upperAbs?: number | null;
 
-  @ApiProperty({ example: 82 })
+  @ApiPropertyOptional({ example: 82, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  waist: number;
+  waist?: number | null;
 
-  @ApiProperty({ example: 86 })
+  @ApiPropertyOptional({ example: 86, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  lowerAbs: number;
+  lowerAbs?: number | null;
 
-  @ApiProperty({ example: 98 })
+  @ApiPropertyOptional({ example: 98, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  hips: number;
+  hips?: number | null;
 
-  @ApiProperty({ example: 58 })
+  @ApiPropertyOptional({ example: 58, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  leftThigh: number;
+  leftThigh?: number | null;
 
-  @ApiProperty({ example: 58.4 })
+  @ApiPropertyOptional({ example: 58.4, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  rightThigh: number;
+  rightThigh?: number | null;
 
-  @ApiProperty({ example: 37 })
+  @ApiPropertyOptional({ example: 37, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  leftCalf: number;
+  leftCalf?: number | null;
 
-  @ApiProperty({ example: 37.2 })
+  @ApiPropertyOptional({ example: 37.2, nullable: true })
+  @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_BODY_MEASUREMENT_CM)
   @Type(() => Number)
-  rightCalf: number;
+  rightCalf?: number | null;
 }

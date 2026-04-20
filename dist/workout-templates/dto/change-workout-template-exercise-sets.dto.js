@@ -13,6 +13,7 @@ exports.ChangeWorkoutTemplateExerciseSetsDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
+const workout_constants_1 = require("../../common/constants/workout.constants");
 class ChangeWorkoutTemplateExerciseSetsDto {
 }
 exports.ChangeWorkoutTemplateExerciseSetsDto = ChangeWorkoutTemplateExerciseSetsDto;
@@ -23,6 +24,7 @@ __decorate([
     }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_EXERCISE_SETS),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], ChangeWorkoutTemplateExerciseSetsDto.prototype, "setsCount", void 0);

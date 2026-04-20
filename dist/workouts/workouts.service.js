@@ -21,6 +21,7 @@ const workout_exercise_entity_1 = require("../entities/workout-exercise.entity")
 const workout_set_entity_1 = require("../entities/workout-set.entity");
 const workout_template_entity_1 = require("../entities/workout-template.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
+const workout_constants_1 = require("../common/constants/workout.constants");
 let WorkoutsService = class WorkoutsService {
     constructor(workoutRepository, workoutExerciseRepository, workoutSetRepository, templateRepository, exerciseRepository) {
         this.workoutRepository = workoutRepository;
@@ -28,6 +29,13 @@ let WorkoutsService = class WorkoutsService {
         this.workoutSetRepository = workoutSetRepository;
         this.templateRepository = templateRepository;
         this.exerciseRepository = exerciseRepository;
+        this.workoutRelations = {
+            template: true,
+            exercises: {
+                exercise: true,
+                sets: true,
+            },
+        };
     }
     async startWorkout(userId, dto) {
         const activeWorkout = await this.workoutRepository.findOne({
@@ -57,6 +65,8 @@ let WorkoutsService = class WorkoutsService {
         });
         const savedWorkout = await this.workoutRepository.save(workout);
         const sortedTemplateExercises = [...(template?.exercises || [])].sort((a, b) => a.order - b.order);
+        this.ensureWorkoutExerciseLimit(sortedTemplateExercises.length);
+        this.ensureWorkoutTotalSetsLimit(sortedTemplateExercises.reduce((sum, exercise) => sum + exercise.setsCount, 0));
         for (const templateExercise of sortedTemplateExercises) {
             const workoutExercise = this.workoutExerciseRepository.create({
                 workoutId: savedWorkout.id,
@@ -96,12 +106,18 @@ let WorkoutsService = class WorkoutsService {
     async getActiveWorkout(userId) {
         const workout = await this.workoutRepository.findOne({
             where: { userId, status: workout_entity_1.WorkoutStatus.ACTIVE },
-            relations: {
-                template: true,
+            relations: this.workoutRelations,
+            order: {
+                exercises: {
+                    order: 'ASC',
+                    sets: {
+                        setNumber: 'ASC',
+                    },
+                },
             },
         });
         if (!workout) {
-            throw new common_1.NotFoundException('Active workout not found');
+            return null;
         }
         return this.mapWorkout(workout);
     }
@@ -109,9 +125,7 @@ let WorkoutsService = class WorkoutsService {
         const workouts = await this.workoutRepository.find({
             where: { userId },
             order: { startedAt: 'DESC' },
-            relations: {
-                template: true,
-            },
+            relations: this.workoutRelations,
         });
         return workouts.map((workout) => this.mapWorkout(workout));
     }
@@ -122,14 +136,16 @@ let WorkoutsService = class WorkoutsService {
                 status: workout_entity_1.WorkoutStatus.COMPLETED,
             },
             order: { startedAt: 'DESC' },
-            relations: {
-                template: true,
-            },
+            relations: this.workoutRelations,
         });
         return workouts.map((workout) => this.mapWorkout(workout));
     }
     async findOne(userId, workoutId) {
         return this.getWorkoutByIdForUser(userId, workoutId);
+    }
+    async findSummary(userId, workoutId) {
+        const workout = await this.getWorkoutEntityForUser(userId, workoutId);
+        return this.mapWorkoutSummary(workout);
     }
     async removeWorkout(userId, workoutId) {
         await this.getWorkoutEntityForUser(userId, workoutId);
@@ -143,6 +159,8 @@ let WorkoutsService = class WorkoutsService {
         const workout = await this.getActiveWorkoutEntityForUser(userId, workoutId);
         const exercise = await this.getAccessibleExerciseForUser(userId, dto.exerciseId);
         const workoutExercises = [...(workout.exercises || [])];
+        this.ensureWorkoutExerciseLimit(workoutExercises.length + 1);
+        this.ensureWorkoutTotalSetsLimit(this.getWorkoutTotalSets(workoutExercises) + (dto.setsCount ?? 0));
         const insertOrder = Math.min(dto.order ?? workoutExercises.length, workoutExercises.length);
         for (const item of workoutExercises) {
             if (item.order >= insertOrder) {
@@ -255,6 +273,10 @@ let WorkoutsService = class WorkoutsService {
     async addSet(userId, workoutExerciseId) {
         const workoutExercise = await this.getWorkoutExerciseEntityForUser(userId, workoutExerciseId);
         const nextSetNumber = Math.max(0, ...workoutExercise.sets.map((set) => set.setNumber)) + 1;
+        if (nextSetNumber > workout_constants_1.MAX_EXERCISE_SETS) {
+            throw new common_1.BadRequestException(`Workout exercise cannot have more than ${workout_constants_1.MAX_EXERCISE_SETS} sets`);
+        }
+        this.ensureWorkoutTotalSetsLimit(this.getWorkoutTotalSets(workoutExercise.workout.exercises || []) + 1);
         const previousSets = await this.getPreviousSetsForExercise(userId, workoutExercise.exercise.id);
         const previousSet = previousSets.find((set) => set.setNumber === nextSetNumber);
         const newSet = this.workoutSetRepository.create({
@@ -305,8 +327,14 @@ let WorkoutsService = class WorkoutsService {
     async getWorkoutByIdForUser(userId, workoutId) {
         const workout = await this.workoutRepository.findOne({
             where: { id: workoutId, userId },
-            relations: {
-                template: true,
+            relations: this.workoutRelations,
+            order: {
+                exercises: {
+                    order: 'ASC',
+                    sets: {
+                        setNumber: 'ASC',
+                    },
+                },
             },
         });
         if (!workout) {
@@ -317,8 +345,14 @@ let WorkoutsService = class WorkoutsService {
     async getWorkoutEntityForUser(userId, workoutId) {
         const workout = await this.workoutRepository.findOne({
             where: { id: workoutId, userId },
-            relations: {
-                template: true,
+            relations: this.workoutRelations,
+            order: {
+                exercises: {
+                    order: 'ASC',
+                    sets: {
+                        setNumber: 'ASC',
+                    },
+                },
             },
         });
         if (!workout) {
@@ -333,8 +367,14 @@ let WorkoutsService = class WorkoutsService {
                 userId,
                 status: workout_entity_1.WorkoutStatus.ACTIVE,
             },
-            relations: {
-                template: true,
+            relations: this.workoutRelations,
+            order: {
+                exercises: {
+                    order: 'ASC',
+                    sets: {
+                        setNumber: 'ASC',
+                    },
+                },
             },
         });
         if (!workout) {
@@ -455,6 +495,19 @@ let WorkoutsService = class WorkoutsService {
         const repMax = weight * (1 + reps / 30);
         return Math.round(repMax * 100) / 100;
     }
+    ensureWorkoutExerciseLimit(count) {
+        if (count > workout_constants_1.MAX_ACTIVE_WORKOUT_EXERCISES) {
+            throw new common_1.BadRequestException(`Workout cannot have more than ${workout_constants_1.MAX_ACTIVE_WORKOUT_EXERCISES} exercises`);
+        }
+    }
+    ensureWorkoutTotalSetsLimit(totalSets) {
+        if (totalSets > workout_constants_1.MAX_TOTAL_SETS) {
+            throw new common_1.BadRequestException(`Workout cannot have more than ${workout_constants_1.MAX_TOTAL_SETS} total sets`);
+        }
+    }
+    getWorkoutTotalSets(exercises) {
+        return exercises.reduce((sum, exercise) => sum + (exercise.sets?.length || 0), 0);
+    }
     getDurationSeconds(startedAt, finishedAt) {
         const start = new Date(startedAt).getTime();
         const end = finishedAt ? new Date(finishedAt).getTime() : Date.now();
@@ -473,21 +526,32 @@ let WorkoutsService = class WorkoutsService {
         return `${seconds}s`;
     }
     mapWorkout(workout) {
-        const durationSeconds = this.getDurationSeconds(workout.startedAt, workout.finishedAt);
         const exercises = [...(workout.exercises || [])]
             .sort((a, b) => a.order - b.order)
             .map((exercise) => this.mapWorkoutExercise(exercise));
         return {
+            ...this.mapWorkoutSummary(workout),
+            exercises,
+        };
+    }
+    mapWorkoutSummary(workout) {
+        const durationSeconds = this.getDurationSeconds(workout.startedAt, workout.finishedAt);
+        const orderedExercises = [...(workout.exercises || [])].sort((a, b) => a.order - b.order);
+        return {
             id: workout.id,
             name: workout.name,
             status: workout.status,
+            mode: 'solo',
+            isSolo: true,
+            participantCount: 1,
             startedAt: workout.startedAt,
             finishedAt: workout.finishedAt,
             durationSeconds,
             durationLabel: this.getDurationLabel(durationSeconds),
-            exerciseCount: exercises.length,
-            totalSets: exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0),
-            exerciseNames: exercises
+            exerciseCount: orderedExercises.length,
+            totalSets: orderedExercises.reduce((sum, exercise) => sum + (exercise.sets?.length || 0), 0),
+            confirmedSets: orderedExercises.reduce((sum, exercise) => sum + (exercise.sets || []).filter((set) => set.confirmed).length, 0),
+            exerciseNames: orderedExercises
                 .map((exercise) => exercise.exercise?.name)
                 .filter((name) => Boolean(name)),
             template: workout.template
@@ -496,7 +560,6 @@ let WorkoutsService = class WorkoutsService {
                     name: workout.template.name,
                 }
                 : null,
-            exercises,
         };
     }
     mapWorkoutExercise(workoutExercise) {

@@ -24,6 +24,7 @@ describe('CommonWorkoutsService active state', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
     );
   });
 

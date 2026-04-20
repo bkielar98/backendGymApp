@@ -11,12 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateExerciseDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+const workout_constants_1 = require("../../common/constants/workout.constants");
 class CreateExerciseDto {
 }
 exports.CreateExerciseDto = CreateExerciseDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'Bench Press' }),
+    (0, class_transformer_1.Transform)(({ value }) => (typeof value === 'string' ? value.trim() : value)),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
@@ -33,7 +36,9 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: ['chest', 'triceps'], type: [String] }),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ArrayMinSize)(1),
+    (0, class_validator_1.ArrayMaxSize)(workout_constants_1.MAX_EXERCISE_MUSCLE_GROUPS),
     (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.MaxLength)(50, { each: true }),
     __metadata("design:type", Array)
 ], CreateExerciseDto.prototype, "muscleGroups", void 0);
 //# sourceMappingURL=create-exercise.dto.js.map

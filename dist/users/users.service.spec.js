@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const globals_1 = require("@jest/globals");
 const common_1 = require("@nestjs/common");
 const bcrypt = require("bcrypt");
+const fs = require("fs");
 const user_entity_1 = require("../entities/user.entity");
 const users_service_1 = require("./users.service");
 (0, globals_1.describe)('UsersService', () => {
@@ -10,8 +11,16 @@ const users_service_1 = require("./users.service");
     let userRepository;
     let weightEntryRepository;
     let bodyMeasurementEntryRepository;
+    let queryBuilder;
     (0, globals_1.beforeEach)(() => {
+        queryBuilder = {
+            update: globals_1.jest.fn().mockReturnThis(),
+            set: globals_1.jest.fn().mockReturnThis(),
+            where: globals_1.jest.fn().mockReturnThis(),
+            execute: globals_1.jest.fn().mockResolvedValue({ affected: 0 }),
+        };
         userRepository = {
+            createQueryBuilder: globals_1.jest.fn(() => queryBuilder),
             findOne: globals_1.jest.fn(),
             update: globals_1.jest.fn(),
             delete: globals_1.jest.fn(),
@@ -128,6 +137,24 @@ const users_service_1 = require("./users.service");
                 waist: 82,
             },
         ]);
+    });
+    (0, globals_1.it)('removes avatar directory and clears avatar paths', async () => {
+        const existsSpy = globals_1.jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+        const rmSpy = globals_1.jest.spyOn(fs, 'rmSync').mockImplementation(() => undefined);
+        await (0, globals_1.expect)(service.removeAvatarDirectory()).resolves.toEqual({
+            success: true,
+            message: 'Avatar directory has been deleted from server storage',
+            removedDirectory: true,
+            path: '/uploads/avatars',
+        });
+        (0, globals_1.expect)(userRepository.createQueryBuilder).toHaveBeenCalled();
+        (0, globals_1.expect)(queryBuilder.update).toHaveBeenCalled();
+        (0, globals_1.expect)(queryBuilder.set).toHaveBeenCalledWith({ avatarPath: null });
+        (0, globals_1.expect)(queryBuilder.where).toHaveBeenCalledWith('avatarPath IS NOT NULL');
+        (0, globals_1.expect)(queryBuilder.execute).toHaveBeenCalled();
+        (0, globals_1.expect)(rmSpy).toHaveBeenCalled();
+        existsSpy.mockRestore();
+        rmSpy.mockRestore();
     });
 });
 //# sourceMappingURL=users.service.spec.js.map

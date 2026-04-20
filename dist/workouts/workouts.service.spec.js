@@ -133,6 +133,10 @@ const workout_entity_1 = require("../entities/workout.entity");
             order: { startedAt: 'DESC' },
             relations: {
                 template: true,
+                exercises: {
+                    exercise: true,
+                    sets: true,
+                },
             },
         });
         (0, globals_1.expect)(result).toMatchObject([

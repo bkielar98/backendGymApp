@@ -13,6 +13,7 @@ async function bootstrap() {
         whitelist: true,
         transform: true,
         forbidNonWhitelisted: true,
+        stopAtFirstError: true,
         exceptionFactory: (errors) => {
             const messages = flattenValidationErrors(errors);
             return new common_1.BadRequestException(messages);

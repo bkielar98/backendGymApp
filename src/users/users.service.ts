@@ -396,10 +396,12 @@ export class UsersService {
 
     return metricKeys.reduce(
       (chart, key) => {
-        chart[key] = entries.map((entry) => ({
-          date: entry.recordedOn,
-          value: entry[key] as number,
-        }));
+        chart[key] = entries
+          .filter((entry) => typeof entry[key] === 'number')
+          .map((entry) => ({
+            date: entry.recordedOn,
+            value: entry[key] as number,
+          }));
 
         return chart;
       },

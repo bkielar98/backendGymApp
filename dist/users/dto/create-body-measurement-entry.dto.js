@@ -13,6 +13,7 @@ exports.CreateBodyMeasurementEntryDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
+const workout_constants_1 = require("../../common/constants/workout.constants");
 class CreateBodyMeasurementEntryDto {
 }
 exports.CreateBodyMeasurementEntryDto = CreateBodyMeasurementEntryDto;
@@ -22,107 +23,137 @@ __decorate([
     __metadata("design:type", String)
 ], CreateBodyMeasurementEntryDto.prototype, "recordedOn", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 37 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 37, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "neck", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 118 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 118, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "shoulders", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 104 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 104, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "chest", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 33 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 33, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "leftBiceps", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 33.2 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 33.2, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "rightBiceps", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 29 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 29, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "leftForearm", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 29.1 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 29.1, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "rightForearm", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 90 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 90, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "upperAbs", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 82 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 82, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "waist", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 86 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 86, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "lowerAbs", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 98 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 98, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "hips", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 58 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 58, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "leftThigh", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 58.4 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 58.4, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "rightThigh", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 37 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 37, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "leftCalf", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 37.2 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 37.2, nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_BODY_MEASUREMENT_CM),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBodyMeasurementEntryDto.prototype, "rightCalf", void 0);

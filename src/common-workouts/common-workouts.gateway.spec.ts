@@ -4,6 +4,7 @@ import { CommonWorkoutsGateway } from './common-workouts.gateway';
 
 describe('CommonWorkoutsGateway', () => {
   let gateway: CommonWorkoutsGateway;
+  let emit: jest.Mock;
   let jwtService: {
     verify: any;
   };
@@ -30,9 +31,10 @@ describe('CommonWorkoutsGateway', () => {
       userRepository as never,
       participantRepository as never,
     );
+    emit = jest.fn();
     gateway.server = {
       to: jest.fn().mockReturnValue({
-        emit: jest.fn(),
+        emit,
       }),
     } as never;
   });
@@ -106,7 +108,29 @@ describe('CommonWorkoutsGateway', () => {
     expect(join).toHaveBeenCalledWith('common-workout-5');
     expect(result).toEqual({
       event: 'joined',
-      data: { commonWorkoutId: 5 },
+      data: { commonWorkoutId: 5, workoutId: 5 },
+    });
+  });
+
+  it('joins room with neutral workout alias event', async () => {
+    const join = jest.fn();
+    const client = {
+      data: { userId: 15 },
+      join,
+    };
+
+    participantRepository.findOne.mockResolvedValue({
+      id: 1,
+      commonWorkoutId: 5,
+      userId: 15,
+    });
+
+    const result = await gateway.handleJoinWorkout({ workoutId: 5 }, client as never);
+
+    expect(join).toHaveBeenCalledWith('common-workout-5');
+    expect(result).toEqual({
+      event: 'joined',
+      data: { commonWorkoutId: 5, workoutId: 5 },
     });
   });
 
@@ -137,5 +161,15 @@ describe('CommonWorkoutsGateway', () => {
 
     expect(gateway.hasSubscribers(5)).toBe(true);
     expect(gateway.hasSubscribers(6)).toBe(false);
+  });
+
+  it('emits both legacy and neutral workout events', () => {
+    gateway.emitUpdated(5, { id: 5 });
+    gateway.emitFinished(5, { id: 5 });
+
+    expect(emit).toHaveBeenNthCalledWith(1, 'commonWorkoutUpdated', { id: 5 });
+    expect(emit).toHaveBeenNthCalledWith(2, 'workoutUpdated', { id: 5 });
+    expect(emit).toHaveBeenNthCalledWith(3, 'commonWorkoutFinished', { id: 5 });
+    expect(emit).toHaveBeenNthCalledWith(4, 'workoutFinished', { id: 5 });
   });
 });

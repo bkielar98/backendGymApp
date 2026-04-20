@@ -66,14 +66,12 @@ __decorate([
 __decorate([
     (0, typeorm_1.OneToMany)(() => common_workout_participant_entity_1.CommonWorkoutParticipant, (participant) => participant.commonWorkout, {
         cascade: true,
-        eager: true,
     }),
     __metadata("design:type", Array)
 ], CommonWorkout.prototype, "participants", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => common_workout_exercise_entity_1.CommonWorkoutExercise, (exercise) => exercise.commonWorkout, {
         cascade: true,
-        eager: true,
     }),
     __metadata("design:type", Array)
 ], CommonWorkout.prototype, "exercises", void 0);
