@@ -168,7 +168,7 @@ export class WorkoutsService {
       relations: this.workoutRelations,
     });
 
-    return workouts.map((workout) => this.mapWorkout(workout));
+    return workouts.map((workout) => this.mapWorkoutSummary(workout));
   }
 
   async findHistory(userId: number) {
@@ -181,7 +181,7 @@ export class WorkoutsService {
       relations: this.workoutRelations,
     });
 
-    return workouts.map((workout) => this.mapWorkout(workout));
+    return workouts.map((workout) => this.mapWorkoutSummary(workout));
   }
 
   async findOne(userId: number, workoutId: number) {

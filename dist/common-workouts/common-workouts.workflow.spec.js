@@ -130,6 +130,58 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             participantCount: 1,
         });
     });
+    (0, globals_1.it)('starts workout from a template shared with the current user', async () => {
+        const savedWorkout = {
+            id: 34,
+            createdByUserId: 14,
+            templateId: 8,
+            name: 'Shared plan',
+            status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
+            startedAt: new Date('2026-04-21T10:00:00.000Z'),
+            finishedAt: null,
+            participants: [],
+            exercises: [],
+        };
+        const user = { id: 14, email: 'member@example.com', name: 'Member', avatarPath: null };
+        commonWorkoutRepository.save.mockResolvedValue(savedWorkout);
+        templateRepository.findOne.mockResolvedValue({
+            id: 8,
+            userId: 22,
+            name: 'Shared plan',
+            members: [{ userId: 14 }],
+            exercises: [],
+        });
+        userRepository.findBy.mockResolvedValue([user]);
+        participantRepository.save.mockResolvedValue([
+            {
+                id: 102,
+                commonWorkoutId: 34,
+                userId: 14,
+                user,
+            },
+        ]);
+        participantRepository.find.mockResolvedValue([]);
+        workoutRepository.find.mockResolvedValue([]);
+        globals_1.jest
+            .spyOn(service, 'getByIdForUser')
+            .mockResolvedValue({
+            id: 34,
+            name: 'Shared plan',
+            mode: 'solo',
+            isSolo: true,
+        });
+        await (0, globals_1.expect)(service.start(14, { templateId: 8 })).resolves.toMatchObject({
+            id: 34,
+            name: 'Shared plan',
+        });
+        (0, globals_1.expect)(templateRepository.findOne).toHaveBeenCalledWith({
+            where: { id: 8 },
+        });
+        (0, globals_1.expect)(commonWorkoutRepository.create).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            templateId: 8,
+            name: 'Shared plan',
+        }));
+    });
     (0, globals_1.it)('finishes workout session and creates history for every participant', async () => {
         const commonWorkout = {
             id: 45,

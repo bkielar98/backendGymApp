@@ -41,14 +41,32 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async getExerciseHistory(req, exerciseId) {
         return this.commonWorkoutsService.getExerciseHistoryForUser(req.user.id, exerciseId);
     }
+    async findHistory(req) {
+        return this.commonWorkoutsService.getHistoryForUser(req.user.id);
+    }
+    async findHistorySummary(req, historyId) {
+        return this.commonWorkoutsService.getHistoricalSummaryForUser(req.user.id, historyId);
+    }
+    async findHistoryOne(req, historyId) {
+        return this.commonWorkoutsService.getHistoricalByIdForUser(req.user.id, historyId);
+    }
+    async updateHistory(req, historyId, dto) {
+        return this.commonWorkoutsService.updateHistoricalWorkout(req.user.id, historyId, dto);
+    }
+    async removeHistory(req, historyId) {
+        return this.commonWorkoutsService.removeHistoricalWorkout(req.user.id, historyId);
+    }
     async findSummary(req, id) {
         return this.commonWorkoutsService.getSummaryForUser(req.user.id, id);
+    }
+    async findIndex(req, id) {
+        return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
     }
     async findExercise(req, id, exerciseId) {
         return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseId);
     }
     async findOne(req, id) {
-        return this.commonWorkoutsService.getByIdForUser(req.user.id, id);
+        return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
     }
     async update(req, id, dto) {
         return this.commonWorkoutsService.updateCommonWorkout(req.user.id, id, dto);
@@ -138,10 +156,75 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "getExerciseHistory", null);
 __decorate([
+    (0, common_1.Get)('history'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get workout history',
+        description: 'Zwraca lekka liste zakonczonych workoutow usera.',
+    }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "findHistory", null);
+__decorate([
+    (0, common_1.Get)('history/:historyId/summary'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get historical workout summary',
+        description: 'Zwraca lekki summary zakonczonego workoutu.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "findHistorySummary", null);
+__decorate([
+    (0, common_1.Get)('history/:historyId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get historical workout',
+        description: 'Zwraca szczegoly zakonczonego workoutu po ID wpisu historii.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "findHistoryOne", null);
+__decorate([
+    (0, common_1.Patch)('history/:historyId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Update historical workout',
+        description: 'Aktualizuje metadane zakonczonego workoutu, np. nazwe.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    (0, swagger_1.ApiBody)({ type: update_common_workout_dto_1.UpdateCommonWorkoutDto }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, update_common_workout_dto_1.UpdateCommonWorkoutDto]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "updateHistory", null);
+__decorate([
+    (0, common_1.Delete)('history/:historyId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Remove historical workout',
+        description: 'Usuwa wpis zakonczonego workoutu z historii usera.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "removeHistory", null);
+__decorate([
     (0, common_1.Get)(':id/summary'),
     (0, swagger_1.ApiOperation)({
         summary: 'Get workout summary',
-        description: 'Zwraca lekki summary workoutu. Dziala dla aktywnego workoutu i dla historycznego wpisu.',
+        description: 'Zwraca summary workoutu z agregatami per uczestnik i cwiczenie.',
     }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID workoutu albo wpisu historycznego.' }),
     __param(0, (0, common_1.Request)()),
@@ -150,6 +233,19 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "findSummary", null);
+__decorate([
+    (0, common_1.Get)(':id/index'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get workout index',
+        description: 'Alias lekkiego indeksu workoutu z lista cwiczen bez szczegolowych serii uczestnikow.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID workoutu.' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "findIndex", null);
 __decorate([
     (0, common_1.Get)(':id/exercises/:exerciseId'),
     (0, swagger_1.ApiOperation)({
@@ -172,8 +268,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({
-        summary: 'Get workout',
-        description: 'Zwraca aktywny workout z uczestnikami, cwiczeniami i seriami. Payload dziala dla solo i grupy.',
+        summary: 'Get workout index',
+        description: 'Zwraca lekki indeks aktywnego workoutu do nawigowania po cwiczeniach.',
     }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' }),
     __param(0, (0, common_1.Request)()),

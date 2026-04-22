@@ -186,5 +186,6 @@ describe('WorkoutsService', () => {
         exerciseNames: ['Bench Press', 'Shoulder Press'],
       },
     ]);
+    expect(result[0]).not.toHaveProperty('exercises');
   });
 });

@@ -163,6 +163,12 @@ const workout_entity_1 = require("../entities/workout.entity");
                 ],
             },
         ]);
+        (0, globals_1.expect)(workoutExerciseRepository.find).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            relations: {
+                workout: true,
+                sets: true,
+            },
+        }));
     });
 });
 //# sourceMappingURL=exercises.service.spec.js.map

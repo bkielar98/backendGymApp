@@ -91,6 +91,7 @@ let ExercisesService = class ExercisesService {
             },
             relations: {
                 workout: true,
+                sets: true,
             },
             order: {
                 workout: {

@@ -138,26 +138,6 @@ export declare class WorkoutsService {
         };
     }>;
     findAll(userId: number): Promise<{
-        exercises: {
-            id: number;
-            order: number;
-            exercise: {
-                id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            sets: {
-                id: number;
-                setNumber: number;
-                previousWeight: number;
-                previousReps: number;
-                currentWeight: number;
-                currentReps: number;
-                repMax: number;
-                confirmed: boolean;
-            }[];
-        }[];
         id: number;
         name: string;
         status: WorkoutStatus;
@@ -178,26 +158,6 @@ export declare class WorkoutsService {
         };
     }[]>;
     findHistory(userId: number): Promise<{
-        exercises: {
-            id: number;
-            order: number;
-            exercise: {
-                id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            sets: {
-                id: number;
-                setNumber: number;
-                previousWeight: number;
-                previousReps: number;
-                currentWeight: number;
-                currentReps: number;
-                repMax: number;
-                confirmed: boolean;
-            }[];
-        }[];
         id: number;
         name: string;
         status: WorkoutStatus;

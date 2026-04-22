@@ -128,7 +128,7 @@ let WorkoutsService = class WorkoutsService {
             order: { startedAt: 'DESC' },
             relations: this.workoutRelations,
         });
-        return workouts.map((workout) => this.mapWorkout(workout));
+        return workouts.map((workout) => this.mapWorkoutSummary(workout));
     }
     async findHistory(userId) {
         const workouts = await this.workoutRepository.find({
@@ -139,7 +139,7 @@ let WorkoutsService = class WorkoutsService {
             order: { startedAt: 'DESC' },
             relations: this.workoutRelations,
         });
-        return workouts.map((workout) => this.mapWorkout(workout));
+        return workouts.map((workout) => this.mapWorkoutSummary(workout));
     }
     async findOne(userId, workoutId) {
         return this.getWorkoutByIdForUser(userId, workoutId);

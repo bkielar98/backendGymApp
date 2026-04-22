@@ -174,6 +174,63 @@ describe('CommonWorkoutsService workflow', () => {
     });
   });
 
+  it('starts workout from a template shared with the current user', async () => {
+    const savedWorkout = {
+      id: 34,
+      createdByUserId: 14,
+      templateId: 8,
+      name: 'Shared plan',
+      status: CommonWorkoutStatus.ACTIVE,
+      startedAt: new Date('2026-04-21T10:00:00.000Z'),
+      finishedAt: null,
+      participants: [],
+      exercises: [],
+    };
+    const user = { id: 14, email: 'member@example.com', name: 'Member', avatarPath: null };
+
+    commonWorkoutRepository.save.mockResolvedValue(savedWorkout as never);
+    templateRepository.findOne.mockResolvedValue({
+      id: 8,
+      userId: 22,
+      name: 'Shared plan',
+      members: [{ userId: 14 }],
+      exercises: [],
+    } as never);
+    userRepository.findBy.mockResolvedValue([user] as never);
+    participantRepository.save.mockResolvedValue([
+      {
+        id: 102,
+        commonWorkoutId: 34,
+        userId: 14,
+        user,
+      },
+    ] as never);
+    participantRepository.find.mockResolvedValue([] as never);
+    workoutRepository.find.mockResolvedValue([] as never);
+    jest
+      .spyOn(service as any, 'getByIdForUser')
+      .mockResolvedValue({
+        id: 34,
+        name: 'Shared plan',
+        mode: 'solo',
+        isSolo: true,
+      } as never);
+
+    await expect(service.start(14, { templateId: 8 })).resolves.toMatchObject({
+      id: 34,
+      name: 'Shared plan',
+    });
+    expect(templateRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 8 },
+    });
+    expect(commonWorkoutRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        templateId: 8,
+        name: 'Shared plan',
+      }),
+    );
+  });
+
   it('finishes workout session and creates history for every participant', async () => {
     const commonWorkout = {
       id: 45,

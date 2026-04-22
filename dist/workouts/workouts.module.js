@@ -10,20 +10,17 @@ exports.WorkoutsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const workouts_service_1 = require("./workouts.service");
-const workouts_controller_1 = require("./workouts.controller");
 const workout_entity_1 = require("../entities/workout.entity");
 const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
 const workout_set_entity_1 = require("../entities/workout-set.entity");
 const workout_template_entity_1 = require("../entities/workout-template.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
-const common_workouts_module_1 = require("../common-workouts/common-workouts.module");
 let WorkoutsModule = class WorkoutsModule {
 };
 exports.WorkoutsModule = WorkoutsModule;
 exports.WorkoutsModule = WorkoutsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            common_workouts_module_1.CommonWorkoutsModule,
             typeorm_1.TypeOrmModule.forFeature([
                 workout_entity_1.Workout,
                 workout_exercise_entity_1.WorkoutExercise,
@@ -33,7 +30,6 @@ exports.WorkoutsModule = WorkoutsModule = __decorate([
             ]),
         ],
         providers: [workouts_service_1.WorkoutsService],
-        controllers: [workouts_controller_1.WorkoutsController],
     })
 ], WorkoutsModule);
 //# sourceMappingURL=workouts.module.js.map

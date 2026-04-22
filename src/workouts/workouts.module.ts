@@ -1,17 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkoutsService } from './workouts.service';
-import { WorkoutsController } from './workouts.controller';
 import { Workout } from '../entities/workout.entity';
 import { WorkoutExercise } from '../entities/workout-exercise.entity';
 import { WorkoutSet } from '../entities/workout-set.entity';
 import { WorkoutTemplate } from '../entities/workout-template.entity';
 import { Exercise } from '../entities/exercise.entity';
-import { CommonWorkoutsModule } from '../common-workouts/common-workouts.module';
 
 @Module({
   imports: [
-    CommonWorkoutsModule,
     TypeOrmModule.forFeature([
       Workout,
       WorkoutExercise,
@@ -21,6 +18,5 @@ import { CommonWorkoutsModule } from '../common-workouts/common-workouts.module'
     ]),
   ],
   providers: [WorkoutsService],
-  controllers: [WorkoutsController],
 })
 export class WorkoutsModule {}

@@ -99,6 +99,7 @@ export class ExercisesService {
       },
       relations: {
         workout: true,
+        sets: true,
       },
       order: {
         workout: {

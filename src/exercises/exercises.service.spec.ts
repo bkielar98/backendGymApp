@@ -204,5 +204,13 @@ describe('ExercisesService', () => {
         ],
       },
     ]);
+    expect(workoutExerciseRepository.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        relations: {
+          workout: true,
+          sets: true,
+        },
+      }),
+    );
   });
 });

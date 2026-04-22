@@ -147,6 +147,7 @@ const workout_entity_1 = require("../entities/workout.entity");
                 exerciseNames: ['Bench Press', 'Shoulder Press'],
             },
         ]);
+        (0, globals_1.expect)(result[0]).not.toHaveProperty('exercises');
     });
 });
 //# sourceMappingURL=workouts.service.spec.js.map

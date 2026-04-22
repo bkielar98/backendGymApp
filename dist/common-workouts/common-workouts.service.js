@@ -54,12 +54,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         await this.ensureParticipantsHaveNoActiveWorkouts(participantUserIds);
         let template = null;
         if (typeof dto.templateId === 'number') {
-            template = await this.templateRepository.findOne({
-                where: { id: dto.templateId, userId },
-            });
-            if (!template) {
-                throw new common_1.NotFoundException('Workout template not found');
-            }
+            template = await this.getAccessibleWorkoutTemplateForUser(userId, dto.templateId);
         }
         const commonWorkout = this.commonWorkoutRepository.create({
             createdByUserId: userId,
@@ -130,11 +125,56 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         const commonWorkout = await this.getCommonWorkoutEntityForUser(userId, commonWorkoutId);
         return this.mapWorkout(commonWorkout);
     }
+    async getIndexForUser(userId, commonWorkoutId) {
+        const commonWorkout = await this.getCommonWorkoutEntityForUser(userId, commonWorkoutId);
+        return this.mapWorkoutIndex(commonWorkout);
+    }
+    async getHistoryForUser(userId) {
+        const workouts = await this.workoutRepository.find({
+            where: {
+                userId,
+                status: workout_entity_1.WorkoutStatus.COMPLETED,
+            },
+            order: { startedAt: 'DESC' },
+            relations: {
+                template: true,
+                exercises: {
+                    exercise: true,
+                    sets: true,
+                },
+            },
+        });
+        return workouts.map((workout) => this.mapHistoricalWorkoutSummary(workout));
+    }
+    async getHistoricalByIdForUser(userId, workoutId) {
+        const workout = await this.getHistoricalWorkoutEntityForUser(userId, workoutId);
+        return this.mapHistoricalWorkout(workout);
+    }
+    async getHistoricalSummaryForUser(userId, workoutId) {
+        const workout = await this.getHistoricalWorkoutEntityForUser(userId, workoutId);
+        return this.mapHistoricalWorkoutPerformanceSummary(workout);
+    }
+    async updateHistoricalWorkout(userId, workoutId, dto) {
+        const workout = await this.getHistoricalWorkoutEntityForUser(userId, workoutId);
+        if (typeof dto.name === 'string') {
+            workout.name = dto.name;
+            await this.workoutRepository.save(workout);
+        }
+        return this.getHistoricalByIdForUser(userId, workout.id);
+    }
+    async removeHistoricalWorkout(userId, workoutId) {
+        await this.getHistoricalWorkoutEntityForUser(userId, workoutId);
+        await this.workoutRepository.delete({
+            id: workoutId,
+            userId,
+        });
+        return { success: true, message: 'Workout removed' };
+    }
     async getSummaryForUser(userId, workoutId) {
         try {
             const commonWorkout = await this.getCommonWorkoutEntityForUser(userId, workoutId);
             return {
-                ...this.mapWorkoutSummary(commonWorkout),
+                ...this.mapWorkoutPerformanceSummary(commonWorkout),
                 source: 'session',
             };
         }
@@ -150,6 +190,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
                 status: workout_entity_1.WorkoutStatus.COMPLETED,
             },
             relations: {
+                user: true,
                 template: true,
                 exercises: {
                     exercise: true,
@@ -169,7 +210,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             throw new common_1.NotFoundException('Workout not found');
         }
         return {
-            ...this.mapHistoricalWorkoutSummary(workout),
+            ...this.mapHistoricalWorkoutPerformanceSummary(workout),
             source: 'history',
         };
     }
@@ -274,7 +315,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             commonWorkout.name = dto.name;
             await this.commonWorkoutRepository.save(commonWorkout);
         }
-        const payload = await this.getByIdForUser(userId, commonWorkout.id);
+        const payload = await this.getWorkoutResponse(userId, commonWorkout.id);
         this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
         return payload;
     }
@@ -291,8 +332,8 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             }
         }
         await this.commonWorkoutExerciseRepository.save(exercises);
-        await this.createCommonExercise(commonWorkout.id, exercise.id, insertOrder, dto.setsCount ?? 0, commonWorkout.participants);
-        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkout.id);
+        const createdExercise = await this.createCommonExercise(commonWorkout.id, exercise.id, insertOrder, dto.setsCount ?? 0, commonWorkout.participants);
+        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkout.id, createdExercise.id);
         this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
         return payload;
     }
@@ -320,7 +361,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             currentExercise.order = targetOrder;
             await this.commonWorkoutExerciseRepository.save(exercises);
         }
-        const payload = await this.getByIdForUser(userId, commonWorkout.id);
+        const payload = await this.getWorkoutResponse(userId, commonWorkout.id);
         this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
         return payload;
     }
@@ -349,7 +390,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             set.previousReps = previousSet?.currentReps ?? null;
         }
         await this.participantSetRepository.save(participantSets);
-        const payload = await this.getByIdForUser(userId, commonWorkout.id);
+        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkout.id, currentExercise.id);
         this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
         return payload;
     }
@@ -367,7 +408,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             }
         }
         await this.commonWorkoutExerciseRepository.save(remainingExercises);
-        const payload = await this.getByIdForUser(userId, commonWorkout.id);
+        const payload = await this.getWorkoutResponse(userId, commonWorkout.id);
         this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
         return payload;
     }
@@ -396,7 +437,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             });
         });
         await this.participantSetRepository.save(newSets);
-        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkoutExercise.commonWorkoutId);
+        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkoutExercise.commonWorkoutId, commonWorkoutExercise.id);
         this.emitUpdatedIfSubscribed(commonWorkoutExercise.commonWorkoutId, payload);
         return payload;
     }
@@ -439,7 +480,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             }
             await this.participantSetRepository.save(sets);
         }
-        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkoutId);
+        const payload = await this.getWorkoutExerciseResponse(userId, commonWorkoutId, commonWorkoutExerciseId);
         this.emitUpdatedIfSubscribed(commonWorkoutId, payload);
         return payload;
     }
@@ -453,7 +494,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             currentReps: nextReps,
             repMax: nextRepMax,
         });
-        const payload = await this.getWorkoutExerciseResponse(userId, participantSet.commonWorkoutExercise.commonWorkoutId);
+        const payload = await this.getWorkoutExerciseResponse(userId, participantSet.commonWorkoutExercise.commonWorkoutId, participantSet.commonWorkoutExerciseId);
         this.emitUpdatedIfSubscribed(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
         return payload;
     }
@@ -466,7 +507,7 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             repMax,
             confirmed: true,
         });
-        const payload = await this.getWorkoutExerciseResponse(userId, participantSet.commonWorkoutExercise.commonWorkoutId);
+        const payload = await this.getWorkoutExerciseResponse(userId, participantSet.commonWorkoutExercise.commonWorkoutId, participantSet.commonWorkoutExerciseId);
         this.emitUpdatedIfSubscribed(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
         return payload;
     }
@@ -507,8 +548,17 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             this.logger.warn(`Could not measure payload size for ${eventName} in common workout ${commonWorkoutId}`);
         }
     }
-    async getWorkoutExerciseResponse(userId, commonWorkoutId) {
-        return this.getByIdForUser(userId, commonWorkoutId);
+    async getWorkoutResponse(userId, commonWorkoutId) {
+        return {
+            workout: await this.getIndexForUser(userId, commonWorkoutId),
+        };
+    }
+    async getWorkoutExerciseResponse(userId, commonWorkoutId, commonWorkoutExerciseId) {
+        const [workout, exercise] = await Promise.all([
+            this.getIndexForUser(userId, commonWorkoutId),
+            this.getExerciseByIdForUser(userId, commonWorkoutId, commonWorkoutExerciseId),
+        ]);
+        return { workout, exercise };
     }
     async createCommonExercise(commonWorkoutId, exerciseId, order, setsCount, participantsOverride) {
         const participants = participantsOverride ||
@@ -720,6 +770,35 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         }
         return commonWorkout;
     }
+    async getHistoricalWorkoutEntityForUser(userId, workoutId) {
+        const workout = await this.workoutRepository.findOne({
+            where: {
+                id: workoutId,
+                userId,
+                status: workout_entity_1.WorkoutStatus.COMPLETED,
+            },
+            relations: {
+                user: true,
+                template: true,
+                exercises: {
+                    exercise: true,
+                    sets: true,
+                },
+            },
+            order: {
+                exercises: {
+                    order: 'ASC',
+                    sets: {
+                        setNumber: 'ASC',
+                    },
+                },
+            },
+        });
+        if (!workout) {
+            throw new common_1.NotFoundException('Workout not found');
+        }
+        return workout;
+    }
     getCommonWorkoutExerciseFromWorkout(commonWorkout, commonWorkoutExerciseId) {
         const commonWorkoutExercise = (commonWorkout.exercises || []).find((exercise) => exercise.id === commonWorkoutExerciseId);
         if (!commonWorkoutExercise) {
@@ -865,6 +944,20 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         }
         throw new common_1.NotFoundException('Exercise not found');
     }
+    async getAccessibleWorkoutTemplateForUser(userId, templateId) {
+        const template = await this.templateRepository.findOne({
+            where: { id: templateId },
+        });
+        if (!template) {
+            throw new common_1.NotFoundException('Workout template not found');
+        }
+        const isOwner = template.userId === userId;
+        const isMember = (template.members || []).some((member) => member.userId === userId);
+        if (!isOwner && !isMember) {
+            throw new common_1.NotFoundException('Workout template not found');
+        }
+        return template;
+    }
     async syncPersonalBestForSavedWorkoutExercise(userId, exerciseId, workout, workoutExercise, sets) {
         const bestSet = [...sets]
             .filter((set) => set.confirmed &&
@@ -930,6 +1023,29 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             exercises,
         };
     }
+    mapWorkoutIndex(commonWorkout) {
+        const participantList = [...(commonWorkout.participants || [])];
+        const participantSummaries = participantList.map((participant) => this.mapParticipantSummary(participant));
+        const exercises = [...(commonWorkout.exercises || [])]
+            .sort((a, b) => a.order - b.order)
+            .map((exercise) => this.mapWorkoutExerciseIndex(exercise));
+        return {
+            ...this.mapWorkoutSummary(commonWorkout),
+            participants: participantSummaries,
+            exercises,
+        };
+    }
+    mapWorkoutPerformanceSummary(commonWorkout) {
+        const participantList = [...(commonWorkout.participants || [])];
+        const exerciseEntries = [...(commonWorkout.exercises || [])].sort((a, b) => a.order - b.order);
+        const sets = exerciseEntries.flatMap((exercise) => exercise.participantSets || []);
+        return {
+            ...this.mapWorkoutSummary(commonWorkout),
+            ...this.summarizeSetPerformance(sets),
+            participants: participantList.map((participant) => this.mapCommonParticipantPerformance(participant, exerciseEntries)),
+            exercises: exerciseEntries.map((exercise) => this.mapCommonExercisePerformance(exercise, participantList)),
+        };
+    }
     mapWorkoutSummary(commonWorkout) {
         const durationSeconds = this.getDurationSeconds(commonWorkout.startedAt, commonWorkout.finishedAt);
         const participantCount = (commonWorkout.participants || []).length;
@@ -993,9 +1109,216 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
                 : null,
         };
     }
+    mapHistoricalWorkoutPerformanceSummary(workout) {
+        const user = this.mapHistoricalWorkoutUser(workout);
+        const orderedExercises = [...(workout.exercises || [])].sort((a, b) => a.order - b.order);
+        const sets = orderedExercises.flatMap((exercise) => exercise.sets || []);
+        return {
+            ...this.mapHistoricalWorkoutSummary(workout),
+            ...this.summarizeSetPerformance(sets),
+            participants: [
+                {
+                    participantId: null,
+                    user,
+                    ...this.summarizeSetPerformance(sets),
+                    exercises: orderedExercises.map((exercise) => this.mapHistoricalParticipantExercisePerformance(exercise)),
+                },
+            ],
+            exercises: orderedExercises.map((exercise) => this.mapHistoricalExercisePerformance(exercise, user)),
+        };
+    }
+    mapHistoricalWorkout(workout) {
+        const exercises = [...(workout.exercises || [])]
+            .sort((a, b) => a.order - b.order)
+            .map((exercise) => this.mapHistoricalWorkoutExercise(exercise));
+        return {
+            ...this.mapHistoricalWorkoutSummary(workout),
+            exercises,
+        };
+    }
     mapCommonWorkoutExerciseDetail(commonWorkoutExercise) {
         const participantList = [...(commonWorkoutExercise.commonWorkout?.participants || [])];
         return this.mapWorkoutExercise(commonWorkoutExercise, participantList);
+    }
+    mapWorkoutExerciseIndex(commonWorkoutExercise) {
+        const participantSets = commonWorkoutExercise.participantSets || [];
+        const setsCount = Math.max(0, ...participantSets.map((set) => set.setNumber)) || 0;
+        return {
+            id: commonWorkoutExercise.id,
+            order: commonWorkoutExercise.order,
+            exercise: commonWorkoutExercise.exercise
+                ? {
+                    id: commonWorkoutExercise.exercise.id,
+                    name: commonWorkoutExercise.exercise.name,
+                    description: commonWorkoutExercise.exercise.description,
+                    muscleGroups: commonWorkoutExercise.exercise.muscleGroups,
+                }
+                : null,
+            setsCount,
+            confirmedSets: participantSets.filter((set) => set.confirmed).length,
+        };
+    }
+    mapCommonParticipantPerformance(participant, exerciseEntries) {
+        const sets = exerciseEntries.flatMap((exercise) => (exercise.participantSets || []).filter((set) => set.participantId === participant.id));
+        return {
+            ...this.mapParticipantSummary(participant),
+            ...this.summarizeSetPerformance(sets),
+            exercises: exerciseEntries.map((exercise) => this.mapCommonParticipantExercisePerformance(exercise, participant)),
+        };
+    }
+    mapCommonExercisePerformance(commonWorkoutExercise, participantList) {
+        const participantSets = commonWorkoutExercise.participantSets || [];
+        return {
+            id: commonWorkoutExercise.id,
+            order: commonWorkoutExercise.order,
+            exercise: this.mapExerciseSummary(commonWorkoutExercise.exercise),
+            ...this.summarizeSetPerformance(participantSets),
+            participants: participantList.map((participant) => {
+                const sets = participantSets.filter((set) => set.participantId === participant.id);
+                const participantSummary = this.mapParticipantSummary(participant);
+                return {
+                    participantId: participant.id,
+                    user: participantSummary.user,
+                    ...this.summarizeSetPerformance(sets),
+                    sets: sets
+                        .sort((a, b) => a.setNumber - b.setNumber)
+                        .map((set) => this.mapPerformanceSet(set)),
+                };
+            }),
+        };
+    }
+    mapCommonParticipantExercisePerformance(commonWorkoutExercise, participant) {
+        const sets = (commonWorkoutExercise.participantSets || [])
+            .filter((set) => set.participantId === participant.id)
+            .sort((a, b) => a.setNumber - b.setNumber);
+        return {
+            workoutExerciseId: commonWorkoutExercise.id,
+            order: commonWorkoutExercise.order,
+            exercise: this.mapExerciseSummary(commonWorkoutExercise.exercise),
+            ...this.summarizeSetPerformance(sets),
+            sets: sets.map((set) => this.mapPerformanceSet(set)),
+        };
+    }
+    mapHistoricalExercisePerformance(workoutExercise, user) {
+        const sets = [...(workoutExercise.sets || [])].sort((a, b) => a.setNumber - b.setNumber);
+        return {
+            id: workoutExercise.id,
+            order: workoutExercise.order,
+            exercise: this.mapExerciseSummary(workoutExercise.exercise),
+            ...this.summarizeSetPerformance(sets),
+            participants: [
+                {
+                    participantId: null,
+                    user,
+                    ...this.summarizeSetPerformance(sets),
+                    sets: sets.map((set) => this.mapPerformanceSet(set)),
+                },
+            ],
+        };
+    }
+    mapHistoricalParticipantExercisePerformance(workoutExercise) {
+        const sets = [...(workoutExercise.sets || [])].sort((a, b) => a.setNumber - b.setNumber);
+        return {
+            workoutExerciseId: workoutExercise.id,
+            order: workoutExercise.order,
+            exercise: this.mapExerciseSummary(workoutExercise.exercise),
+            ...this.summarizeSetPerformance(sets),
+            sets: sets.map((set) => this.mapPerformanceSet(set)),
+        };
+    }
+    summarizeSetPerformance(sets) {
+        const confirmedSets = sets.filter((set) => set.confirmed);
+        const totalVolume = confirmedSets.reduce((sum, set) => sum + this.getSetVolume(set.currentWeight, set.currentReps), 0);
+        const totalWeight = confirmedSets.reduce((sum, set) => sum + (typeof set.currentWeight === 'number' ? set.currentWeight : 0), 0);
+        const totalReps = confirmedSets.reduce((sum, set) => sum + (typeof set.currentReps === 'number' ? set.currentReps : 0), 0);
+        const bestSet = [...confirmedSets]
+            .filter((set) => typeof set.currentWeight === 'number' &&
+            typeof set.currentReps === 'number' &&
+            typeof set.repMax === 'number')
+            .sort((left, right) => {
+            const repMaxDifference = (right.repMax ?? 0) - (left.repMax ?? 0);
+            if (repMaxDifference !== 0) {
+                return repMaxDifference;
+            }
+            const weightDifference = (right.currentWeight ?? 0) - (left.currentWeight ?? 0);
+            if (weightDifference !== 0) {
+                return weightDifference;
+            }
+            return (right.currentReps ?? 0) - (left.currentReps ?? 0);
+        })[0];
+        return {
+            totalSets: sets.length,
+            confirmedSets: confirmedSets.length,
+            totalWeight,
+            totalReps,
+            totalVolume,
+            liftedWeight: totalVolume,
+            bestSet: bestSet ? this.mapPerformanceSet(bestSet) : null,
+        };
+    }
+    mapPerformanceSet(set) {
+        const weight = typeof set.currentWeight === 'number' ? set.currentWeight : null;
+        const reps = typeof set.currentReps === 'number' ? set.currentReps : null;
+        return {
+            id: set.id,
+            setNumber: set.setNumber,
+            weight,
+            reps,
+            volume: this.getSetVolume(weight, reps),
+            repMax: set.repMax ?? null,
+            confirmed: Boolean(set.confirmed),
+        };
+    }
+    getSetVolume(weight, reps) {
+        if (typeof weight !== 'number' || typeof reps !== 'number') {
+            return 0;
+        }
+        return weight * reps;
+    }
+    mapHistoricalWorkoutUser(workout) {
+        return {
+            id: workout.user?.id ?? workout.userId,
+            email: workout.user?.email ?? null,
+            name: workout.user?.name ?? null,
+            avatarPath: workout.user?.avatarPath ?? null,
+            avatarUrl: workout.user?.avatarPath ?? null,
+        };
+    }
+    mapExerciseSummary(exercise) {
+        return exercise
+            ? {
+                id: exercise.id,
+                name: exercise.name,
+                description: exercise.description,
+                muscleGroups: exercise.muscleGroups,
+            }
+            : null;
+    }
+    mapHistoricalWorkoutExercise(workoutExercise) {
+        return {
+            id: workoutExercise.id,
+            order: workoutExercise.order,
+            exercise: workoutExercise.exercise
+                ? {
+                    id: workoutExercise.exercise.id,
+                    name: workoutExercise.exercise.name,
+                    description: workoutExercise.exercise.description,
+                    muscleGroups: workoutExercise.exercise.muscleGroups,
+                }
+                : null,
+            sets: [...(workoutExercise.sets || [])]
+                .sort((a, b) => a.setNumber - b.setNumber)
+                .map((set) => ({
+                id: set.id,
+                setNumber: set.setNumber,
+                previousWeight: set.previousWeight,
+                previousReps: set.previousReps,
+                currentWeight: set.currentWeight,
+                currentReps: set.currentReps,
+                repMax: set.repMax,
+                confirmed: set.confirmed,
+            })),
+        };
     }
     mapParticipantSummary(participant) {
         return {

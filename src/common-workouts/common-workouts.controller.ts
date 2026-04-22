@@ -87,15 +87,89 @@ export class CommonWorkoutsController {
     return this.commonWorkoutsService.getExerciseHistoryForUser(req.user.id, exerciseId);
   }
 
+  @Get('history')
+  @ApiOperation({
+    summary: 'Get workout history',
+    description: 'Zwraca lekka liste zakonczonych workoutow usera.',
+  })
+  async findHistory(@Request() req) {
+    return this.commonWorkoutsService.getHistoryForUser(req.user.id);
+  }
+
+  @Get('history/:historyId/summary')
+  @ApiOperation({
+    summary: 'Get historical workout summary',
+    description: 'Zwraca lekki summary zakonczonego workoutu.',
+  })
+  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  async findHistorySummary(
+    @Request() req,
+    @Param('historyId', ParseIntPipe) historyId: number,
+  ) {
+    return this.commonWorkoutsService.getHistoricalSummaryForUser(req.user.id, historyId);
+  }
+
+  @Get('history/:historyId')
+  @ApiOperation({
+    summary: 'Get historical workout',
+    description: 'Zwraca szczegoly zakonczonego workoutu po ID wpisu historii.',
+  })
+  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  async findHistoryOne(
+    @Request() req,
+    @Param('historyId', ParseIntPipe) historyId: number,
+  ) {
+    return this.commonWorkoutsService.getHistoricalByIdForUser(req.user.id, historyId);
+  }
+
+  @Patch('history/:historyId')
+  @ApiOperation({
+    summary: 'Update historical workout',
+    description: 'Aktualizuje metadane zakonczonego workoutu, np. nazwe.',
+  })
+  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  @ApiBody({ type: UpdateCommonWorkoutDto })
+  async updateHistory(
+    @Request() req,
+    @Param('historyId', ParseIntPipe) historyId: number,
+    @Body() dto: UpdateCommonWorkoutDto,
+  ) {
+    return this.commonWorkoutsService.updateHistoricalWorkout(req.user.id, historyId, dto);
+  }
+
+  @Delete('history/:historyId')
+  @ApiOperation({
+    summary: 'Remove historical workout',
+    description: 'Usuwa wpis zakonczonego workoutu z historii usera.',
+  })
+  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  async removeHistory(
+    @Request() req,
+    @Param('historyId', ParseIntPipe) historyId: number,
+  ) {
+    return this.commonWorkoutsService.removeHistoricalWorkout(req.user.id, historyId);
+  }
+
   @Get(':id/summary')
   @ApiOperation({
     summary: 'Get workout summary',
     description:
-      'Zwraca lekki summary workoutu. Dziala dla aktywnego workoutu i dla historycznego wpisu.',
+      'Zwraca summary workoutu z agregatami per uczestnik i cwiczenie.',
   })
   @ApiParam({ name: 'id', type: Number, description: 'ID workoutu albo wpisu historycznego.' })
   async findSummary(@Request() req, @Param('id', ParseIntPipe) id: number) {
     return this.commonWorkoutsService.getSummaryForUser(req.user.id, id);
+  }
+
+  @Get(':id/index')
+  @ApiOperation({
+    summary: 'Get workout index',
+    description:
+      'Alias lekkiego indeksu workoutu z lista cwiczen bez szczegolowych serii uczestnikow.',
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'ID workoutu.' })
+  async findIndex(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
   }
 
   @Get(':id/exercises/:exerciseId')
@@ -120,13 +194,13 @@ export class CommonWorkoutsController {
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get workout',
+    summary: 'Get workout index',
     description:
-      'Zwraca aktywny workout z uczestnikami, cwiczeniami i seriami. Payload dziala dla solo i grupy.',
+      'Zwraca lekki indeks aktywnego workoutu do nawigowania po cwiczeniach.',
   })
   @ApiParam({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' })
   async findOne(@Request() req, @Param('id', ParseIntPipe) id: number) {
-    return this.commonWorkoutsService.getByIdForUser(req.user.id, id);
+    return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
   }
 
   @Patch(':id')

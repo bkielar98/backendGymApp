@@ -16,6 +16,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
             save: globals_1.jest.fn(),
             find: globals_1.jest.fn(),
             findOne: globals_1.jest.fn(),
+            delete: globals_1.jest.fn(),
         };
         workoutExerciseRepository = {
             create: globals_1.jest.fn(),
@@ -223,6 +224,82 @@ const common_workouts_service_1 = require("./common-workouts.service");
             ],
         });
     });
+    (0, globals_1.it)('maps workout index without inline participant set details', () => {
+        const payload = service.mapWorkoutIndex({
+            id: 9,
+            name: 'Workout',
+            status: 'active',
+            startedAt: new Date('2026-03-31T10:00:00.000Z'),
+            finishedAt: null,
+            template: null,
+            participants: [
+                {
+                    id: 101,
+                    user: {
+                        id: 1,
+                        email: 'user@example.com',
+                        name: 'User',
+                        avatarPath: null,
+                    },
+                },
+            ],
+            exercises: [
+                {
+                    id: 201,
+                    order: 0,
+                    exercise: {
+                        id: 44,
+                        name: 'Bench Press',
+                        description: 'Chest',
+                        muscleGroups: ['chest'],
+                    },
+                    participantSets: [
+                        {
+                            id: 301,
+                            participantId: 101,
+                            setNumber: 1,
+                            confirmed: true,
+                        },
+                        {
+                            id: 302,
+                            participantId: 101,
+                            setNumber: 2,
+                            confirmed: false,
+                        },
+                    ],
+                },
+            ],
+        });
+        (0, globals_1.expect)(payload.totalSets).toBe(2);
+        (0, globals_1.expect)(payload.confirmedSets).toBe(1);
+        (0, globals_1.expect)(payload.exercises).toEqual([
+            {
+                id: 201,
+                order: 0,
+                exercise: {
+                    id: 44,
+                    name: 'Bench Press',
+                    description: 'Chest',
+                    muscleGroups: ['chest'],
+                },
+                setsCount: 2,
+                confirmedSets: 1,
+            },
+        ]);
+        (0, globals_1.expect)(payload.exercises[0]).not.toHaveProperty('participants');
+    });
+    (0, globals_1.it)('builds exercise mutation response with workout index and exercise detail', async () => {
+        globals_1.jest
+            .spyOn(service, 'getIndexForUser')
+            .mockResolvedValue({ id: 9, exercises: [{ id: 201 }] });
+        globals_1.jest
+            .spyOn(service, 'getExerciseByIdForUser')
+            .mockResolvedValue({ id: 201, setsCount: 2 });
+        await (0, globals_1.expect)(service.getWorkoutExerciseResponse(14, 9, 201)).resolves.toEqual({
+            workout: { id: 9, exercises: [{ id: 201 }] },
+            exercise: { id: 201, setsCount: 2 },
+        });
+    });
     (0, globals_1.it)('copies completed common workout exercises into history deterministically', async () => {
         workoutRepository.create.mockImplementation((value) => value);
         workoutRepository.save.mockResolvedValue({
@@ -326,15 +403,42 @@ const common_workouts_service_1 = require("./common-workouts.service");
             startedAt: new Date('2026-04-20T10:00:00.000Z'),
             finishedAt: null,
             template: null,
-            participants: [{ id: 1, userId: 15 }],
+            participants: [
+                {
+                    id: 1,
+                    userId: 15,
+                    user: { id: 15, email: 'adam@example.com', name: 'Adam', avatarPath: null },
+                },
+                {
+                    id: 2,
+                    userId: 16,
+                    user: { id: 16, email: 'ewa@example.com', name: 'Ewa', avatarPath: null },
+                },
+            ],
             exercises: [
                 {
                     id: 101,
                     order: 0,
-                    exercise: { name: 'Bench Press' },
+                    exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
                     participantSets: [
-                        { setNumber: 1, confirmed: true },
-                        { setNumber: 2, confirmed: false },
+                        {
+                            id: 1001,
+                            participantId: 1,
+                            setNumber: 1,
+                            currentWeight: 100,
+                            currentReps: 5,
+                            repMax: 116,
+                            confirmed: true,
+                        },
+                        {
+                            id: 1002,
+                            participantId: 2,
+                            setNumber: 1,
+                            currentWeight: 80,
+                            currentReps: 10,
+                            repMax: 107,
+                            confirmed: true,
+                        },
                     ],
                 },
             ],
@@ -342,10 +446,34 @@ const common_workouts_service_1 = require("./common-workouts.service");
         await (0, globals_1.expect)(service.getSummaryForUser(15, 12)).resolves.toMatchObject({
             id: 12,
             source: 'session',
-            mode: 'solo',
+            mode: 'group',
             exerciseCount: 1,
             totalSets: 2,
-            confirmedSets: 1,
+            confirmedSets: 2,
+            totalVolume: 1300,
+            liftedWeight: 1300,
+            participants: [
+                globals_1.expect.objectContaining({
+                    id: 1,
+                    totalVolume: 500,
+                    liftedWeight: 500,
+                }),
+                globals_1.expect.objectContaining({
+                    id: 2,
+                    totalVolume: 800,
+                    liftedWeight: 800,
+                }),
+            ],
+            exercises: [
+                globals_1.expect.objectContaining({
+                    id: 101,
+                    totalVolume: 1300,
+                    participants: [
+                        globals_1.expect.objectContaining({ participantId: 1, totalVolume: 500 }),
+                        globals_1.expect.objectContaining({ participantId: 2, totalVolume: 800 }),
+                    ],
+                }),
+            ],
         });
         service.getCommonWorkoutEntityForUser.mockRejectedValueOnce(new common_1.NotFoundException('Workout not found'));
         workoutRepository.findOne.mockResolvedValue({
@@ -362,8 +490,22 @@ const common_workouts_service_1 = require("./common-workouts.service");
                     order: 0,
                     exercise: { id: 77, name: 'Squat' },
                     sets: [
-                        { confirmed: true },
-                        { confirmed: true },
+                        {
+                            id: 2001,
+                            setNumber: 1,
+                            currentWeight: 120,
+                            currentReps: 5,
+                            repMax: 140,
+                            confirmed: true,
+                        },
+                        {
+                            id: 2002,
+                            setNumber: 2,
+                            currentWeight: 100,
+                            currentReps: 8,
+                            repMax: 127,
+                            confirmed: true,
+                        },
                     ],
                 },
             ],
@@ -375,6 +517,86 @@ const common_workouts_service_1 = require("./common-workouts.service");
             exerciseCount: 1,
             totalSets: 2,
             confirmedSets: 2,
+            totalVolume: 1400,
+            participants: [
+                globals_1.expect.objectContaining({
+                    user: globals_1.expect.objectContaining({ id: 15 }),
+                    totalVolume: 1400,
+                }),
+            ],
+        });
+    });
+    (0, globals_1.it)('serves historical workouts under the common workouts service', async () => {
+        const historyWorkout = {
+            id: 55,
+            userId: 15,
+            name: 'History workout',
+            status: 'completed',
+            startedAt: new Date('2026-04-18T10:00:00.000Z'),
+            finishedAt: new Date('2026-04-18T11:00:00.000Z'),
+            template: null,
+            exercises: [
+                {
+                    id: 201,
+                    order: 0,
+                    exercise: { id: 77, name: 'Squat', description: null, muscleGroups: ['legs'] },
+                    sets: [
+                        {
+                            id: 301,
+                            setNumber: 1,
+                            previousWeight: 100,
+                            previousReps: 5,
+                            currentWeight: 110,
+                            currentReps: 5,
+                            repMax: 128,
+                            confirmed: true,
+                        },
+                    ],
+                },
+            ],
+        };
+        workoutRepository.find.mockResolvedValue([historyWorkout]);
+        workoutRepository.findOne.mockResolvedValue(historyWorkout);
+        workoutRepository.save.mockResolvedValue({ ...historyWorkout, name: 'Edited' });
+        workoutRepository.delete.mockResolvedValue({ affected: 1 });
+        await (0, globals_1.expect)(service.getHistoryForUser(15)).resolves.toMatchObject([
+            {
+                id: 55,
+                exerciseCount: 1,
+                totalSets: 1,
+            },
+        ]);
+        await (0, globals_1.expect)(service.getHistoricalByIdForUser(15, 55)).resolves.toMatchObject({
+            id: 55,
+            exercises: [
+                {
+                    id: 201,
+                    sets: [
+                        {
+                            id: 301,
+                            currentWeight: 110,
+                        },
+                    ],
+                },
+            ],
+        });
+        await (0, globals_1.expect)(service.updateHistoricalWorkout(15, 55, { name: 'Edited' })).resolves.toMatchObject({
+            id: 55,
+            exercises: globals_1.expect.any(Array),
+        });
+        await (0, globals_1.expect)(service.removeHistoricalWorkout(15, 55)).resolves.toEqual({
+            success: true,
+            message: 'Workout removed',
+        });
+        (0, globals_1.expect)(workoutRepository.find).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            where: {
+                userId: 15,
+                status: 'completed',
+            },
+        }));
+        (0, globals_1.expect)(workoutRepository.delete).toHaveBeenCalledWith({
+            id: 55,
+            userId: 15,
         });
     });
     (0, globals_1.it)('returns dashboard stats with favorite exercise, day and partner', async () => {
