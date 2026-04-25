@@ -9,28 +9,40 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConfirmCommonWorkoutSetDto = void 0;
-const swagger_1 = require("@nestjs/swagger");
+exports.AdminListUsersQueryDto = void 0;
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
-const workout_constants_1 = require("../../common/constants/workout.constants");
-class ConfirmCommonWorkoutSetDto {
+class AdminListUsersQueryDto {
 }
-exports.ConfirmCommonWorkoutSetDto = ConfirmCommonWorkoutSetDto;
+exports.AdminListUsersQueryDto = AdminListUsersQueryDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 80 }),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(workout_constants_1.MAX_WEIGHT_KG),
-    (0, class_transformer_1.Type)(() => Number),
-    __metadata("design:type", Number)
-], ConfirmCommonWorkoutSetDto.prototype, "currentWeight", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 8 }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(workout_constants_1.MAX_REPS_PER_SET),
+    (0, class_validator_1.Min)(1),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
-], ConfirmCommonWorkoutSetDto.prototype, "currentReps", void 0);
-//# sourceMappingURL=confirm-common-workout-set.dto.js.map
+], AdminListUsersQueryDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(100),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], AdminListUsersQueryDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], AdminListUsersQueryDto.prototype, "search", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['name', 'email', 'createdAt', 'lastLoginAt', 'role']),
+    __metadata("design:type", String)
+], AdminListUsersQueryDto.prototype, "sortBy", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['ASC', 'DESC']),
+    __metadata("design:type", String)
+], AdminListUsersQueryDto.prototype, "sortOrder", void 0);
+//# sourceMappingURL=admin-list-users-query.dto.js.map

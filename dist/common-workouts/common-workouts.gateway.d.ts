@@ -33,6 +33,7 @@ export declare class CommonWorkoutsGateway implements OnGatewayConnection, OnGat
     }>;
     emitUpdated(commonWorkoutId: number, payload: unknown): void;
     emitFinished(commonWorkoutId: number, payload: unknown): void;
+    emitDiscarded(commonWorkoutId: number, payload: unknown): void;
     hasSubscribers(commonWorkoutId: number): boolean;
     private joinWorkoutRoom;
     private extractToken;

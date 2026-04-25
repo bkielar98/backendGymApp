@@ -23,7 +23,6 @@ const add_common_workout_exercise_dto_1 = require("./dto/add-common-workout-exer
 const change_common_workout_exercise_position_dto_1 = require("./dto/change-common-workout-exercise-position.dto");
 const change_common_workout_exercise_dto_1 = require("./dto/change-common-workout-exercise.dto");
 const update_common_workout_set_dto_1 = require("./dto/update-common-workout-set.dto");
-const confirm_common_workout_set_dto_1 = require("./dto/confirm-common-workout-set.dto");
 const get_workout_dashboard_stats_dto_1 = require("./dto/get-workout-dashboard-stats.dto");
 let CommonWorkoutsController = class CommonWorkoutsController {
     constructor(commonWorkoutsService) {
@@ -71,6 +70,9 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async update(req, id, dto) {
         return this.commonWorkoutsService.updateCommonWorkout(req.user.id, id, dto);
     }
+    async remove(req, id) {
+        return this.commonWorkoutsService.removeActiveWorkout(req.user.id, id);
+    }
     async addExercise(req, id, dto) {
         return this.commonWorkoutsService.addExercise(req.user.id, id, dto);
     }
@@ -91,9 +93,6 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     }
     async updateSet(req, setId, dto) {
         return this.commonWorkoutsService.updateSet(req.user.id, setId, dto);
-    }
-    async confirmSet(req, setId, dto) {
-        return this.commonWorkoutsService.confirmSet(req.user.id, setId, dto);
     }
     async finish(req, id) {
         return this.commonWorkoutsService.finish(req.user.id, id);
@@ -294,6 +293,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "update", null);
 __decorate([
+    (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Discard active workout',
+        description: 'Usuwa aktywny workout bez zapisywania go do historii.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "remove", null);
+__decorate([
     (0, common_1.Post)(':id/exercises'),
     (0, swagger_1.ApiOperation)({
         summary: 'Add exercise to workout',
@@ -402,8 +414,8 @@ __decorate([
 __decorate([
     (0, common_1.Patch)('sets/:setId'),
     (0, swagger_1.ApiOperation)({
-        summary: 'Update workout set draft',
-        description: 'Aktualizuje robocze dane serii, np. wage lub liczbe powtorzen.',
+        summary: 'Update workout set',
+        description: 'Aktualizuje dane serii i oznacza ja jako wykonana.',
     }),
     (0, swagger_1.ApiParam)({ name: 'setId', type: Number, description: 'ID serii w workoucie.' }),
     (0, swagger_1.ApiBody)({ type: update_common_workout_set_dto_1.UpdateCommonWorkoutSetDto }),
@@ -414,21 +426,6 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, update_common_workout_set_dto_1.UpdateCommonWorkoutSetDto]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "updateSet", null);
-__decorate([
-    (0, common_1.Patch)('sets/:setId/confirm'),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Confirm workout set',
-        description: 'Potwierdza wykonanie serii i zapisuje finalne dane serii.',
-    }),
-    (0, swagger_1.ApiParam)({ name: 'setId', type: Number, description: 'ID serii w workoucie.' }),
-    (0, swagger_1.ApiBody)({ type: confirm_common_workout_set_dto_1.ConfirmCommonWorkoutSetDto }),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Param)('setId', common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, confirm_common_workout_set_dto_1.ConfirmCommonWorkoutSetDto]),
-    __metadata("design:returntype", Promise)
-], CommonWorkoutsController.prototype, "confirmSet", null);
 __decorate([
     (0, common_1.Post)(':id/finish'),
     (0, swagger_1.ApiOperation)({

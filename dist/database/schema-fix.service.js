@@ -25,8 +25,11 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
         await this.ensureWorkoutAnalyticsSchema();
     }
     async ensureUserCardSchema() {
+        await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP NOT NULL DEFAULT now()');
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "avatarPath" character varying');
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "refreshTokenHash" character varying');
+        await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "isActive" boolean NOT NULL DEFAULT true');
+        await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "lastLoginAt" TIMESTAMP NULL');
         await this.dataSource.query(`
       CREATE TABLE IF NOT EXISTS "user_weight_entry" (
         "id" SERIAL PRIMARY KEY,

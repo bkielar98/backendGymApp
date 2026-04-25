@@ -13,6 +13,7 @@ describe('CommonWorkoutsController', () => {
       getHistoricalSummaryForUser: jest.fn(),
       updateHistoricalWorkout: jest.fn(),
       removeHistoricalWorkout: jest.fn(),
+      removeActiveWorkout: jest.fn(),
       getSummaryForUser: jest.fn(),
       getIndexForUser: jest.fn(),
       getExerciseHistoryForUser: jest.fn(),
@@ -28,6 +29,7 @@ describe('CommonWorkoutsController', () => {
     service.getHistoricalSummaryForUser.mockResolvedValue({ id: 11, exerciseCount: 2 } as never);
     service.updateHistoricalWorkout.mockResolvedValue({ id: 11, name: 'Edited' } as never);
     service.removeHistoricalWorkout.mockResolvedValue({ success: true } as never);
+    service.removeActiveWorkout.mockResolvedValue({ success: true, discarded: true } as never);
     service.getSummaryForUser.mockResolvedValue({ id: 12, source: 'history' } as never);
     service.getIndexForUser.mockResolvedValue({ id: 12, exercises: [] } as never);
     service.getExerciseHistoryForUser.mockResolvedValue({
@@ -68,6 +70,10 @@ describe('CommonWorkoutsController', () => {
       id: 12,
       exercises: [],
     });
+    await expect(controller.remove({ user: { id: 14 } }, 12)).resolves.toEqual({
+      success: true,
+      discarded: true,
+    });
     await expect(controller.getExerciseHistory({ user: { id: 14 } }, 7)).resolves.toEqual({
       exercise: { id: 7, name: 'Bench Press' },
       history: [],
@@ -90,6 +96,7 @@ describe('CommonWorkoutsController', () => {
     expect(service.removeHistoricalWorkout).toHaveBeenCalledWith(14, 11);
     expect(service.getSummaryForUser).toHaveBeenCalledWith(14, 12);
     expect(service.getIndexForUser).toHaveBeenCalledWith(14, 12);
+    expect(service.removeActiveWorkout).toHaveBeenCalledWith(14, 12);
     expect(service.getExerciseHistoryForUser).toHaveBeenCalledWith(14, 7);
     expect(service.getDashboardStatsForUser).toHaveBeenCalledWith(14, {
       dateFrom: '2026-04-01',

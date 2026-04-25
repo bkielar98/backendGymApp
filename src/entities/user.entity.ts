@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  CreateDateColumn,
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { WorkoutTemplate } from './workout-template.entity';
 import { MuscleStatus } from './muscle-status.entity';
@@ -28,17 +34,20 @@ export class User {
   @Exclude()
   refreshTokenHash: string | null;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
   @Column()
   name: string;
 
   @Column('float', { nullable: true })
-  weight: number;
+  weight: number | null;
 
   @Column({ nullable: true })
-  gender: string;
+  gender: string | null;
 
   @Column({ nullable: true })
-  avatarPath: string;
+  avatarPath: string | null;
 
   @Column({
     type: 'enum',
@@ -46,6 +55,12 @@ export class User {
     default: UserRole.USER,
   })
   role: UserRole;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoginAt: Date | null;
 
   @OneToMany(() => WorkoutTemplate, (template) => template.user)
   workoutTemplates: WorkoutTemplate[];

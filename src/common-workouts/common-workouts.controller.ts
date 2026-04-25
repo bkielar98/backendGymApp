@@ -27,7 +27,6 @@ import { AddCommonWorkoutExerciseDto } from './dto/add-common-workout-exercise.d
 import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-workout-exercise-position.dto';
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
-import { ConfirmCommonWorkoutSetDto } from './dto/confirm-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
 
 @ApiTags('workouts')
@@ -218,6 +217,16 @@ export class CommonWorkoutsController {
     return this.commonWorkoutsService.updateCommonWorkout(req.user.id, id, dto);
   }
 
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Discard active workout',
+    description: 'Usuwa aktywny workout bez zapisywania go do historii.',
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' })
+  async remove(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.commonWorkoutsService.removeActiveWorkout(req.user.id, id);
+  }
+
   @Post(':id/exercises')
   @ApiOperation({
     summary: 'Add exercise to workout',
@@ -328,8 +337,8 @@ export class CommonWorkoutsController {
 
   @Patch('sets/:setId')
   @ApiOperation({
-    summary: 'Update workout set draft',
-    description: 'Aktualizuje robocze dane serii, np. wage lub liczbe powtorzen.',
+    summary: 'Update workout set',
+    description: 'Aktualizuje dane serii i oznacza ja jako wykonana.',
   })
   @ApiParam({ name: 'setId', type: Number, description: 'ID serii w workoucie.' })
   @ApiBody({ type: UpdateCommonWorkoutSetDto })
@@ -339,21 +348,6 @@ export class CommonWorkoutsController {
     @Body() dto: UpdateCommonWorkoutSetDto,
   ) {
     return this.commonWorkoutsService.updateSet(req.user.id, setId, dto);
-  }
-
-  @Patch('sets/:setId/confirm')
-  @ApiOperation({
-    summary: 'Confirm workout set',
-    description: 'Potwierdza wykonanie serii i zapisuje finalne dane serii.',
-  })
-  @ApiParam({ name: 'setId', type: Number, description: 'ID serii w workoucie.' })
-  @ApiBody({ type: ConfirmCommonWorkoutSetDto })
-  async confirmSet(
-    @Request() req,
-    @Param('setId', ParseIntPipe) setId: number,
-    @Body() dto: ConfirmCommonWorkoutSetDto,
-  ) {
-    return this.commonWorkoutsService.confirmSet(req.user.id, setId, dto);
   }
 
   @Post(':id/finish')

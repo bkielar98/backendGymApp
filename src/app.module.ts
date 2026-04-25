@@ -16,6 +16,7 @@ import { SchemaFixService } from './database/schema-fix.service';
 import { FriendsModule } from './friends/friends.module';
 import { CommonWorkoutsModule } from './common-workouts/common-workouts.module';
 import { LoopProtectionInterceptor } from './common/interceptors/loop-protection.interceptor';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { LoopProtectionInterceptor } from './common/interceptors/loop-protection
     GymModule,
     FriendsModule,
     CommonWorkoutsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

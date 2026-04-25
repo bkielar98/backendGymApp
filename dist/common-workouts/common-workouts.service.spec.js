@@ -5,12 +5,20 @@ const common_1 = require("@nestjs/common");
 const common_workouts_service_1 = require("./common-workouts.service");
 (0, globals_1.describe)('CommonWorkoutsService', () => {
     let service;
+    let commonWorkoutRepository;
+    let participantSetRepository;
     let workoutRepository;
     let workoutExerciseRepository;
     let workoutSetRepository;
     let gateway;
     let personalBestRepository;
     (0, globals_1.beforeEach)(() => {
+        commonWorkoutRepository = {
+            delete: globals_1.jest.fn(),
+        };
+        participantSetRepository = {
+            update: globals_1.jest.fn(),
+        };
         workoutRepository = {
             create: globals_1.jest.fn(),
             save: globals_1.jest.fn(),
@@ -30,13 +38,14 @@ const common_workouts_service_1 = require("./common-workouts.service");
             hasSubscribers: globals_1.jest.fn(),
             emitUpdated: globals_1.jest.fn(),
             emitFinished: globals_1.jest.fn(),
+            emitDiscarded: globals_1.jest.fn(),
         };
         personalBestRepository = {
             findOne: globals_1.jest.fn(),
             create: globals_1.jest.fn((value) => value),
             save: globals_1.jest.fn(),
         };
-        service = new common_workouts_service_1.CommonWorkoutsService({}, {}, {}, {}, workoutRepository, workoutExerciseRepository, workoutSetRepository, {}, {}, {}, personalBestRepository, gateway);
+        service = new common_workouts_service_1.CommonWorkoutsService(commonWorkoutRepository, {}, {}, participantSetRepository, workoutRepository, workoutExerciseRepository, workoutSetRepository, {}, {}, {}, personalBestRepository, gateway);
     });
     (0, globals_1.it)('does not emit update when room has no subscribers', () => {
         gateway.hasSubscribers.mockReturnValue(false);
@@ -51,6 +60,56 @@ const common_workouts_service_1 = require("./common-workouts.service");
         (0, globals_1.expect)(gateway.emitUpdated).toHaveBeenCalledWith(15, {
             id: 15,
             name: 'Leg day',
+        });
+    });
+    (0, globals_1.it)('discards active workout and emits event when room has subscribers', async () => {
+        gateway.hasSubscribers.mockReturnValue(true);
+        commonWorkoutRepository.delete.mockResolvedValue({ affected: 1 });
+        globals_1.jest.spyOn(service, 'getActiveCommonWorkoutEntityForUser').mockResolvedValue({
+            id: 44,
+            status: 'active',
+        });
+        await (0, globals_1.expect)(service.removeActiveWorkout(14, 44)).resolves.toEqual({
+            success: true,
+            discarded: true,
+            workoutId: 44,
+        });
+        (0, globals_1.expect)(commonWorkoutRepository.delete).toHaveBeenCalledWith({
+            id: 44,
+            status: 'active',
+        });
+        (0, globals_1.expect)(gateway.emitDiscarded).toHaveBeenCalledWith(44, {
+            success: true,
+            discarded: true,
+            workoutId: 44,
+        });
+    });
+    (0, globals_1.it)('updates workout set and marks it as confirmed', async () => {
+        globals_1.jest.spyOn(service, 'getParticipantSetForUser').mockResolvedValue({
+            id: 301,
+            currentWeight: 80,
+            currentReps: 8,
+            commonWorkoutExerciseId: 201,
+            commonWorkoutExercise: {
+                commonWorkoutId: 44,
+            },
+        });
+        globals_1.jest.spyOn(service, 'getWorkoutExerciseResponse').mockResolvedValue({
+            workout: { id: 44 },
+            exercise: { id: 201 },
+        });
+        await (0, globals_1.expect)(service.updateSet(14, 301, {
+            currentWeight: 85,
+            currentReps: 6,
+        })).resolves.toEqual({
+            workout: { id: 44 },
+            exercise: { id: 201 },
+        });
+        (0, globals_1.expect)(participantSetRepository.update).toHaveBeenCalledWith(301, {
+            currentWeight: 85,
+            currentReps: 6,
+            repMax: globals_1.expect.any(Number),
+            confirmed: true,
         });
     });
     (0, globals_1.it)('maps common workout as a workout with solo metadata and inline exercise details', () => {

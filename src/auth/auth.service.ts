@@ -42,7 +42,7 @@ export class AuthService {
       password: hashedPassword,
     });
     await this.userRepository.save(user);
-    return this.createSessionResponse(user, rememberMe);
+    return this.createSessionResponse(user, rememberMe, true);
   }
 
   async login(
@@ -53,14 +53,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.createSessionResponse(user, loginDto.rememberMe);
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    return this.createSessionResponse(user, loginDto.rememberMe, true);
   }
 
   async refresh(refreshToken: string): Promise<Record<string, unknown>> {
     const payload = await this.verifyRefreshToken(refreshToken);
     const user = await this.userRepository.findOne({ where: { id: payload.sub } });
 
-    if (!user || !user.refreshTokenHash) {
+    if (!user || !user.refreshTokenHash || !user.isActive) {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
@@ -70,7 +74,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
-    return this.createSessionResponse(user, true);
+    return this.createSessionResponse(user, true, false);
   }
 
   async logout(userId: number) {
@@ -100,7 +104,11 @@ export class AuthService {
     };
   }
 
-  private async createSessionResponse(user: User, rememberMe?: boolean) {
+  private async createSessionResponse(
+    user: User,
+    rememberMe?: boolean,
+    markLogin = false,
+  ) {
     const payload = { email: user.email, sub: user.id };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.getJwtSecret(),
@@ -119,6 +127,7 @@ export class AuthService {
 
     await this.userRepository.update(user.id, {
       refreshTokenHash: await bcrypt.hash(refreshToken, 10),
+      ...(markLogin ? { lastLoginAt: new Date() } : {}),
     });
 
     return this.buildAuthResponse(user, accessToken, refreshToken);

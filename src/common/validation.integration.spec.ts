@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
-import { ConfirmCommonWorkoutSetDto } from '../common-workouts/dto/confirm-common-workout-set.dto';
 import { StartCommonWorkoutDto } from '../common-workouts/dto/start-common-workout.dto';
 import { UpdateCommonWorkoutSetDto } from '../common-workouts/dto/update-common-workout-set.dto';
 import { CreateExerciseDto } from '../exercises/dto/create-exercise.dto';
@@ -44,7 +43,7 @@ describe('Validation integration', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('rejects absurd confirmed workout set values', async () => {
+  it('rejects absurd workout set values when saving completed set data', async () => {
     await expect(
       pipe.transform(
         {
@@ -53,7 +52,7 @@ describe('Validation integration', () => {
         },
         {
           type: 'body',
-          metatype: ConfirmCommonWorkoutSetDto,
+          metatype: UpdateCommonWorkoutSetDto,
         },
       ),
     ).rejects.toBeInstanceOf(BadRequestException);

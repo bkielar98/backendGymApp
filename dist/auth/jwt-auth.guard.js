@@ -36,6 +36,9 @@ let JwtAuthGuard = class JwtAuthGuard {
         if (!user) {
             throw new common_1.UnauthorizedException('User linked to token no longer exists');
         }
+        if (!user.isActive) {
+            throw new common_1.UnauthorizedException('Account is inactive');
+        }
         request.user = user;
         return true;
     }

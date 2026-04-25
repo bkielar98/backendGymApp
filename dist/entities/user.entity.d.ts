@@ -13,11 +13,14 @@ export declare class User {
     email: string;
     password: string;
     refreshTokenHash: string | null;
+    createdAt: Date;
     name: string;
-    weight: number;
-    gender: string;
-    avatarPath: string;
+    weight: number | null;
+    gender: string | null;
+    avatarPath: string | null;
     role: UserRole;
+    isActive: boolean;
+    lastLoginAt: Date | null;
     workoutTemplates: WorkoutTemplate[];
     sharedWorkoutTemplates: WorkoutTemplateMember[];
     muscleStatuses: MuscleStatus[];

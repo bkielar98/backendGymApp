@@ -4,6 +4,12 @@ import { CommonWorkoutsService } from './common-workouts.service';
 
 describe('CommonWorkoutsService', () => {
   let service: CommonWorkoutsService;
+  let commonWorkoutRepository: {
+    delete: jest.Mock;
+  };
+  let participantSetRepository: {
+    update: jest.Mock;
+  };
   let workoutRepository: {
     create: jest.Mock;
     save: jest.Mock;
@@ -23,6 +29,7 @@ describe('CommonWorkoutsService', () => {
     hasSubscribers: jest.Mock;
     emitUpdated: jest.Mock;
     emitFinished: jest.Mock;
+    emitDiscarded: jest.Mock;
   };
   let personalBestRepository: {
     findOne: jest.Mock;
@@ -31,6 +38,12 @@ describe('CommonWorkoutsService', () => {
   };
 
   beforeEach(() => {
+    commonWorkoutRepository = {
+      delete: jest.fn(),
+    };
+    participantSetRepository = {
+      update: jest.fn(),
+    };
     workoutRepository = {
       create: jest.fn(),
       save: jest.fn(),
@@ -50,6 +63,7 @@ describe('CommonWorkoutsService', () => {
       hasSubscribers: jest.fn(),
       emitUpdated: jest.fn(),
       emitFinished: jest.fn(),
+      emitDiscarded: jest.fn(),
     };
     personalBestRepository = {
       findOne: jest.fn(),
@@ -58,10 +72,10 @@ describe('CommonWorkoutsService', () => {
     };
 
     service = new CommonWorkoutsService(
+      commonWorkoutRepository as never,
       {} as never,
       {} as never,
-      {} as never,
-      {} as never,
+      participantSetRepository as never,
       workoutRepository as never,
       workoutExerciseRepository as never,
       workoutSetRepository as never,
@@ -91,6 +105,64 @@ describe('CommonWorkoutsService', () => {
     expect(gateway.emitUpdated).toHaveBeenCalledWith(15, {
       id: 15,
       name: 'Leg day',
+    });
+  });
+
+  it('discards active workout and emits event when room has subscribers', async () => {
+    gateway.hasSubscribers.mockReturnValue(true);
+    commonWorkoutRepository.delete.mockResolvedValue({ affected: 1 } as never);
+    jest.spyOn(service as any, 'getActiveCommonWorkoutEntityForUser').mockResolvedValue({
+      id: 44,
+      status: 'active',
+    } as never);
+
+    await expect(service.removeActiveWorkout(14, 44)).resolves.toEqual({
+      success: true,
+      discarded: true,
+      workoutId: 44,
+    });
+
+    expect(commonWorkoutRepository.delete).toHaveBeenCalledWith({
+      id: 44,
+      status: 'active',
+    });
+    expect(gateway.emitDiscarded).toHaveBeenCalledWith(44, {
+      success: true,
+      discarded: true,
+      workoutId: 44,
+    });
+  });
+
+  it('updates workout set and marks it as confirmed', async () => {
+    jest.spyOn(service as any, 'getParticipantSetForUser').mockResolvedValue({
+      id: 301,
+      currentWeight: 80,
+      currentReps: 8,
+      commonWorkoutExerciseId: 201,
+      commonWorkoutExercise: {
+        commonWorkoutId: 44,
+      },
+    } as never);
+    jest.spyOn(service as any, 'getWorkoutExerciseResponse').mockResolvedValue({
+      workout: { id: 44 },
+      exercise: { id: 201 },
+    } as never);
+
+    await expect(
+      service.updateSet(14, 301, {
+        currentWeight: 85,
+        currentReps: 6,
+      }),
+    ).resolves.toEqual({
+      workout: { id: 44 },
+      exercise: { id: 201 },
+    });
+
+    expect(participantSetRepository.update).toHaveBeenCalledWith(301, {
+      currentWeight: 85,
+      currentReps: 6,
+      repMax: expect.any(Number),
+      confirmed: true,
     });
   });
 

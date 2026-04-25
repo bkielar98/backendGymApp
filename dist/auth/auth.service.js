@@ -42,26 +42,29 @@ let AuthService = class AuthService {
             password: hashedPassword,
         });
         await this.userRepository.save(user);
-        return this.createSessionResponse(user, rememberMe);
+        return this.createSessionResponse(user, rememberMe, true);
     }
     async login(loginDto) {
         const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
         if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        return this.createSessionResponse(user, loginDto.rememberMe);
+        if (!user.isActive) {
+            throw new common_1.UnauthorizedException('Account is inactive');
+        }
+        return this.createSessionResponse(user, loginDto.rememberMe, true);
     }
     async refresh(refreshToken) {
         const payload = await this.verifyRefreshToken(refreshToken);
         const user = await this.userRepository.findOne({ where: { id: payload.sub } });
-        if (!user || !user.refreshTokenHash) {
+        if (!user || !user.refreshTokenHash || !user.isActive) {
             throw new common_1.UnauthorizedException('Invalid or expired token');
         }
         const matches = await bcrypt.compare(refreshToken, user.refreshTokenHash);
         if (!matches) {
             throw new common_1.UnauthorizedException('Invalid or expired token');
         }
-        return this.createSessionResponse(user, true);
+        return this.createSessionResponse(user, true, false);
     }
     async logout(userId) {
         await this.userRepository.update(userId, {
@@ -82,7 +85,7 @@ let AuthService = class AuthService {
             ...this.buildUserPayload(user),
         };
     }
-    async createSessionResponse(user, rememberMe) {
+    async createSessionResponse(user, rememberMe, markLogin = false) {
         const payload = { email: user.email, sub: user.id };
         const accessToken = await this.jwtService.signAsync(payload, {
             secret: this.getJwtSecret(),
@@ -97,6 +100,7 @@ let AuthService = class AuthService {
         });
         await this.userRepository.update(user.id, {
             refreshTokenHash: await bcrypt.hash(refreshToken, 10),
+            ...(markLogin ? { lastLoginAt: new Date() } : {}),
         });
         return this.buildAuthResponse(user, accessToken, refreshToken);
     }

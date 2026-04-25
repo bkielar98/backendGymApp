@@ -17,7 +17,6 @@ import { AddCommonWorkoutExerciseDto } from './dto/add-common-workout-exercise.d
 import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-workout-exercise-position.dto';
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
-import { ConfirmCommonWorkoutSetDto } from './dto/confirm-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
 export declare class CommonWorkoutsService {
     private readonly commonWorkoutRepository;
@@ -994,6 +993,11 @@ export declare class CommonWorkoutsService {
             };
         };
     }>;
+    removeActiveWorkout(userId: number, commonWorkoutId: number): Promise<{
+        success: boolean;
+        discarded: boolean;
+        workoutId: number;
+    }>;
     addExercise(userId: number, commonWorkoutId: number, dto: AddCommonWorkoutExerciseDto): Promise<{
         workout: {
             participants: {
@@ -1457,81 +1461,6 @@ export declare class CommonWorkoutsService {
             }[];
         };
     }>;
-    confirmSet(userId: number, participantSetId: number, dto: ConfirmCommonWorkoutSetDto): Promise<{
-        workout: {
-            participants: {
-                id: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-            }[];
-            exercises: {
-                id: number;
-                order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-                setsCount: number;
-                confirmedSets: number;
-            }[];
-            id: number;
-            name: string;
-            status: CommonWorkoutStatus;
-            mode: string;
-            isSolo: boolean;
-            participantCount: number;
-            startedAt: Date;
-            finishedAt: Date;
-            durationSeconds: number;
-            durationLabel: string;
-            exerciseCount: number;
-            totalSets: number;
-            confirmedSets: number;
-            exerciseNames: string[];
-            template: {
-                id: number;
-                name: string;
-            };
-        };
-        exercise: {
-            id: number;
-            order: number;
-            exercise: {
-                id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
-            }[];
-        };
-    }>;
     finish(userId: number, commonWorkoutId: number): Promise<{
         participants: {
             id: number;
@@ -1595,6 +1524,7 @@ export declare class CommonWorkoutsService {
     }>;
     private emitUpdatedIfSubscribed;
     private emitFinishedIfSubscribed;
+    private emitDiscardedIfSubscribed;
     private logPayloadMetrics;
     private getWorkoutResponse;
     private getWorkoutExerciseResponse;

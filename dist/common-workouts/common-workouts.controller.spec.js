@@ -13,6 +13,7 @@ const common_workouts_controller_1 = require("./common-workouts.controller");
             getHistoricalSummaryForUser: globals_1.jest.fn(),
             updateHistoricalWorkout: globals_1.jest.fn(),
             removeHistoricalWorkout: globals_1.jest.fn(),
+            removeActiveWorkout: globals_1.jest.fn(),
             getSummaryForUser: globals_1.jest.fn(),
             getIndexForUser: globals_1.jest.fn(),
             getExerciseHistoryForUser: globals_1.jest.fn(),
@@ -26,6 +27,7 @@ const common_workouts_controller_1 = require("./common-workouts.controller");
         service.getHistoricalSummaryForUser.mockResolvedValue({ id: 11, exerciseCount: 2 });
         service.updateHistoricalWorkout.mockResolvedValue({ id: 11, name: 'Edited' });
         service.removeHistoricalWorkout.mockResolvedValue({ success: true });
+        service.removeActiveWorkout.mockResolvedValue({ success: true, discarded: true });
         service.getSummaryForUser.mockResolvedValue({ id: 12, source: 'history' });
         service.getIndexForUser.mockResolvedValue({ id: 12, exercises: [] });
         service.getExerciseHistoryForUser.mockResolvedValue({
@@ -63,6 +65,10 @@ const common_workouts_controller_1 = require("./common-workouts.controller");
             id: 12,
             exercises: [],
         });
+        await (0, globals_1.expect)(controller.remove({ user: { id: 14 } }, 12)).resolves.toEqual({
+            success: true,
+            discarded: true,
+        });
         await (0, globals_1.expect)(controller.getExerciseHistory({ user: { id: 14 } }, 7)).resolves.toEqual({
             exercise: { id: 7, name: 'Bench Press' },
             history: [],
@@ -79,6 +85,7 @@ const common_workouts_controller_1 = require("./common-workouts.controller");
         (0, globals_1.expect)(service.removeHistoricalWorkout).toHaveBeenCalledWith(14, 11);
         (0, globals_1.expect)(service.getSummaryForUser).toHaveBeenCalledWith(14, 12);
         (0, globals_1.expect)(service.getIndexForUser).toHaveBeenCalledWith(14, 12);
+        (0, globals_1.expect)(service.removeActiveWorkout).toHaveBeenCalledWith(14, 12);
         (0, globals_1.expect)(service.getExerciseHistoryForUser).toHaveBeenCalledWith(14, 7);
         (0, globals_1.expect)(service.getDashboardStatsForUser).toHaveBeenCalledWith(14, {
             dateFrom: '2026-04-01',

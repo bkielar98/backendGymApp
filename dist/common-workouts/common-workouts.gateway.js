@@ -65,6 +65,12 @@ let CommonWorkoutsGateway = class CommonWorkoutsGateway {
             .emit('commonWorkoutFinished', payload);
         this.server.to(`common-workout-${commonWorkoutId}`).emit('workoutFinished', payload);
     }
+    emitDiscarded(commonWorkoutId, payload) {
+        this.server
+            .to(`common-workout-${commonWorkoutId}`)
+            .emit('commonWorkoutDiscarded', payload);
+        this.server.to(`common-workout-${commonWorkoutId}`).emit('workoutDiscarded', payload);
+    }
     hasSubscribers(commonWorkoutId) {
         const room = this.server?.sockets?.adapter?.rooms?.get(`common-workout-${commonWorkoutId}`);
         return (room?.size ?? 0) > 0;

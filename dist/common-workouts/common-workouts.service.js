@@ -319,6 +319,20 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         this.emitUpdatedIfSubscribed(commonWorkout.id, payload);
         return payload;
     }
+    async removeActiveWorkout(userId, commonWorkoutId) {
+        const commonWorkout = await this.getActiveCommonWorkoutEntityForUser(userId, commonWorkoutId);
+        await this.commonWorkoutRepository.delete({
+            id: commonWorkout.id,
+            status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
+        });
+        const payload = {
+            success: true,
+            discarded: true,
+            workoutId: commonWorkout.id,
+        };
+        this.emitDiscardedIfSubscribed(commonWorkout.id, payload);
+        return payload;
+    }
     async addExercise(userId, commonWorkoutId, dto) {
         const commonWorkout = await this.getActiveCommonWorkoutStructureEntityForUser(userId, commonWorkoutId);
         const exercise = await this.getAccessibleExerciseForUsers(commonWorkout.participants.map((participant) => participant.userId), dto.exerciseId);
@@ -493,18 +507,6 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
             currentWeight: nextWeight,
             currentReps: nextReps,
             repMax: nextRepMax,
-        });
-        const payload = await this.getWorkoutExerciseResponse(userId, participantSet.commonWorkoutExercise.commonWorkoutId, participantSet.commonWorkoutExerciseId);
-        this.emitUpdatedIfSubscribed(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
-        return payload;
-    }
-    async confirmSet(userId, participantSetId, dto) {
-        const participantSet = await this.getParticipantSetForUser(userId, participantSetId);
-        const repMax = this.calculateRepMax(dto.currentWeight, dto.currentReps);
-        await this.participantSetRepository.update(participantSetId, {
-            currentWeight: dto.currentWeight,
-            currentReps: dto.currentReps,
-            repMax,
             confirmed: true,
         });
         const payload = await this.getWorkoutExerciseResponse(userId, participantSet.commonWorkoutExercise.commonWorkoutId, participantSet.commonWorkoutExerciseId);
@@ -536,6 +538,13 @@ let CommonWorkoutsService = CommonWorkoutsService_1 = class CommonWorkoutsServic
         }
         this.logPayloadMetrics('commonWorkoutFinished', commonWorkoutId, payload);
         this.gateway.emitFinished(commonWorkoutId, payload);
+    }
+    emitDiscardedIfSubscribed(commonWorkoutId, payload) {
+        if (!this.gateway.hasSubscribers(commonWorkoutId)) {
+            return;
+        }
+        this.logPayloadMetrics('commonWorkoutDiscarded', commonWorkoutId, payload);
+        this.gateway.emitDiscarded(commonWorkoutId, payload);
     }
     logPayloadMetrics(eventName, commonWorkoutId, payload) {
         try {

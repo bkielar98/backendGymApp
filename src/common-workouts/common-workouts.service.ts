@@ -24,7 +24,6 @@ import { AddCommonWorkoutExerciseDto } from './dto/add-common-workout-exercise.d
 import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-workout-exercise-position.dto';
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
-import { ConfirmCommonWorkoutSetDto } from './dto/confirm-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
 import { calculateBrzyckiRepMax } from '../common/utils/rep-max.util';
 import {
@@ -399,6 +398,23 @@ export class CommonWorkoutsService {
     return payload;
   }
 
+  async removeActiveWorkout(userId: number, commonWorkoutId: number) {
+    const commonWorkout = await this.getActiveCommonWorkoutEntityForUser(userId, commonWorkoutId);
+
+    await this.commonWorkoutRepository.delete({
+      id: commonWorkout.id,
+      status: CommonWorkoutStatus.ACTIVE,
+    });
+
+    const payload = {
+      success: true,
+      discarded: true,
+      workoutId: commonWorkout.id,
+    };
+    this.emitDiscardedIfSubscribed(commonWorkout.id, payload);
+    return payload;
+  }
+
   async addExercise(userId: number, commonWorkoutId: number, dto: AddCommonWorkoutExerciseDto) {
     const commonWorkout = await this.getActiveCommonWorkoutStructureEntityForUser(
       userId,
@@ -690,25 +706,6 @@ export class CommonWorkoutsService {
       currentWeight: nextWeight,
       currentReps: nextReps,
       repMax: nextRepMax,
-    });
-
-    const payload = await this.getWorkoutExerciseResponse(
-      userId,
-      participantSet.commonWorkoutExercise.commonWorkoutId,
-      participantSet.commonWorkoutExerciseId,
-    );
-    this.emitUpdatedIfSubscribed(participantSet.commonWorkoutExercise.commonWorkoutId, payload);
-    return payload;
-  }
-
-  async confirmSet(userId: number, participantSetId: number, dto: ConfirmCommonWorkoutSetDto) {
-    const participantSet = await this.getParticipantSetForUser(userId, participantSetId);
-    const repMax = this.calculateRepMax(dto.currentWeight, dto.currentReps);
-
-    await this.participantSetRepository.update(participantSetId, {
-      currentWeight: dto.currentWeight,
-      currentReps: dto.currentReps,
-      repMax,
       confirmed: true,
     });
 
@@ -753,6 +750,15 @@ export class CommonWorkoutsService {
 
     this.logPayloadMetrics('commonWorkoutFinished', commonWorkoutId, payload);
     this.gateway.emitFinished(commonWorkoutId, payload);
+  }
+
+  private emitDiscardedIfSubscribed(commonWorkoutId: number, payload: unknown) {
+    if (!this.gateway.hasSubscribers(commonWorkoutId)) {
+      return;
+    }
+
+    this.logPayloadMetrics('commonWorkoutDiscarded', commonWorkoutId, payload);
+    this.gateway.emitDiscarded(commonWorkoutId, payload);
   }
 
   private logPayloadMetrics(eventName: string, commonWorkoutId: number, payload: unknown) {

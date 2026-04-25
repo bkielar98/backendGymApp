@@ -12,5 +12,6 @@ import { UserBodyMeasurementEntry } from '../entities/user-body-measurement-entr
   ],
   providers: [UsersService],
   controllers: [UsersController],
+  exports: [UsersService],
 })
 export class UsersModule {}

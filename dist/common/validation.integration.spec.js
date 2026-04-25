@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const globals_1 = require("@jest/globals");
 const common_1 = require("@nestjs/common");
-const confirm_common_workout_set_dto_1 = require("../common-workouts/dto/confirm-common-workout-set.dto");
 const start_common_workout_dto_1 = require("../common-workouts/dto/start-common-workout.dto");
 const update_common_workout_set_dto_1 = require("../common-workouts/dto/update-common-workout-set.dto");
 const create_exercise_dto_1 = require("../exercises/dto/create-exercise.dto");
@@ -32,13 +31,13 @@ const create_weight_entry_dto_1 = require("../users/dto/create-weight-entry.dto"
             metatype: update_common_workout_set_dto_1.UpdateCommonWorkoutSetDto,
         })).rejects.toBeInstanceOf(common_1.BadRequestException);
     });
-    (0, globals_1.it)('rejects absurd confirmed workout set values', async () => {
+    (0, globals_1.it)('rejects absurd workout set values when saving completed set data', async () => {
         await (0, globals_1.expect)(pipe.transform({
             currentWeight: 98321741982749878,
             currentReps: 8,
         }, {
             type: 'body',
-            metatype: confirm_common_workout_set_dto_1.ConfirmCommonWorkoutSetDto,
+            metatype: update_common_workout_set_dto_1.UpdateCommonWorkoutSetDto,
         })).rejects.toBeInstanceOf(common_1.BadRequestException);
     });
     (0, globals_1.it)('accepts nullable body measurements', async () => {

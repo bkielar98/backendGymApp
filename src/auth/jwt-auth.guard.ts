@@ -39,6 +39,10 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('User linked to token no longer exists');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
     request.user = user;
     return true;
   }
