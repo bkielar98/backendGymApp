@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CommonWorkout } from './common-workout.entity';
+import { CommonWorkoutParticipant } from './common-workout-participant.entity';
 import { Exercise } from './exercise.entity';
 import { CommonWorkoutParticipantSet } from './common-workout-participant-set.entity';
 
@@ -21,6 +22,15 @@ export class CommonWorkoutExercise {
     onDelete: 'CASCADE',
   })
   commonWorkout: CommonWorkout;
+
+  @Column({ nullable: true })
+  participantId: number | null;
+
+  @ManyToOne(() => CommonWorkoutParticipant, (participant) => participant.exercises, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  participant: CommonWorkoutParticipant | null;
 
   @Column()
   exerciseId: number;

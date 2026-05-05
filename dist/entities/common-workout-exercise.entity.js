@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonWorkoutExercise = void 0;
 const typeorm_1 = require("typeorm");
 const common_workout_entity_1 = require("./common-workout.entity");
+const common_workout_participant_entity_1 = require("./common-workout-participant.entity");
 const exercise_entity_1 = require("./exercise.entity");
 const common_workout_participant_set_entity_1 = require("./common-workout-participant-set.entity");
 let CommonWorkoutExercise = class CommonWorkoutExercise {
@@ -31,6 +32,17 @@ __decorate([
     }),
     __metadata("design:type", common_workout_entity_1.CommonWorkout)
 ], CommonWorkoutExercise.prototype, "commonWorkout", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], CommonWorkoutExercise.prototype, "participantId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => common_workout_participant_entity_1.CommonWorkoutParticipant, (participant) => participant.exercises, {
+        nullable: true,
+        onDelete: 'CASCADE',
+    }),
+    __metadata("design:type", common_workout_participant_entity_1.CommonWorkoutParticipant)
+], CommonWorkoutExercise.prototype, "participant", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)

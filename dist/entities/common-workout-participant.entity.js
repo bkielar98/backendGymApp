@@ -13,6 +13,7 @@ exports.CommonWorkoutParticipant = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("./user.entity");
 const common_workout_entity_1 = require("./common-workout.entity");
+const common_workout_exercise_entity_1 = require("./common-workout-exercise.entity");
 const common_workout_participant_set_entity_1 = require("./common-workout-participant-set.entity");
 let CommonWorkoutParticipant = class CommonWorkoutParticipant {
 };
@@ -39,6 +40,12 @@ __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'CASCADE' }),
     __metadata("design:type", user_entity_1.User)
 ], CommonWorkoutParticipant.prototype, "user", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => common_workout_exercise_entity_1.CommonWorkoutExercise, (exercise) => exercise.participant, {
+        cascade: true,
+    }),
+    __metadata("design:type", Array)
+], CommonWorkoutParticipant.prototype, "exercises", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => common_workout_participant_set_entity_1.CommonWorkoutParticipantSet, (set) => set.participant, {
         cascade: true,

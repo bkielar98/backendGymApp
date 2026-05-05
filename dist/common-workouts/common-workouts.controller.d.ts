@@ -21,34 +21,21 @@ export declare class CommonWorkoutsController {
             };
         }[];
         exercises: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         }[];
         id: number;
@@ -82,34 +69,21 @@ export declare class CommonWorkoutsController {
             };
         }[];
         exercises: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         }[];
         id: number;
@@ -545,6 +519,7 @@ export declare class CommonWorkoutsController {
                 confirmed: boolean;
             };
             id: number;
+            userId: number;
             order: number;
             exercise: {
                 id: number;
@@ -742,14 +717,12 @@ export declare class CommonWorkoutsController {
             };
         }[];
         exercises: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
-                id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
             setsCount: number;
             confirmedSets: number;
         }[];
@@ -772,35 +745,22 @@ export declare class CommonWorkoutsController {
             name: string;
         };
     }>;
-    findExercise(req: any, id: number, exerciseId: number): Promise<{
-        id: number;
+    findExercise(req: any, id: number, exerciseOrder: number): Promise<{
+        userId: number;
         order: number;
-        exercise: {
+        exerciseId: number;
+        exerciseName: string;
+        exerciseDescription: string;
+        exerciseMuscleGroups: string[];
+        sets: {
             id: number;
-            name: string;
-            description: string;
-            muscleGroups: string[];
-        };
-        setsCount: number;
-        participants: {
-            participantId: number;
-            user: {
-                id: number;
-                email: string;
-                name: string;
-                avatarPath: string;
-                avatarUrl: string;
-            };
-            sets: {
-                id: number;
-                setNumber: number;
-                previousWeight: number;
-                previousReps: number;
-                currentWeight: number;
-                currentReps: number;
-                repMax: number;
-                confirmed: boolean;
-            }[];
+            setNumber: number;
+            previousWeight: number;
+            previousReps: number;
+            currentWeight: number;
+            currentReps: number;
+            repMax: number;
+            confirmed: boolean;
         }[];
     }>;
     findOne(req: any, id: number): Promise<{
@@ -815,14 +775,12 @@ export declare class CommonWorkoutsController {
             };
         }[];
         exercises: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
-                id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
             setsCount: number;
             confirmedSets: number;
         }[];
@@ -858,14 +816,12 @@ export declare class CommonWorkoutsController {
                 };
             }[];
             exercises: {
-                id: number;
+                userId: number;
                 order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
@@ -907,14 +863,12 @@ export declare class CommonWorkoutsController {
                 };
             }[];
             exercises: {
-                id: number;
+                userId: number;
                 order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
@@ -938,38 +892,25 @@ export declare class CommonWorkoutsController {
             };
         };
         exercise: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         };
     }>;
-    changeExercisePosition(req: any, id: number, exerciseId: number, dto: ChangeCommonWorkoutExercisePositionDto): Promise<{
+    changeExercisePosition(req: any, id: number, exerciseOrder: number, dto: ChangeCommonWorkoutExercisePositionDto): Promise<{
         workout: {
             participants: {
                 id: number;
@@ -982,58 +923,12 @@ export declare class CommonWorkoutsController {
                 };
             }[];
             exercises: {
-                id: number;
+                userId: number;
                 order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-                setsCount: number;
-                confirmedSets: number;
-            }[];
-            id: number;
-            name: string;
-            status: import("../entities/common-workout.entity").CommonWorkoutStatus;
-            mode: string;
-            isSolo: boolean;
-            participantCount: number;
-            startedAt: Date;
-            finishedAt: Date;
-            durationSeconds: number;
-            durationLabel: string;
-            exerciseCount: number;
-            totalSets: number;
-            confirmedSets: number;
-            exerciseNames: string[];
-            template: {
-                id: number;
-                name: string;
-            };
-        };
-    }>;
-    changeExercise(req: any, id: number, exerciseId: number, dto: ChangeCommonWorkoutExerciseDto): Promise<{
-        workout: {
-            participants: {
-                id: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-            }[];
-            exercises: {
-                id: number;
-                order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
@@ -1057,38 +952,25 @@ export declare class CommonWorkoutsController {
             };
         };
         exercise: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         };
     }>;
-    removeExercise(req: any, id: number, exerciseId: number): Promise<{
+    changeExercise(req: any, id: number, exerciseOrder: number, dto: ChangeCommonWorkoutExerciseDto): Promise<{
         workout: {
             participants: {
                 id: number;
@@ -1101,58 +983,12 @@ export declare class CommonWorkoutsController {
                 };
             }[];
             exercises: {
-                id: number;
+                userId: number;
                 order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-                setsCount: number;
-                confirmedSets: number;
-            }[];
-            id: number;
-            name: string;
-            status: import("../entities/common-workout.entity").CommonWorkoutStatus;
-            mode: string;
-            isSolo: boolean;
-            participantCount: number;
-            startedAt: Date;
-            finishedAt: Date;
-            durationSeconds: number;
-            durationLabel: string;
-            exerciseCount: number;
-            totalSets: number;
-            confirmedSets: number;
-            exerciseNames: string[];
-            template: {
-                id: number;
-                name: string;
-            };
-        };
-    }>;
-    addSet(req: any, exerciseId: number): Promise<{
-        workout: {
-            participants: {
-                id: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-            }[];
-            exercises: {
-                id: number;
-                order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
@@ -1176,17 +1012,28 @@ export declare class CommonWorkoutsController {
             };
         };
         exercise: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
+            }[];
+        };
+    }>;
+    removeExercise(req: any, id: number, exerciseOrder: number): Promise<{
+        workout: {
             participants: {
-                participantId: number;
+                id: number;
                 user: {
                     id: number;
                     email: string;
@@ -1194,16 +1041,94 @@ export declare class CommonWorkoutsController {
                     avatarPath: string;
                     avatarUrl: string;
                 };
-                sets: {
+            }[];
+            exercises: {
+                userId: number;
+                order: number;
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+            id: number;
+            name: string;
+            status: import("../entities/common-workout.entity").CommonWorkoutStatus;
+            mode: string;
+            isSolo: boolean;
+            participantCount: number;
+            startedAt: Date;
+            finishedAt: Date;
+            durationSeconds: number;
+            durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            confirmedSets: number;
+            exerciseNames: string[];
+            template: {
+                id: number;
+                name: string;
+            };
+        };
+    }>;
+    addSet(req: any, exerciseOrder: number): Promise<{
+        workout: {
+            participants: {
+                id: number;
+                user: {
                     id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+            }[];
+            exercises: {
+                userId: number;
+                order: number;
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+            id: number;
+            name: string;
+            status: import("../entities/common-workout.entity").CommonWorkoutStatus;
+            mode: string;
+            isSolo: boolean;
+            participantCount: number;
+            startedAt: Date;
+            finishedAt: Date;
+            durationSeconds: number;
+            durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            confirmedSets: number;
+            exerciseNames: string[];
+            template: {
+                id: number;
+                name: string;
+            };
+        };
+        exercise: {
+            userId: number;
+            order: number;
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
+                id: number;
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         };
     }>;
@@ -1220,14 +1145,12 @@ export declare class CommonWorkoutsController {
                 };
             }[];
             exercises: {
-                id: number;
+                userId: number;
                 order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
@@ -1251,34 +1174,21 @@ export declare class CommonWorkoutsController {
             };
         };
         exercise: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         };
     }>;
@@ -1295,14 +1205,12 @@ export declare class CommonWorkoutsController {
                 };
             }[];
             exercises: {
-                id: number;
+                userId: number;
                 order: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
@@ -1326,34 +1234,21 @@ export declare class CommonWorkoutsController {
             };
         };
         exercise: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         };
     }>;
@@ -1369,34 +1264,21 @@ export declare class CommonWorkoutsController {
             };
         }[];
         exercises: {
-            id: number;
+            userId: number;
             order: number;
-            exercise: {
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            sets: {
                 id: number;
-                name: string;
-                description: string;
-                muscleGroups: string[];
-            };
-            setsCount: number;
-            participants: {
-                participantId: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                repMax: number;
+                confirmed: boolean;
             }[];
         }[];
         id: number;

@@ -168,11 +168,36 @@ export class SchemaFixService implements OnApplicationBootstrap {
       CREATE TABLE IF NOT EXISTS "common_workout_exercise" (
         "id" SERIAL PRIMARY KEY,
         "commonWorkoutId" integer NOT NULL,
+        "participantId" integer NULL,
         "exerciseId" integer NOT NULL,
         "order" integer NOT NULL DEFAULT 0,
         CONSTRAINT "FK_common_workout_exercise_workout" FOREIGN KEY ("commonWorkoutId") REFERENCES "common_workout"("id") ON DELETE CASCADE,
         CONSTRAINT "FK_common_workout_exercise_exercise" FOREIGN KEY ("exerciseId") REFERENCES "exercise"("id") ON DELETE CASCADE
       )
+    `);
+
+    await this.dataSource.query(
+      'ALTER TABLE "common_workout_exercise" ADD COLUMN IF NOT EXISTS "participantId" integer NULL',
+    );
+    await this.dataSource.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'FK_common_workout_exercise_participant'
+        ) THEN
+          ALTER TABLE "common_workout_exercise"
+          ADD CONSTRAINT "FK_common_workout_exercise_participant"
+          FOREIGN KEY ("participantId")
+          REFERENCES "common_workout_participant"("id")
+          ON DELETE CASCADE;
+        END IF;
+      END$$;
+    `);
+    await this.dataSource.query(`
+      CREATE INDEX IF NOT EXISTS "IDX_common_workout_exercise_workout_participant_order"
+      ON "common_workout_exercise" ("commonWorkoutId", "participantId", "order")
     `);
 
     await this.dataSource.query(`
@@ -192,7 +217,106 @@ export class SchemaFixService implements OnApplicationBootstrap {
       )
     `);
 
+    await this.migrateCommonWorkoutExercisesToParticipantScopedEntries();
+
     this.logger.log('Common workout schema verified');
+  }
+
+  private async migrateCommonWorkoutExercisesToParticipantScopedEntries() {
+    const legacyExercises: Array<{
+      id: number;
+      commonWorkoutId: number;
+      exerciseId: number;
+      order: number;
+    }> = await this.dataSource.query(`
+      SELECT "id", "commonWorkoutId", "exerciseId", "order"
+      FROM "common_workout_exercise"
+      WHERE "participantId" IS NULL
+      ORDER BY "commonWorkoutId" ASC, "order" ASC, "id" ASC
+    `);
+
+    if (legacyExercises.length === 0) {
+      return;
+    }
+
+    const participantsByWorkoutId = new Map<
+      number,
+      Array<{ id: number; userId: number }>
+    >();
+
+    for (const legacyExercise of legacyExercises) {
+      let participants = participantsByWorkoutId.get(legacyExercise.commonWorkoutId);
+      if (!participants) {
+        participants = await this.dataSource.query(
+          `
+            SELECT "id", "userId"
+            FROM "common_workout_participant"
+            WHERE "commonWorkoutId" = $1
+            ORDER BY "id" ASC
+          `,
+          [legacyExercise.commonWorkoutId],
+        );
+        participantsByWorkoutId.set(legacyExercise.commonWorkoutId, participants);
+      }
+
+      for (const participant of participants) {
+        const existingEntry: Array<{ id: number }> = await this.dataSource.query(
+          `
+            SELECT "id"
+            FROM "common_workout_exercise"
+            WHERE "commonWorkoutId" = $1
+              AND "participantId" = $2
+              AND "exerciseId" = $3
+              AND "order" = $4
+            LIMIT 1
+          `,
+          [
+            legacyExercise.commonWorkoutId,
+            participant.id,
+            legacyExercise.exerciseId,
+            legacyExercise.order,
+          ],
+        );
+
+        let targetExerciseId = existingEntry[0]?.id;
+
+        if (!targetExerciseId) {
+          const insertedRows: Array<{ id: number }> = await this.dataSource.query(
+            `
+              INSERT INTO "common_workout_exercise"
+                ("commonWorkoutId", "participantId", "exerciseId", "order")
+              VALUES ($1, $2, $3, $4)
+              RETURNING "id"
+            `,
+            [
+              legacyExercise.commonWorkoutId,
+              participant.id,
+              legacyExercise.exerciseId,
+              legacyExercise.order,
+            ],
+          );
+          targetExerciseId = insertedRows[0].id;
+        }
+
+        await this.dataSource.query(
+          `
+            UPDATE "common_workout_participant_set"
+            SET "commonWorkoutExerciseId" = $1
+            WHERE "commonWorkoutExerciseId" = $2
+              AND "participantId" = $3
+          `,
+          [targetExerciseId, legacyExercise.id, participant.id],
+        );
+      }
+
+      await this.dataSource.query('DELETE FROM "common_workout_exercise" WHERE "id" = $1', [
+        legacyExercise.id,
+      ]);
+    }
+
+    this.logger.log(
+      `Common workout exercise migration verified for ${legacyExercises.length} legacy entries`,
+    );
   }
 
   private async ensureWorkoutAnalyticsSchema() {

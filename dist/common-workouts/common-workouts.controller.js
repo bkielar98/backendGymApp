@@ -61,8 +61,8 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async findIndex(req, id) {
         return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
     }
-    async findExercise(req, id, exerciseId) {
-        return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseId);
+    async findExercise(req, id, exerciseOrder) {
+        return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseOrder);
     }
     async findOne(req, id) {
         return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
@@ -76,17 +76,17 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async addExercise(req, id, dto) {
         return this.commonWorkoutsService.addExercise(req.user.id, id, dto);
     }
-    async changeExercisePosition(req, id, exerciseId, dto) {
-        return this.commonWorkoutsService.changeExercisePosition(req.user.id, id, exerciseId, dto);
+    async changeExercisePosition(req, id, exerciseOrder, dto) {
+        return this.commonWorkoutsService.changeExercisePosition(req.user.id, id, exerciseOrder, dto);
     }
-    async changeExercise(req, id, exerciseId, dto) {
-        return this.commonWorkoutsService.changeExercise(req.user.id, id, exerciseId, dto);
+    async changeExercise(req, id, exerciseOrder, dto) {
+        return this.commonWorkoutsService.changeExercise(req.user.id, id, exerciseOrder, dto);
     }
-    async removeExercise(req, id, exerciseId) {
-        return this.commonWorkoutsService.removeExercise(req.user.id, id, exerciseId);
+    async removeExercise(req, id, exerciseOrder) {
+        return this.commonWorkoutsService.removeExercise(req.user.id, id, exerciseOrder);
     }
-    async addSet(req, exerciseId) {
-        return this.commonWorkoutsService.addSet(req.user.id, exerciseId);
+    async addSet(req, exerciseOrder) {
+        return this.commonWorkoutsService.addSet(req.user.id, exerciseOrder);
     }
     async removeSet(req, setId) {
         return this.commonWorkoutsService.removeSet(req.user.id, setId);
@@ -255,7 +255,7 @@ __decorate([
     (0, swagger_1.ApiParam)({
         name: 'exerciseId',
         type: Number,
-        description: 'ID cwiczenia wewnatrz workoutu.',
+        description: 'Pozycja cwiczenia aktualnego usera wewnatrz workoutu.',
     }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -330,7 +330,7 @@ __decorate([
     (0, swagger_1.ApiParam)({
         name: 'exerciseId',
         type: Number,
-        description: 'ID cwiczenia wewnatrz workoutu.',
+        description: 'Aktualna pozycja cwiczenia zalogowanego usera.',
     }),
     (0, swagger_1.ApiBody)({ type: change_common_workout_exercise_position_dto_1.ChangeCommonWorkoutExercisePositionDto }),
     __param(0, (0, common_1.Request)()),
@@ -351,7 +351,7 @@ __decorate([
     (0, swagger_1.ApiParam)({
         name: 'exerciseId',
         type: Number,
-        description: 'ID cwiczenia wewnatrz workoutu.',
+        description: 'Aktualna pozycja cwiczenia zalogowanego usera.',
     }),
     (0, swagger_1.ApiBody)({ type: change_common_workout_exercise_dto_1.ChangeCommonWorkoutExerciseDto }),
     __param(0, (0, common_1.Request)()),
@@ -372,7 +372,7 @@ __decorate([
     (0, swagger_1.ApiParam)({
         name: 'exerciseId',
         type: Number,
-        description: 'ID cwiczenia wewnatrz workoutu.',
+        description: 'Aktualna pozycja cwiczenia zalogowanego usera.',
     }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -390,7 +390,7 @@ __decorate([
     (0, swagger_1.ApiParam)({
         name: 'exerciseId',
         type: Number,
-        description: 'ID cwiczenia wewnatrz workoutu.',
+        description: 'Pozycja cwiczenia zalogowanego usera w aktywnym workoutcie.',
     }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('exerciseId', common_1.ParseIntPipe)),

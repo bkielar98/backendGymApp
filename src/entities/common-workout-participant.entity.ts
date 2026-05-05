@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { CommonWorkout } from './common-workout.entity';
+import { CommonWorkoutExercise } from './common-workout-exercise.entity';
 import { CommonWorkoutParticipantSet } from './common-workout-participant-set.entity';
 
 @Entity()
@@ -27,6 +28,11 @@ export class CommonWorkoutParticipant {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
+
+  @OneToMany(() => CommonWorkoutExercise, (exercise) => exercise.participant, {
+    cascade: true,
+  })
+  exercises: CommonWorkoutExercise[];
 
   @OneToMany(() => CommonWorkoutParticipantSet, (set) => set.participant, {
     cascade: true,

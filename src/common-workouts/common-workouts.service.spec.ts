@@ -188,6 +188,17 @@ describe('CommonWorkoutsService', () => {
       exercises: [
         {
           id: 201,
+          participantId: 101,
+          participant: {
+            id: 101,
+            userId: 1,
+            user: {
+              id: 1,
+              email: 'user@example.com',
+              name: 'User',
+              avatarPath: '/uploads/avatars/u.jpg',
+            },
+          },
           order: 0,
           exercise: {
             id: 44,
@@ -229,37 +240,22 @@ describe('CommonWorkoutsService', () => {
     expect(payload.participantCount).toBe(1);
     expect(payload.exercises).toEqual([
       {
-        id: 201,
+        userId: 1,
         order: 0,
-        exercise: {
-          id: 44,
-          name: 'Bench Press',
-          description: 'Chest',
-          muscleGroups: ['chest'],
-        },
-        setsCount: 1,
-        participants: [
+        exerciseId: 44,
+        exerciseName: 'Bench Press',
+        exerciseDescription: 'Chest',
+        exerciseMuscleGroups: ['chest'],
+        sets: [
           {
-            participantId: 101,
-            user: {
-              id: 1,
-              email: 'user@example.com',
-              name: 'User',
-              avatarPath: '/uploads/avatars/u.jpg',
-              avatarUrl: '/uploads/avatars/u.jpg',
-            },
-            sets: [
-              {
-                id: 301,
-                setNumber: 1,
-                previousWeight: 80,
-                previousReps: 8,
-                currentWeight: 85,
-                currentReps: 6,
-                repMax: 102,
-                confirmed: true,
-              },
-            ],
+            id: 301,
+            setNumber: 1,
+            previousWeight: 80,
+            previousReps: 8,
+            currentWeight: 85,
+            currentReps: 6,
+            repMax: 102,
+            confirmed: true,
           },
         ],
       },
@@ -269,6 +265,17 @@ describe('CommonWorkoutsService', () => {
   it('maps common workout exercise detail separately', () => {
     const payload = (service as any).mapCommonWorkoutExerciseDetail({
       id: 201,
+      participantId: 101,
+      participant: {
+        id: 101,
+        userId: 1,
+        user: {
+          id: 1,
+          email: 'user@example.com',
+          name: 'User',
+          avatarPath: '/uploads/avatars/u.jpg',
+        },
+      },
       order: 0,
       exercise: {
         id: 44,
@@ -305,37 +312,22 @@ describe('CommonWorkoutsService', () => {
     });
 
     expect(payload).toEqual({
-      id: 201,
+      userId: 1,
       order: 0,
-      exercise: {
-        id: 44,
-        name: 'Bench Press',
-        description: 'Chest',
-        muscleGroups: ['chest'],
-      },
-      setsCount: 1,
-      participants: [
+      exerciseId: 44,
+      exerciseName: 'Bench Press',
+      exerciseDescription: 'Chest',
+      exerciseMuscleGroups: ['chest'],
+      sets: [
         {
-          participantId: 101,
-          user: {
-            id: 1,
-            email: 'user@example.com',
-            name: 'User',
-            avatarPath: '/uploads/avatars/u.jpg',
-            avatarUrl: '/uploads/avatars/u.jpg',
-          },
-          sets: [
-            {
-              id: 301,
-              setNumber: 1,
-              previousWeight: 80,
-              previousReps: 8,
-              currentWeight: 85,
-              currentReps: 6,
-              repMax: 102,
-              confirmed: true,
-            },
-          ],
+          id: 301,
+          setNumber: 1,
+          previousWeight: 80,
+          previousReps: 8,
+          currentWeight: 85,
+          currentReps: 6,
+          repMax: 102,
+          confirmed: true,
         },
       ],
     });
@@ -363,6 +355,17 @@ describe('CommonWorkoutsService', () => {
       exercises: [
         {
           id: 201,
+          participantId: 101,
+          participant: {
+            id: 101,
+            userId: 1,
+            user: {
+              id: 1,
+              email: 'user@example.com',
+              name: 'User',
+              avatarPath: null,
+            },
+          },
           order: 0,
           exercise: {
             id: 44,
@@ -392,14 +395,12 @@ describe('CommonWorkoutsService', () => {
     expect(payload.confirmedSets).toBe(1);
     expect(payload.exercises).toEqual([
       {
-        id: 201,
+        userId: 1,
         order: 0,
-        exercise: {
-          id: 44,
-          name: 'Bench Press',
-          description: 'Chest',
-          muscleGroups: ['chest'],
-        },
+        exerciseId: 44,
+        exerciseName: 'Bench Press',
+        exerciseDescription: 'Chest',
+        exerciseMuscleGroups: ['chest'],
         setsCount: 2,
         confirmedSets: 1,
       },
@@ -451,6 +452,7 @@ describe('CommonWorkoutsService', () => {
         exercises: [
           {
             exerciseId: 11,
+            participantId: 501,
             order: 0,
             participantSets: [
               {
@@ -467,6 +469,7 @@ describe('CommonWorkoutsService', () => {
           },
           {
             exerciseId: 12,
+            participantId: 501,
             order: 1,
             participantSets: [
               {
@@ -554,6 +557,12 @@ describe('CommonWorkoutsService', () => {
       exercises: [
         {
           id: 101,
+          participantId: 1,
+          participant: {
+            id: 1,
+            userId: 15,
+            user: { id: 15, email: 'adam@example.com', name: 'Adam', avatarPath: null },
+          },
           order: 0,
           exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
           participantSets: [
@@ -566,6 +575,19 @@ describe('CommonWorkoutsService', () => {
               repMax: 116,
               confirmed: true,
             },
+          ],
+        },
+        {
+          id: 102,
+          participantId: 2,
+          participant: {
+            id: 2,
+            userId: 16,
+            user: { id: 16, email: 'ewa@example.com', name: 'Ewa', avatarPath: null },
+          },
+          order: 0,
+          exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
+          participantSets: [
             {
               id: 1002,
               participantId: 2,
@@ -584,7 +606,7 @@ describe('CommonWorkoutsService', () => {
       id: 12,
       source: 'session',
       mode: 'group',
-      exerciseCount: 1,
+      exerciseCount: 2,
       totalSets: 2,
       confirmedSets: 2,
       totalVolume: 1300,
@@ -604,9 +626,17 @@ describe('CommonWorkoutsService', () => {
       exercises: [
         expect.objectContaining({
           id: 101,
-          totalVolume: 1300,
+          totalVolume: 500,
+          userId: 15,
           participants: [
             expect.objectContaining({ participantId: 1, totalVolume: 500 }),
+          ],
+        }),
+        expect.objectContaining({
+          id: 102,
+          totalVolume: 800,
+          userId: 16,
+          participants: [
             expect.objectContaining({ participantId: 2, totalVolume: 800 }),
           ],
         }),

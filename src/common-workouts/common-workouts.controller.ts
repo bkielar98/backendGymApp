@@ -181,14 +181,14 @@ export class CommonWorkoutsController {
   @ApiParam({
     name: 'exerciseId',
     type: Number,
-    description: 'ID cwiczenia wewnatrz workoutu.',
+    description: 'Pozycja cwiczenia aktualnego usera wewnatrz workoutu.',
   })
   async findExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
   ) {
-    return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseId);
+    return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseOrder);
   }
 
   @Get(':id')
@@ -251,19 +251,19 @@ export class CommonWorkoutsController {
   @ApiParam({
     name: 'exerciseId',
     type: Number,
-    description: 'ID cwiczenia wewnatrz workoutu.',
+    description: 'Aktualna pozycja cwiczenia zalogowanego usera.',
   })
   @ApiBody({ type: ChangeCommonWorkoutExercisePositionDto })
   async changeExercisePosition(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
     @Body() dto: ChangeCommonWorkoutExercisePositionDto,
   ) {
     return this.commonWorkoutsService.changeExercisePosition(
       req.user.id,
       id,
-      exerciseId,
+      exerciseOrder,
       dto,
     );
   }
@@ -277,16 +277,16 @@ export class CommonWorkoutsController {
   @ApiParam({
     name: 'exerciseId',
     type: Number,
-    description: 'ID cwiczenia wewnatrz workoutu.',
+    description: 'Aktualna pozycja cwiczenia zalogowanego usera.',
   })
   @ApiBody({ type: ChangeCommonWorkoutExerciseDto })
   async changeExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
     @Body() dto: ChangeCommonWorkoutExerciseDto,
   ) {
-    return this.commonWorkoutsService.changeExercise(req.user.id, id, exerciseId, dto);
+    return this.commonWorkoutsService.changeExercise(req.user.id, id, exerciseOrder, dto);
   }
 
   @Delete(':id/exercises/:exerciseId')
@@ -298,14 +298,14 @@ export class CommonWorkoutsController {
   @ApiParam({
     name: 'exerciseId',
     type: Number,
-    description: 'ID cwiczenia wewnatrz workoutu.',
+    description: 'Aktualna pozycja cwiczenia zalogowanego usera.',
   })
   async removeExercise(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
-    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
   ) {
-    return this.commonWorkoutsService.removeExercise(req.user.id, id, exerciseId);
+    return this.commonWorkoutsService.removeExercise(req.user.id, id, exerciseOrder);
   }
 
   @Post('exercises/:exerciseId/add-set')
@@ -316,13 +316,13 @@ export class CommonWorkoutsController {
   @ApiParam({
     name: 'exerciseId',
     type: Number,
-    description: 'ID cwiczenia wewnatrz workoutu.',
+    description: 'Pozycja cwiczenia zalogowanego usera w aktywnym workoutcie.',
   })
   async addSet(
     @Request() req,
-    @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
   ) {
-    return this.commonWorkoutsService.addSet(req.user.id, exerciseId);
+    return this.commonWorkoutsService.addSet(req.user.id, exerciseOrder);
   }
 
   @Delete('sets/:setId')
