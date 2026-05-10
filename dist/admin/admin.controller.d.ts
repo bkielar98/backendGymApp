@@ -1,10 +1,10 @@
-import { Request } from 'express';
-import { AdminService } from './admin.service';
-import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
-import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
-import { AdminUpdateUserStatusDto } from './dto/admin-update-user-status.dto';
-import { AdminListUserWorkoutsQueryDto } from './dto/admin-list-user-workouts-query.dto';
-import { User } from '../entities/user.entity';
+import { Request } from "express";
+import { AdminService } from "./admin.service";
+import { AdminListUsersQueryDto } from "./dto/admin-list-users-query.dto";
+import { AdminUpdateUserRoleDto } from "./dto/admin-update-user-role.dto";
+import { AdminUpdateUserStatusDto } from "./dto/admin-update-user-status.dto";
+import { AdminListUserWorkoutsQueryDto } from "./dto/admin-list-user-workouts-query.dto";
+import { User } from "../entities/user.entity";
 type AuthenticatedRequest = Request & {
     user: User;
 };
@@ -62,7 +62,7 @@ export declare class AdminController {
         lastLoginAt: Date;
         isActive: boolean;
     }>;
-    updateUserStatus(id: number, dto: AdminUpdateUserStatusDto): Promise<{
+    updateUserStatus(req: AuthenticatedRequest, id: number, dto: AdminUpdateUserStatusDto): Promise<{
         id: number;
         email: string;
         name: string;
@@ -73,7 +73,7 @@ export declare class AdminController {
         lastLoginAt: Date;
         isActive: boolean;
     }>;
-    deleteUser(id: number): Promise<{
+    deleteUser(req: AuthenticatedRequest, id: number): Promise<{
         success: boolean;
         id: number;
         isActive: boolean;

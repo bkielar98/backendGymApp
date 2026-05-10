@@ -1,12 +1,12 @@
-import { Repository } from 'typeorm';
-import { User, UserRole } from '../entities/user.entity';
-import { Workout, WorkoutStatus } from '../entities/workout.entity';
-import { Exercise } from '../entities/exercise.entity';
-import { UsersService } from '../users/users.service';
-import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
-import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
-import { AdminUpdateUserStatusDto } from './dto/admin-update-user-status.dto';
-import { AdminListUserWorkoutsQueryDto } from './dto/admin-list-user-workouts-query.dto';
+import { Repository } from "typeorm";
+import { User, UserRole } from "../entities/user.entity";
+import { Workout, WorkoutStatus } from "../entities/workout.entity";
+import { Exercise } from "../entities/exercise.entity";
+import { UsersService } from "../users/users.service";
+import { AdminListUsersQueryDto } from "./dto/admin-list-users-query.dto";
+import { AdminUpdateUserRoleDto } from "./dto/admin-update-user-role.dto";
+import { AdminUpdateUserStatusDto } from "./dto/admin-update-user-status.dto";
+import { AdminListUserWorkoutsQueryDto } from "./dto/admin-list-user-workouts-query.dto";
 export declare class AdminService {
     private readonly userRepository;
     private readonly workoutRepository;
@@ -68,7 +68,7 @@ export declare class AdminService {
         lastLoginAt: Date;
         isActive: boolean;
     }>;
-    updateUserStatus(userId: number, dto: AdminUpdateUserStatusDto): Promise<{
+    updateUserStatus(actingUserId: number, userId: number, dto: AdminUpdateUserStatusDto): Promise<{
         id: number;
         email: string;
         name: string;
@@ -79,7 +79,7 @@ export declare class AdminService {
         lastLoginAt: Date;
         isActive: boolean;
     }>;
-    softDeleteUser(userId: number): Promise<{
+    softDeleteUser(actingUserId: number, userId: number): Promise<{
         success: boolean;
         id: number;
         isActive: boolean;

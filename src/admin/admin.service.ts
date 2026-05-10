@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
@@ -87,8 +91,21 @@ export class AdminService {
     return this.getUserById(userId);
   }
 
-  async updateUserStatus(userId: number, dto: AdminUpdateUserStatusDto) {
-    await this.findUserOrThrow(userId);
+  async updateUserStatus(
+    actingUserId: number,
+    userId: number,
+    dto: AdminUpdateUserStatusDto,
+  ) {
+    const user = await this.findUserOrThrow(userId);
+
+    if (
+      actingUserId === userId &&
+      user.role === UserRole.ADMIN &&
+      !dto.isActive
+    ) {
+      throw new ForbiddenException('Admin cannot deactivate their own account');
+    }
+
     await this.userRepository.update(userId, {
       isActive: dto.isActive,
       ...(dto.isActive ? {} : { refreshTokenHash: null }),
@@ -97,8 +114,13 @@ export class AdminService {
     return this.getUserById(userId);
   }
 
-  async softDeleteUser(userId: number) {
-    await this.findUserOrThrow(userId);
+  async softDeleteUser(actingUserId: number, userId: number) {
+    const user = await this.findUserOrThrow(userId);
+
+    if (actingUserId === userId && user.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Admin cannot deactivate their own account');
+    }
+
     await this.userRepository.update(userId, {
       isActive: false,
       refreshTokenHash: null,
@@ -222,8 +244,13 @@ export class AdminService {
   }
 
   private mapWorkoutSummary(workout: Workout) {
-    const orderedExercises = [...(workout.exercises || [])].sort((a, b) => a.order - b.order);
-    const durationSeconds = this.getDurationSeconds(workout.startedAt, workout.finishedAt);
+    const orderedExercises = [...(workout.exercises || [])].sort(
+      (a, b) => a.order - b.order,
+    );
+    const durationSeconds = this.getDurationSeconds(
+      workout.startedAt,
+      workout.finishedAt,
+    );
 
     return {
       id: workout.id,
@@ -237,9 +264,13 @@ export class AdminService {
       durationSeconds,
       durationLabel: this.getDurationLabel(durationSeconds),
       exerciseCount: orderedExercises.length,
-      totalSets: orderedExercises.reduce((sum, exercise) => sum + (exercise.sets?.length || 0), 0),
+      totalSets: orderedExercises.reduce(
+        (sum, exercise) => sum + (exercise.sets?.length || 0),
+        0,
+      ),
       confirmedSets: orderedExercises.reduce(
-        (sum, exercise) => sum + (exercise.sets || []).filter((set) => set.confirmed).length,
+        (sum, exercise) =>
+          sum + (exercise.sets || []).filter((set) => set.confirmed).length,
         0,
       ),
       exerciseNames: orderedExercises
@@ -291,7 +322,12 @@ export class AdminService {
         currentParts.month,
         1,
       ),
-      end: this.zonedDateToUtc(this.warsawTimeZone, nextMonth.year, nextMonth.month, 1),
+      end: this.zonedDateToUtc(
+        this.warsawTimeZone,
+        nextMonth.year,
+        nextMonth.month,
+        1,
+      ),
     };
   }
 
@@ -304,10 +340,14 @@ export class AdminService {
     minute = 0,
     second = 0,
   ) {
-    const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    const utcGuess = new Date(
+      Date.UTC(year, month - 1, day, hour, minute, second),
+    );
     const offset = this.getTimeZoneOffsetMs(utcGuess, timeZone);
 
-    return new Date(Date.UTC(year, month - 1, day, hour, minute, second) - offset);
+    return new Date(
+      Date.UTC(year, month - 1, day, hour, minute, second) - offset,
+    );
   }
 
   private getTimeZoneOffsetMs(date: Date, timeZone: string) {

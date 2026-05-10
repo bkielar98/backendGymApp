@@ -7,6 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Friendship, FriendshipStatus } from '../entities/friendship.entity';
 import { User } from '../entities/user.entity';
+import { UserBodyMeasurementEntry } from '../entities/user-body-measurement-entry.entity';
+import { UserWeightEntry } from '../entities/user-weight-entry.entity';
+import { Workout, WorkoutStatus } from '../entities/workout.entity';
+import { WorkoutExercise } from '../entities/workout-exercise.entity';
+import { WorkoutSet } from '../entities/workout-set.entity';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 
 @Injectable()
@@ -16,6 +21,12 @@ export class FriendsService {
     private friendshipRepository: Repository<Friendship>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(UserWeightEntry)
+    private weightEntryRepository: Repository<UserWeightEntry>,
+    @InjectRepository(UserBodyMeasurementEntry)
+    private bodyMeasurementEntryRepository: Repository<UserBodyMeasurementEntry>,
+    @InjectRepository(Workout)
+    private workoutRepository: Repository<Workout>,
   ) {}
 
   async listFriends(userId: number) {
@@ -92,7 +103,9 @@ export class FriendsService {
 
   async createRequest(userId: number, dto: CreateFriendRequestDto) {
     if (userId === dto.targetUserId) {
-      throw new BadRequestException('You cannot send a friend request to yourself');
+      throw new BadRequestException(
+        'You cannot send a friend request to yourself',
+      );
     }
 
     const targetUser = await this.userRepository.findOne({
@@ -141,6 +154,131 @@ export class FriendsService {
       status: saved.status,
       createdAt: saved.createdAt,
       user: this.mapUser(targetUser),
+    };
+  }
+
+  async getFriendProfile(userId: number, friendUserId: number) {
+    const friend = await this.getAcceptedFriendOrThrow(userId, friendUserId);
+    const [weightEntries, latestBodyMeasurement, workouts] = await Promise.all([
+      this.weightEntryRepository.find({
+        where: { user: { id: friendUserId } },
+        order: { recordedOn: 'DESC', id: 'DESC' },
+      }),
+      this.bodyMeasurementEntryRepository.findOne({
+        where: { user: { id: friendUserId } },
+        order: { recordedOn: 'DESC', id: 'DESC' },
+      }),
+      this.workoutRepository.find({
+        where: {
+          userId: friendUserId,
+          status: WorkoutStatus.COMPLETED,
+        },
+        relations: {
+          exercises: {
+            exercise: true,
+            sets: true,
+          },
+        },
+        order: { startedAt: 'DESC' },
+      }),
+    ]);
+
+    const latestWeight = weightEntries[0]?.weight ?? friend.weight ?? null;
+
+    return {
+      user: this.mapUser(friend),
+      currentWeight: latestWeight,
+      weightHistory: weightEntries.map((entry) => ({
+        id: entry.id,
+        recordedOn: entry.recordedOn,
+        weight: entry.weight,
+      })),
+      bodyMeasurement: latestBodyMeasurement
+        ? this.mapBodyMeasurement(latestBodyMeasurement)
+        : null,
+      workoutStats: this.mapWorkoutStats(workouts),
+      recentWorkouts: workouts
+        .slice(0, 5)
+        .map((workout) => this.mapWorkoutSummary(workout)),
+    };
+  }
+
+  async getFriendWorkoutHistory(
+    userId: number,
+    friendUserId: number,
+    page?: number,
+    limit?: number,
+  ) {
+    await this.getAcceptedFriendOrThrow(userId, friendUserId);
+    const normalizedPage = Number.isFinite(page) && page && page > 0 ? page : 1;
+    const normalizedLimit = Math.min(
+      Number.isFinite(limit) && limit && limit > 0 ? limit : 20,
+      100,
+    );
+
+    const [workouts, total] = await this.workoutRepository.findAndCount({
+      where: {
+        userId: friendUserId,
+        status: WorkoutStatus.COMPLETED,
+      },
+      relations: {
+        template: true,
+        exercises: {
+          exercise: true,
+          sets: true,
+        },
+      },
+      order: { startedAt: 'DESC' },
+      skip: (normalizedPage - 1) * normalizedLimit,
+      take: normalizedLimit,
+    });
+
+    return {
+      workouts: workouts.map((workout) => this.mapWorkoutSummary(workout)),
+      total,
+      page: normalizedPage,
+      limit: normalizedLimit,
+    };
+  }
+
+  async getFriendWorkout(
+    userId: number,
+    friendUserId: number,
+    workoutId: number,
+  ) {
+    await this.getAcceptedFriendOrThrow(userId, friendUserId);
+    const workout = await this.workoutRepository.findOne({
+      where: {
+        id: workoutId,
+        userId: friendUserId,
+        status: WorkoutStatus.COMPLETED,
+      },
+      relations: {
+        template: true,
+        exercises: {
+          exercise: true,
+          sets: true,
+        },
+      },
+      order: {
+        exercises: {
+          order: 'ASC',
+          sets: {
+            setNumber: 'ASC',
+          },
+        },
+      },
+    });
+
+    if (!workout) {
+      throw new NotFoundException('Workout not found');
+    }
+
+    return {
+      ...this.mapWorkoutSummary(workout),
+      exercises: [...(workout.exercises || [])]
+        .sort((left, right) => left.order - right.order)
+        .map((exercise) => this.mapWorkoutExercise(exercise)),
     };
   }
 
@@ -260,6 +398,196 @@ export class FriendsService {
       name: user.name,
       avatarPath: user.avatarPath ?? null,
       avatarUrl: user.avatarPath ?? null,
+    };
+  }
+
+  private async getAcceptedFriendOrThrow(userId: number, friendUserId: number) {
+    const friendship = await this.friendshipRepository.findOne({
+      where: [
+        {
+          requesterUserId: userId,
+          receiverUserId: friendUserId,
+          status: FriendshipStatus.ACCEPTED,
+        },
+        {
+          requesterUserId: friendUserId,
+          receiverUserId: userId,
+          status: FriendshipStatus.ACCEPTED,
+        },
+      ],
+      relations: {
+        requesterUser: true,
+        receiverUser: true,
+      },
+    });
+
+    if (!friendship) {
+      throw new NotFoundException('Friendship not found');
+    }
+
+    return friendship.requesterUserId === userId
+      ? friendship.receiverUser
+      : friendship.requesterUser;
+  }
+
+  private mapBodyMeasurement(entry: UserBodyMeasurementEntry) {
+    return {
+      id: entry.id,
+      recordedOn: entry.recordedOn,
+      neck: entry.neck,
+      shoulders: entry.shoulders,
+      chest: entry.chest,
+      leftBiceps: entry.leftBiceps,
+      rightBiceps: entry.rightBiceps,
+      leftForearm: entry.leftForearm,
+      rightForearm: entry.rightForearm,
+      upperAbs: entry.upperAbs,
+      waist: entry.waist,
+      lowerAbs: entry.lowerAbs,
+      hips: entry.hips,
+      leftThigh: entry.leftThigh,
+      rightThigh: entry.rightThigh,
+      leftCalf: entry.leftCalf,
+      rightCalf: entry.rightCalf,
+    };
+  }
+
+  private mapWorkoutSummary(workout: Workout) {
+    const exercises = [...(workout.exercises || [])].sort(
+      (left, right) => left.order - right.order,
+    );
+    const sets = exercises.flatMap((exercise) => exercise.sets || []);
+    const performance = this.summarizeSets(sets);
+
+    return {
+      id: workout.id,
+      name: workout.name,
+      status: workout.status,
+      startedAt: workout.startedAt,
+      finishedAt: workout.finishedAt,
+      exerciseCount: exercises.length,
+      totalSets: sets.length,
+      confirmedSets: sets.filter((set) => set.confirmed).length,
+      totalWeight: performance.totalWeight,
+      totalReps: performance.totalReps,
+      totalVolume: performance.totalVolume,
+      liftedWeight: performance.totalVolume,
+      bestSet: performance.bestSet,
+      exerciseNames: exercises
+        .map((exercise) => exercise.exercise?.name)
+        .filter((name): name is string => Boolean(name)),
+      template: workout.template
+        ? {
+            id: workout.template.id,
+            name: workout.template.name,
+          }
+        : null,
+    };
+  }
+
+  private mapWorkoutExercise(workoutExercise: WorkoutExercise) {
+    const sets = [...(workoutExercise.sets || [])].sort(
+      (left, right) => left.setNumber - right.setNumber,
+    );
+
+    return {
+      id: workoutExercise.id,
+      order: workoutExercise.order,
+      exercise: workoutExercise.exercise
+        ? {
+            id: workoutExercise.exercise.id,
+            name: workoutExercise.exercise.name,
+            description: workoutExercise.exercise.description,
+            muscleGroups: workoutExercise.exercise.muscleGroups,
+          }
+        : null,
+      sets: sets.map((set) => ({
+        id: set.id,
+        setNumber: set.setNumber,
+        previousWeight: set.previousWeight,
+        previousReps: set.previousReps,
+        currentWeight: set.currentWeight,
+        currentReps: set.currentReps,
+        repMax: set.repMax,
+        confirmed: set.confirmed,
+      })),
+    };
+  }
+
+  private mapWorkoutStats(workouts: Workout[]) {
+    const exercises = workouts.flatMap((workout) => workout.exercises || []);
+    const sets = exercises.flatMap((exercise) => exercise.sets || []);
+    const performance = this.summarizeSets(sets);
+
+    return {
+      workoutsCount: workouts.length,
+      exerciseCount: exercises.length,
+      totalSets: sets.length,
+      confirmedSets: sets.filter((set) => set.confirmed).length,
+      totalWeight: performance.totalWeight,
+      totalReps: performance.totalReps,
+      totalVolume: performance.totalVolume,
+      liftedWeight: performance.totalVolume,
+      bestSet: performance.bestSet,
+    };
+  }
+
+  private summarizeSets(sets: WorkoutSet[]) {
+    const confirmedSets = sets.filter((set) => set.confirmed);
+    const totalWeight = confirmedSets.reduce(
+      (sum, set) =>
+        sum + (typeof set.currentWeight === 'number' ? set.currentWeight : 0),
+      0,
+    );
+    const totalReps = confirmedSets.reduce(
+      (sum, set) =>
+        sum + (typeof set.currentReps === 'number' ? set.currentReps : 0),
+      0,
+    );
+    const totalVolume = confirmedSets.reduce(
+      (sum, set) =>
+        sum +
+        (typeof set.currentWeight === 'number' &&
+        typeof set.currentReps === 'number'
+          ? set.currentWeight * set.currentReps
+          : 0),
+      0,
+    );
+    const bestSet = [...confirmedSets]
+      .filter(
+        (set) =>
+          typeof set.currentWeight === 'number' &&
+          typeof set.currentReps === 'number' &&
+          typeof set.repMax === 'number',
+      )
+      .sort((left, right) => {
+        const repMaxDifference = (right.repMax ?? 0) - (left.repMax ?? 0);
+        if (repMaxDifference !== 0) {
+          return repMaxDifference;
+        }
+
+        const weightDifference =
+          (right.currentWeight ?? 0) - (left.currentWeight ?? 0);
+        if (weightDifference !== 0) {
+          return weightDifference;
+        }
+
+        return (right.currentReps ?? 0) - (left.currentReps ?? 0);
+      })[0];
+
+    return {
+      totalWeight,
+      totalReps,
+      totalVolume,
+      bestSet: bestSet
+        ? {
+            id: bestSet.id,
+            setNumber: bestSet.setNumber,
+            weight: bestSet.currentWeight,
+            reps: bestSet.currentReps,
+            repMax: bestSet.repMax,
+          }
+        : null,
     };
   }
 }

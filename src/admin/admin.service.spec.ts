@@ -126,7 +126,7 @@ describe('AdminService', () => {
     userRepository.update.mockResolvedValue({ affected: 1 } as never);
 
     await expect(
-      service.updateUserStatus(7, {
+      service.updateUserStatus(3, 7, {
         isActive: false,
       }),
     ).resolves.toMatchObject({
@@ -138,6 +138,22 @@ describe('AdminService', () => {
       isActive: false,
       refreshTokenHash: null,
     });
+  });
+
+  it('does not allow admin to deactivate their own account', async () => {
+    userRepository.findOne.mockResolvedValue({
+      id: 3,
+      email: 'admin@example.com',
+      role: UserRole.ADMIN,
+    } as never);
+
+    await expect(
+      service.updateUserStatus(3, 3, {
+        isActive: false,
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+
+    expect(userRepository.update).not.toHaveBeenCalled();
   });
 
   it('does not allow admin to remove their own admin role', async () => {
@@ -187,6 +203,19 @@ describe('AdminService', () => {
     expect(userRepository.update).toHaveBeenCalledWith(7, {
       role: UserRole.ADMIN,
     });
+  });
+
+  it('does not allow admin to soft delete their own account', async () => {
+    userRepository.findOne.mockResolvedValue({
+      id: 3,
+      email: 'admin@example.com',
+      role: UserRole.ADMIN,
+    } as never);
+
+    await expect(service.softDeleteUser(3, 3)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+    expect(userRepository.update).not.toHaveBeenCalled();
   });
 
   it('returns admin dashboard stats', async () => {

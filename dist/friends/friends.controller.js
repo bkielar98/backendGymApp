@@ -31,6 +31,15 @@ let FriendsController = class FriendsController {
     async findOutgoing(req) {
         return this.friendsService.listOutgoingRequests(req.user.id);
     }
+    async getFriendProfile(req, friendUserId) {
+        return this.friendsService.getFriendProfile(req.user.id, friendUserId);
+    }
+    async getFriendWorkoutHistory(req, friendUserId, page, limit) {
+        return this.friendsService.getFriendWorkoutHistory(req.user.id, friendUserId, Number(page), Number(limit));
+    }
+    async getFriendWorkout(req, friendUserId, workoutId) {
+        return this.friendsService.getFriendWorkout(req.user.id, friendUserId, workoutId);
+    }
     async createRequest(req, dto) {
         return this.friendsService.createRequest(req.user.id, dto);
     }
@@ -50,31 +59,79 @@ let FriendsController = class FriendsController {
 exports.FriendsController = FriendsController;
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Friends retrieved' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friends retrieved" }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)('requests/incoming'),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Incoming friend requests retrieved' }),
+    (0, common_1.Get)("requests/incoming"),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: "Incoming friend requests retrieved",
+    }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "findIncoming", null);
 __decorate([
-    (0, common_1.Get)('requests/outgoing'),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Outgoing friend requests retrieved' }),
+    (0, common_1.Get)("requests/outgoing"),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: "Outgoing friend requests retrieved",
+    }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "findOutgoing", null);
 __decorate([
-    (0, common_1.Post)('requests'),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Friend request created' }),
+    (0, common_1.Get)(":friendUserId/profile"),
+    (0, swagger_1.ApiOperation)({ summary: "Get friend profile preview" }),
+    (0, swagger_1.ApiParam)({ name: "friendUserId", type: Number }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friend profile preview retrieved" }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)("friendUserId", common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], FriendsController.prototype, "getFriendProfile", null);
+__decorate([
+    (0, common_1.Get)(":friendUserId/workouts"),
+    (0, swagger_1.ApiOperation)({ summary: "Get friend workout history" }),
+    (0, swagger_1.ApiParam)({ name: "friendUserId", type: Number }),
+    (0, swagger_1.ApiQuery)({ name: "page", type: Number, required: false }),
+    (0, swagger_1.ApiQuery)({ name: "limit", type: Number, required: false }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friend workout history retrieved" }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)("friendUserId", common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)("page")),
+    __param(3, (0, common_1.Query)("limit")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, String, String]),
+    __metadata("design:returntype", Promise)
+], FriendsController.prototype, "getFriendWorkoutHistory", null);
+__decorate([
+    (0, common_1.Get)(":friendUserId/workouts/:workoutId"),
+    (0, swagger_1.ApiOperation)({ summary: "Get friend historical workout details" }),
+    (0, swagger_1.ApiParam)({ name: "friendUserId", type: Number }),
+    (0, swagger_1.ApiParam)({ name: "workoutId", type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: "Friend historical workout retrieved",
+    }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)("friendUserId", common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Param)("workoutId", common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", Promise)
+], FriendsController.prototype, "getFriendWorkout", null);
+__decorate([
+    (0, common_1.Post)("requests"),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Friend request created" }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -82,45 +139,45 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "createRequest", null);
 __decorate([
-    (0, common_1.Patch)('requests/:id/accept'),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Friend request accepted' }),
+    (0, common_1.Patch)("requests/:id/accept"),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friend request accepted" }),
     __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "acceptRequest", null);
 __decorate([
-    (0, common_1.Patch)('requests/:id/reject'),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Friend request rejected' }),
+    (0, common_1.Patch)("requests/:id/reject"),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friend request rejected" }),
     __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "rejectRequest", null);
 __decorate([
-    (0, common_1.Patch)('requests/:id/cancel'),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Friend request canceled' }),
+    (0, common_1.Patch)("requests/:id/cancel"),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friend request canceled" }),
     __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "cancelRequest", null);
 __decorate([
-    (0, common_1.Delete)(':friendUserId'),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Friend removed' }),
+    (0, common_1.Delete)(":friendUserId"),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Friend removed" }),
     __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Param)('friendUserId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)("friendUserId", common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], FriendsController.prototype, "removeFriend", null);
 exports.FriendsController = FriendsController = __decorate([
-    (0, swagger_1.ApiTags)('friends'),
+    (0, swagger_1.ApiTags)("friends"),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.Controller)('friends'),
+    (0, common_1.Controller)("friends"),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [friends_service_1.FriendsService])
 ], FriendsController);

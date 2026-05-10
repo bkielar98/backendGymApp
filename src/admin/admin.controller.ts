@@ -108,17 +108,21 @@ export class AdminController {
   @ApiParam({ name: 'id', type: Number })
   @ApiBody({ type: AdminUpdateUserStatusDto })
   async updateUserStatus(
+    @Req() req: AuthenticatedRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AdminUpdateUserStatusDto,
   ) {
-    return this.adminService.updateUserStatus(id, dto);
+    return this.adminService.updateUserStatus(req.user.id, id, dto);
   }
 
   @Delete('users/:id')
   @ApiOperation({ summary: 'Soft delete user as admin' })
   @ApiParam({ name: 'id', type: Number })
-  async deleteUser(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.softDeleteUser(id);
+  async deleteUser(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.adminService.softDeleteUser(req.user.id, id);
   }
 
   @Get('stats')

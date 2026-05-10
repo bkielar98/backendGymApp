@@ -11,6 +11,9 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const friendship_entity_1 = require("../entities/friendship.entity");
 const user_entity_1 = require("../entities/user.entity");
+const user_body_measurement_entry_entity_1 = require("../entities/user-body-measurement-entry.entity");
+const user_weight_entry_entity_1 = require("../entities/user-weight-entry.entity");
+const workout_entity_1 = require("../entities/workout.entity");
 const friends_controller_1 = require("./friends.controller");
 const friends_service_1 = require("./friends.service");
 let FriendsModule = class FriendsModule {
@@ -18,7 +21,15 @@ let FriendsModule = class FriendsModule {
 exports.FriendsModule = FriendsModule;
 exports.FriendsModule = FriendsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([friendship_entity_1.Friendship, user_entity_1.User])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([
+                friendship_entity_1.Friendship,
+                user_entity_1.User,
+                user_weight_entry_entity_1.UserWeightEntry,
+                user_body_measurement_entry_entity_1.UserBodyMeasurementEntry,
+                workout_entity_1.Workout,
+            ]),
+        ],
         providers: [friends_service_1.FriendsService],
         controllers: [friends_controller_1.FriendsController],
     })

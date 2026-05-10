@@ -29,21 +29,21 @@ let AdminService = class AdminService {
         this.defaultPage = 1;
         this.defaultLimit = 20;
         this.maxLimit = 100;
-        this.warsawTimeZone = 'Europe/Warsaw';
+        this.warsawTimeZone = "Europe/Warsaw";
     }
     async listUsers(query) {
         const page = this.normalizePage(query.page);
         const limit = this.normalizeLimit(query.limit);
         const search = query.search?.trim().toLowerCase();
-        const sortBy = query.sortBy ?? 'createdAt';
-        const sortOrder = query.sortOrder ?? 'DESC';
-        const builder = this.userRepository.createQueryBuilder('user');
+        const sortBy = query.sortBy ?? "createdAt";
+        const sortOrder = query.sortOrder ?? "DESC";
+        const builder = this.userRepository.createQueryBuilder("user");
         if (search) {
-            builder.where('(LOWER(user.name) LIKE :search OR LOWER(user.email) LIKE :search)', { search: `%${search}%` });
+            builder.where("(LOWER(user.name) LIKE :search OR LOWER(user.email) LIKE :search)", { search: `%${search}%` });
         }
         builder
             .orderBy(`user.${sortBy}`, sortOrder)
-            .addOrderBy('user.id', 'DESC')
+            .addOrderBy("user.id", "DESC")
             .skip((page - 1) * limit)
             .take(limit);
         const [users, total] = await builder.getManyAndCount();
@@ -65,23 +65,31 @@ let AdminService = class AdminService {
     async updateUserRole(actingUserId, userId, dto) {
         await this.findUserOrThrow(userId);
         if (actingUserId === userId && dto.role !== user_entity_1.UserRole.ADMIN) {
-            throw new common_1.ForbiddenException('Admin cannot remove their own admin role');
+            throw new common_1.ForbiddenException("Admin cannot remove their own admin role");
         }
         await this.userRepository.update(userId, {
             role: dto.role,
         });
         return this.getUserById(userId);
     }
-    async updateUserStatus(userId, dto) {
-        await this.findUserOrThrow(userId);
+    async updateUserStatus(actingUserId, userId, dto) {
+        const user = await this.findUserOrThrow(userId);
+        if (actingUserId === userId &&
+            user.role === user_entity_1.UserRole.ADMIN &&
+            !dto.isActive) {
+            throw new common_1.ForbiddenException("Admin cannot deactivate their own account");
+        }
         await this.userRepository.update(userId, {
             isActive: dto.isActive,
             ...(dto.isActive ? {} : { refreshTokenHash: null }),
         });
         return this.getUserById(userId);
     }
-    async softDeleteUser(userId) {
-        await this.findUserOrThrow(userId);
+    async softDeleteUser(actingUserId, userId) {
+        const user = await this.findUserOrThrow(userId);
+        if (actingUserId === userId && user.role === user_entity_1.UserRole.ADMIN) {
+            throw new common_1.ForbiddenException("Admin cannot deactivate their own account");
+        }
         await this.userRepository.update(userId, {
             isActive: false,
             refreshTokenHash: null,
@@ -110,8 +118,8 @@ let AdminService = class AdminService {
                 },
             }),
             this.userRepository
-                .createQueryBuilder('user')
-                .where('user.createdAt >= :start AND user.createdAt < :end', {
+                .createQueryBuilder("user")
+                .where("user.createdAt >= :start AND user.createdAt < :end", {
                 start: monthRange.start,
                 end: monthRange.end,
             })
@@ -134,7 +142,7 @@ let AdminService = class AdminService {
                 userId,
                 status: workout_entity_1.WorkoutStatus.COMPLETED,
             },
-            order: { startedAt: 'DESC' },
+            order: { startedAt: "DESC" },
             relations: {
                 template: true,
                 exercises: {
@@ -157,15 +165,15 @@ let AdminService = class AdminService {
             where: { id: userId },
         });
         if (!user) {
-            throw new common_1.NotFoundException('User not found');
+            throw new common_1.NotFoundException("User not found");
         }
         return user;
     }
     normalizePage(page) {
-        return typeof page === 'number' && page > 0 ? page : this.defaultPage;
+        return typeof page === "number" && page > 0 ? page : this.defaultPage;
     }
     normalizeLimit(limit) {
-        if (typeof limit !== 'number' || limit <= 0) {
+        if (typeof limit !== "number" || limit <= 0) {
             return this.defaultLimit;
         }
         return Math.min(limit, this.maxLimit);
@@ -190,7 +198,7 @@ let AdminService = class AdminService {
             id: workout.id,
             name: workout.name,
             status: workout.status,
-            mode: 'solo',
+            mode: "solo",
             isSolo: true,
             participantCount: 1,
             startedAt: workout.startedAt,
@@ -249,19 +257,19 @@ let AdminService = class AdminService {
         return asUtcTimestamp - date.getTime();
     }
     getTimeZoneParts(date, timeZone) {
-        const formatter = new Intl.DateTimeFormat('en-CA', {
+        const formatter = new Intl.DateTimeFormat("en-CA", {
             timeZone,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hourCycle: 'h23',
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hourCycle: "h23",
         });
         const values = formatter
             .formatToParts(date)
-            .filter((part) => part.type !== 'literal')
+            .filter((part) => part.type !== "literal")
             .reduce((parts, part) => {
             parts[part.type] = Number(part.value);
             return parts;
