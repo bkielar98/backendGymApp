@@ -2,6 +2,7 @@ import { User } from './user.entity';
 import { WorkoutTemplate } from './workout-template.entity';
 import { CommonWorkoutParticipant } from './common-workout-participant.entity';
 import { CommonWorkoutExercise } from './common-workout-exercise.entity';
+import { CommonWorkoutBlock } from './common-workout-block.entity';
 export declare enum CommonWorkoutStatus {
     ACTIVE = "active",
     COMPLETED = "completed"
@@ -18,4 +19,5 @@ export declare class CommonWorkout {
     finishedAt: Date | null;
     participants: CommonWorkoutParticipant[];
     exercises: CommonWorkoutExercise[];
+    blocks: CommonWorkoutBlock[];
 }

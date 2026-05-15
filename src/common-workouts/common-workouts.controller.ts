@@ -24,6 +24,7 @@ import { CommonWorkoutsService } from './common-workouts.service';
 import { StartCommonWorkoutDto } from './dto/start-common-workout.dto';
 import { UpdateCommonWorkoutDto } from './dto/update-common-workout.dto';
 import { AddCommonWorkoutExerciseDto } from './dto/add-common-workout-exercise.dto';
+import { CreateCommonWorkoutBlockDto } from './dto/create-common-workout-block.dto';
 import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-workout-exercise-position.dto';
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
@@ -47,6 +48,16 @@ export class CommonWorkoutsController {
     return this.commonWorkoutsService.start(req.user.id, dto);
   }
 
+  @Get()
+  @ApiOperation({
+    summary: 'List workouts',
+    description:
+      'Zwraca lekka liste workoutow usera z WorkoutBlocks i per-user cwiczeniami, bez pelnych serii.',
+  })
+  async findAll(@Request() req) {
+    return this.commonWorkoutsService.listForUser(req.user.id);
+  }
+
   @Get('active')
   @ApiOperation({
     summary: 'Get active workout',
@@ -62,10 +73,26 @@ export class CommonWorkoutsController {
     description:
       'Zwraca statystyki dashboardu dla wskazanego zakresu dat: ulubione cwiczenie, rekord, ulubiony dzien, liczbe treningow i ulubionego partnera.',
   })
-  @ApiQuery({ name: 'dateFrom', type: String, required: true, example: '2026-04-01' })
-  @ApiQuery({ name: 'dateTo', type: String, required: true, example: '2026-04-30' })
-  async getDashboardStats(@Request() req, @Query() dto: GetWorkoutDashboardStatsDto) {
-    return this.commonWorkoutsService.getDashboardStatsForUser(req.user.id, dto);
+  @ApiQuery({
+    name: 'dateFrom',
+    type: String,
+    required: true,
+    example: '2026-04-01',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    type: String,
+    required: true,
+    example: '2026-04-30',
+  })
+  async getDashboardStats(
+    @Request() req,
+    @Query() dto: GetWorkoutDashboardStatsDto,
+  ) {
+    return this.commonWorkoutsService.getDashboardStatsForUser(
+      req.user.id,
+      dto,
+    );
   }
 
   @Get('exercises/:exerciseId/history')
@@ -83,7 +110,10 @@ export class CommonWorkoutsController {
     @Request() req,
     @Param('exerciseId', ParseIntPipe) exerciseId: number,
   ) {
-    return this.commonWorkoutsService.getExerciseHistoryForUser(req.user.id, exerciseId);
+    return this.commonWorkoutsService.getExerciseHistoryForUser(
+      req.user.id,
+      exerciseId,
+    );
   }
 
   @Get('history')
@@ -100,12 +130,19 @@ export class CommonWorkoutsController {
     summary: 'Get historical workout summary',
     description: 'Zwraca lekki summary zakonczonego workoutu.',
   })
-  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  @ApiParam({
+    name: 'historyId',
+    type: Number,
+    description: 'ID wpisu historii workoutu.',
+  })
   async findHistorySummary(
     @Request() req,
     @Param('historyId', ParseIntPipe) historyId: number,
   ) {
-    return this.commonWorkoutsService.getHistoricalSummaryForUser(req.user.id, historyId);
+    return this.commonWorkoutsService.getHistoricalSummaryForUser(
+      req.user.id,
+      historyId,
+    );
   }
 
   @Get('history/:historyId')
@@ -113,12 +150,19 @@ export class CommonWorkoutsController {
     summary: 'Get historical workout',
     description: 'Zwraca szczegoly zakonczonego workoutu po ID wpisu historii.',
   })
-  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  @ApiParam({
+    name: 'historyId',
+    type: Number,
+    description: 'ID wpisu historii workoutu.',
+  })
   async findHistoryOne(
     @Request() req,
     @Param('historyId', ParseIntPipe) historyId: number,
   ) {
-    return this.commonWorkoutsService.getHistoricalByIdForUser(req.user.id, historyId);
+    return this.commonWorkoutsService.getHistoricalByIdForUser(
+      req.user.id,
+      historyId,
+    );
   }
 
   @Patch('history/:historyId')
@@ -126,14 +170,22 @@ export class CommonWorkoutsController {
     summary: 'Update historical workout',
     description: 'Aktualizuje metadane zakonczonego workoutu, np. nazwe.',
   })
-  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  @ApiParam({
+    name: 'historyId',
+    type: Number,
+    description: 'ID wpisu historii workoutu.',
+  })
   @ApiBody({ type: UpdateCommonWorkoutDto })
   async updateHistory(
     @Request() req,
     @Param('historyId', ParseIntPipe) historyId: number,
     @Body() dto: UpdateCommonWorkoutDto,
   ) {
-    return this.commonWorkoutsService.updateHistoricalWorkout(req.user.id, historyId, dto);
+    return this.commonWorkoutsService.updateHistoricalWorkout(
+      req.user.id,
+      historyId,
+      dto,
+    );
   }
 
   @Delete('history/:historyId')
@@ -141,12 +193,19 @@ export class CommonWorkoutsController {
     summary: 'Remove historical workout',
     description: 'Usuwa wpis zakonczonego workoutu z historii usera.',
   })
-  @ApiParam({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' })
+  @ApiParam({
+    name: 'historyId',
+    type: Number,
+    description: 'ID wpisu historii workoutu.',
+  })
   async removeHistory(
     @Request() req,
     @Param('historyId', ParseIntPipe) historyId: number,
   ) {
-    return this.commonWorkoutsService.removeHistoricalWorkout(req.user.id, historyId);
+    return this.commonWorkoutsService.removeHistoricalWorkout(
+      req.user.id,
+      historyId,
+    );
   }
 
   @Get(':id/summary')
@@ -155,7 +214,11 @@ export class CommonWorkoutsController {
     description:
       'Zwraca summary workoutu z agregatami per uczestnik i cwiczenie.',
   })
-  @ApiParam({ name: 'id', type: Number, description: 'ID workoutu albo wpisu historycznego.' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID workoutu albo wpisu historycznego.',
+  })
   async findSummary(@Request() req, @Param('id', ParseIntPipe) id: number) {
     return this.commonWorkoutsService.getSummaryForUser(req.user.id, id);
   }
@@ -188,7 +251,31 @@ export class CommonWorkoutsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
   ) {
-    return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseOrder);
+    return this.commonWorkoutsService.getExerciseByIdForUser(
+      req.user.id,
+      id,
+      exerciseOrder,
+    );
+  }
+
+  @Get(':id/blocks/:blockId')
+  @ApiOperation({
+    summary: 'Get workout block details',
+    description:
+      'Zwraca szczegoly wspolnego WorkoutBlock wraz z per-user cwiczeniami i pelnymi seriami.',
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' })
+  @ApiParam({
+    name: 'blockId',
+    type: Number,
+    description: 'ID albo order WorkoutBlock.',
+  })
+  async findBlock(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('blockId', ParseIntPipe) blockId: number,
+  ) {
+    return this.commonWorkoutsService.getBlockForUser(req.user.id, id, blockId);
   }
 
   @Get(':id')
@@ -242,6 +329,22 @@ export class CommonWorkoutsController {
     return this.commonWorkoutsService.addExercise(req.user.id, id, dto);
   }
 
+  @Post(':id/blocks')
+  @ApiOperation({
+    summary: 'Add workout block',
+    description:
+      'Tworzy wspolny WorkoutBlock i osobne przypisanie cwiczenia dla kazdego uczestnika.',
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' })
+  @ApiBody({ type: CreateCommonWorkoutBlockDto })
+  async addBlock(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateCommonWorkoutBlockDto,
+  ) {
+    return this.commonWorkoutsService.addBlock(req.user.id, id, dto);
+  }
+
   @Patch(':id/exercises/:exerciseId/position')
   @ApiOperation({
     summary: 'Change workout exercise position',
@@ -286,7 +389,12 @@ export class CommonWorkoutsController {
     @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
     @Body() dto: ChangeCommonWorkoutExerciseDto,
   ) {
-    return this.commonWorkoutsService.changeExercise(req.user.id, id, exerciseOrder, dto);
+    return this.commonWorkoutsService.changeExercise(
+      req.user.id,
+      id,
+      exerciseOrder,
+      dto,
+    );
   }
 
   @Delete(':id/exercises/:exerciseId')
@@ -305,7 +413,11 @@ export class CommonWorkoutsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('exerciseId', ParseIntPipe) exerciseOrder: number,
   ) {
-    return this.commonWorkoutsService.removeExercise(req.user.id, id, exerciseOrder);
+    return this.commonWorkoutsService.removeExercise(
+      req.user.id,
+      id,
+      exerciseOrder,
+    );
   }
 
   @Post('exercises/:exerciseId/add-set')
@@ -328,9 +440,14 @@ export class CommonWorkoutsController {
   @Delete('sets/:setId')
   @ApiOperation({
     summary: 'Remove workout set',
-    description: 'Usuwa serie z workoutu i przelicza numeracje pozostalych serii.',
+    description:
+      'Usuwa serie z workoutu i przelicza numeracje pozostalych serii.',
   })
-  @ApiParam({ name: 'setId', type: Number, description: 'ID serii w workoucie.' })
+  @ApiParam({
+    name: 'setId',
+    type: Number,
+    description: 'ID serii w workoucie.',
+  })
   async removeSet(@Request() req, @Param('setId', ParseIntPipe) setId: number) {
     return this.commonWorkoutsService.removeSet(req.user.id, setId);
   }
@@ -340,7 +457,11 @@ export class CommonWorkoutsController {
     summary: 'Update workout set',
     description: 'Aktualizuje dane serii i oznacza ja jako wykonana.',
   })
-  @ApiParam({ name: 'setId', type: Number, description: 'ID serii w workoucie.' })
+  @ApiParam({
+    name: 'setId',
+    type: Number,
+    description: 'ID serii w workoucie.',
+  })
   @ApiBody({ type: UpdateCommonWorkoutSetDto })
   async updateSet(
     @Request() req,

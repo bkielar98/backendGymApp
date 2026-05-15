@@ -15,6 +15,7 @@ const user_entity_1 = require("./user.entity");
 const workout_template_entity_1 = require("./workout-template.entity");
 const common_workout_participant_entity_1 = require("./common-workout-participant.entity");
 const common_workout_exercise_entity_1 = require("./common-workout-exercise.entity");
+const common_workout_block_entity_1 = require("./common-workout-block.entity");
 var CommonWorkoutStatus;
 (function (CommonWorkoutStatus) {
     CommonWorkoutStatus["ACTIVE"] = "active";
@@ -75,6 +76,12 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], CommonWorkout.prototype, "exercises", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => common_workout_block_entity_1.CommonWorkoutBlock, (block) => block.commonWorkout, {
+        cascade: true,
+    }),
+    __metadata("design:type", Array)
+], CommonWorkout.prototype, "blocks", void 0);
 exports.CommonWorkout = CommonWorkout = __decorate([
     (0, typeorm_1.Entity)()
 ], CommonWorkout);

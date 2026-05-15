@@ -1,5 +1,5 @@
-import { CreateFriendRequestDto } from "./dto/create-friend-request.dto";
-import { FriendsService } from "./friends.service";
+import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
+import { FriendsService } from './friends.service';
 export declare class FriendsController {
     private readonly friendsService;
     constructor(friendsService: FriendsService);

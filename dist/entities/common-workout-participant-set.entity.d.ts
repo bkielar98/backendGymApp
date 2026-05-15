@@ -11,6 +11,7 @@ export declare class CommonWorkoutParticipantSet {
     previousReps: number | null;
     currentWeight: number | null;
     currentReps: number | null;
+    durationSeconds: number | null;
     repMax: number | null;
     confirmed: boolean;
 }

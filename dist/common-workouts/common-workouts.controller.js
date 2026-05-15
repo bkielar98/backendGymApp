@@ -20,6 +20,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
 const start_common_workout_dto_1 = require("./dto/start-common-workout.dto");
 const update_common_workout_dto_1 = require("./dto/update-common-workout.dto");
 const add_common_workout_exercise_dto_1 = require("./dto/add-common-workout-exercise.dto");
+const create_common_workout_block_dto_1 = require("./dto/create-common-workout-block.dto");
 const change_common_workout_exercise_position_dto_1 = require("./dto/change-common-workout-exercise-position.dto");
 const change_common_workout_exercise_dto_1 = require("./dto/change-common-workout-exercise.dto");
 const update_common_workout_set_dto_1 = require("./dto/update-common-workout-set.dto");
@@ -30,6 +31,9 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     }
     async start(req, dto) {
         return this.commonWorkoutsService.start(req.user.id, dto);
+    }
+    async findAll(req) {
+        return this.commonWorkoutsService.listForUser(req.user.id);
     }
     async getActive(req) {
         return this.commonWorkoutsService.getActive(req.user.id);
@@ -64,6 +68,9 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async findExercise(req, id, exerciseOrder) {
         return this.commonWorkoutsService.getExerciseByIdForUser(req.user.id, id, exerciseOrder);
     }
+    async findBlock(req, id, blockId) {
+        return this.commonWorkoutsService.getBlockForUser(req.user.id, id, blockId);
+    }
     async findOne(req, id) {
         return this.commonWorkoutsService.getIndexForUser(req.user.id, id);
     }
@@ -75,6 +82,9 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     }
     async addExercise(req, id, dto) {
         return this.commonWorkoutsService.addExercise(req.user.id, id, dto);
+    }
+    async addBlock(req, id, dto) {
+        return this.commonWorkoutsService.addBlock(req.user.id, id, dto);
     }
     async changeExercisePosition(req, id, exerciseOrder, dto) {
         return this.commonWorkoutsService.changeExercisePosition(req.user.id, id, exerciseOrder, dto);
@@ -113,6 +123,17 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "start", null);
 __decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'List workouts',
+        description: 'Zwraca lekka liste workoutow usera z WorkoutBlocks i per-user cwiczeniami, bez pelnych serii.',
+    }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "findAll", null);
+__decorate([
     (0, common_1.Get)('active'),
     (0, swagger_1.ApiOperation)({
         summary: 'Get active workout',
@@ -129,8 +150,18 @@ __decorate([
         summary: 'Get workout dashboard stats',
         description: 'Zwraca statystyki dashboardu dla wskazanego zakresu dat: ulubione cwiczenie, rekord, ulubiony dzien, liczbe treningow i ulubionego partnera.',
     }),
-    (0, swagger_1.ApiQuery)({ name: 'dateFrom', type: String, required: true, example: '2026-04-01' }),
-    (0, swagger_1.ApiQuery)({ name: 'dateTo', type: String, required: true, example: '2026-04-30' }),
+    (0, swagger_1.ApiQuery)({
+        name: 'dateFrom',
+        type: String,
+        required: true,
+        example: '2026-04-01',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'dateTo',
+        type: String,
+        required: true,
+        example: '2026-04-30',
+    }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
@@ -171,7 +202,11 @@ __decorate([
         summary: 'Get historical workout summary',
         description: 'Zwraca lekki summary zakonczonego workoutu.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'historyId',
+        type: Number,
+        description: 'ID wpisu historii workoutu.',
+    }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -184,7 +219,11 @@ __decorate([
         summary: 'Get historical workout',
         description: 'Zwraca szczegoly zakonczonego workoutu po ID wpisu historii.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'historyId',
+        type: Number,
+        description: 'ID wpisu historii workoutu.',
+    }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -197,7 +236,11 @@ __decorate([
         summary: 'Update historical workout',
         description: 'Aktualizuje metadane zakonczonego workoutu, np. nazwe.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'historyId',
+        type: Number,
+        description: 'ID wpisu historii workoutu.',
+    }),
     (0, swagger_1.ApiBody)({ type: update_common_workout_dto_1.UpdateCommonWorkoutDto }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
@@ -212,7 +255,11 @@ __decorate([
         summary: 'Remove historical workout',
         description: 'Usuwa wpis zakonczonego workoutu z historii usera.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'historyId', type: Number, description: 'ID wpisu historii workoutu.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'historyId',
+        type: Number,
+        description: 'ID wpisu historii workoutu.',
+    }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('historyId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -225,7 +272,11 @@ __decorate([
         summary: 'Get workout summary',
         description: 'Zwraca summary workoutu z agregatami per uczestnik i cwiczenie.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID workoutu albo wpisu historycznego.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'id',
+        type: Number,
+        description: 'ID workoutu albo wpisu historycznego.',
+    }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -264,6 +315,25 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Number]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "findExercise", null);
+__decorate([
+    (0, common_1.Get)(':id/blocks/:blockId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get workout block details',
+        description: 'Zwraca szczegoly wspolnego WorkoutBlock wraz z per-user cwiczeniami i pelnymi seriami.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'blockId',
+        type: Number,
+        description: 'ID albo order WorkoutBlock.',
+    }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Param)('blockId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "findBlock", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({
@@ -320,6 +390,21 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, add_common_workout_exercise_dto_1.AddCommonWorkoutExerciseDto]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "addExercise", null);
+__decorate([
+    (0, common_1.Post)(':id/blocks'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Add workout block',
+        description: 'Tworzy wspolny WorkoutBlock i osobne przypisanie cwiczenia dla kazdego uczestnika.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'ID aktywnego workoutu.' }),
+    (0, swagger_1.ApiBody)({ type: create_common_workout_block_dto_1.CreateCommonWorkoutBlockDto }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, create_common_workout_block_dto_1.CreateCommonWorkoutBlockDto]),
+    __metadata("design:returntype", Promise)
+], CommonWorkoutsController.prototype, "addBlock", null);
 __decorate([
     (0, common_1.Patch)(':id/exercises/:exerciseId/position'),
     (0, swagger_1.ApiOperation)({
@@ -404,7 +489,11 @@ __decorate([
         summary: 'Remove workout set',
         description: 'Usuwa serie z workoutu i przelicza numeracje pozostalych serii.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'setId', type: Number, description: 'ID serii w workoucie.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'setId',
+        type: Number,
+        description: 'ID serii w workoucie.',
+    }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('setId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -417,7 +506,11 @@ __decorate([
         summary: 'Update workout set',
         description: 'Aktualizuje dane serii i oznacza ja jako wykonana.',
     }),
-    (0, swagger_1.ApiParam)({ name: 'setId', type: Number, description: 'ID serii w workoucie.' }),
+    (0, swagger_1.ApiParam)({
+        name: 'setId',
+        type: Number,
+        description: 'ID serii w workoucie.',
+    }),
     (0, swagger_1.ApiBody)({ type: update_common_workout_set_dto_1.UpdateCommonWorkoutSetDto }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('setId', common_1.ParseIntPipe)),

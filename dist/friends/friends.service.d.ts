@@ -1,10 +1,10 @@
-import { Repository } from "typeorm";
-import { Friendship, FriendshipStatus } from "../entities/friendship.entity";
-import { User } from "../entities/user.entity";
-import { UserBodyMeasurementEntry } from "../entities/user-body-measurement-entry.entity";
-import { UserWeightEntry } from "../entities/user-weight-entry.entity";
-import { Workout, WorkoutStatus } from "../entities/workout.entity";
-import { CreateFriendRequestDto } from "./dto/create-friend-request.dto";
+import { Repository } from 'typeorm';
+import { Friendship, FriendshipStatus } from '../entities/friendship.entity';
+import { User } from '../entities/user.entity';
+import { UserBodyMeasurementEntry } from '../entities/user-body-measurement-entry.entity';
+import { UserWeightEntry } from '../entities/user-weight-entry.entity';
+import { Workout, WorkoutStatus } from '../entities/workout.entity';
+import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 export declare class FriendsService {
     private friendshipRepository;
     private userRepository;

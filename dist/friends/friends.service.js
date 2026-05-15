@@ -40,7 +40,7 @@ let FriendsService = class FriendsService {
                 receiverUser: true,
             },
             order: {
-                updatedAt: "DESC",
+                updatedAt: 'DESC',
             },
         });
         return rows.map((row) => {
@@ -63,7 +63,7 @@ let FriendsService = class FriendsService {
                 requesterUser: true,
             },
             order: {
-                createdAt: "DESC",
+                createdAt: 'DESC',
             },
         });
         return rows.map((row) => ({
@@ -83,7 +83,7 @@ let FriendsService = class FriendsService {
                 receiverUser: true,
             },
             order: {
-                createdAt: "DESC",
+                createdAt: 'DESC',
             },
         });
         return rows.map((row) => ({
@@ -95,13 +95,13 @@ let FriendsService = class FriendsService {
     }
     async createRequest(userId, dto) {
         if (userId === dto.targetUserId) {
-            throw new common_1.BadRequestException("You cannot send a friend request to yourself");
+            throw new common_1.BadRequestException('You cannot send a friend request to yourself');
         }
         const targetUser = await this.userRepository.findOne({
             where: { id: dto.targetUserId },
         });
         if (!targetUser) {
-            throw new common_1.NotFoundException("User not found");
+            throw new common_1.NotFoundException('User not found');
         }
         const existing = await this.friendshipRepository.findOne({
             where: [
@@ -115,14 +115,14 @@ let FriendsService = class FriendsService {
                 },
             ],
             order: {
-                createdAt: "DESC",
+                createdAt: 'DESC',
             },
         });
         if (existing?.status === friendship_entity_1.FriendshipStatus.PENDING) {
-            throw new common_1.BadRequestException("Friend request already exists");
+            throw new common_1.BadRequestException('Friend request already exists');
         }
         if (existing?.status === friendship_entity_1.FriendshipStatus.ACCEPTED) {
-            throw new common_1.BadRequestException("Users are already friends");
+            throw new common_1.BadRequestException('Users are already friends');
         }
         const request = this.friendshipRepository.create({
             requesterUserId: userId,
@@ -143,11 +143,11 @@ let FriendsService = class FriendsService {
         const [weightEntries, latestBodyMeasurement, workouts] = await Promise.all([
             this.weightEntryRepository.find({
                 where: { user: { id: friendUserId } },
-                order: { recordedOn: "DESC", id: "DESC" },
+                order: { recordedOn: 'DESC', id: 'DESC' },
             }),
             this.bodyMeasurementEntryRepository.findOne({
                 where: { user: { id: friendUserId } },
-                order: { recordedOn: "DESC", id: "DESC" },
+                order: { recordedOn: 'DESC', id: 'DESC' },
             }),
             this.workoutRepository.find({
                 where: {
@@ -160,7 +160,7 @@ let FriendsService = class FriendsService {
                         sets: true,
                     },
                 },
-                order: { startedAt: "DESC" },
+                order: { startedAt: 'DESC' },
             }),
         ]);
         const latestWeight = weightEntries[0]?.weight ?? friend.weight ?? null;
@@ -197,7 +197,7 @@ let FriendsService = class FriendsService {
                     sets: true,
                 },
             },
-            order: { startedAt: "DESC" },
+            order: { startedAt: 'DESC' },
             skip: (normalizedPage - 1) * normalizedLimit,
             take: normalizedLimit,
         });
@@ -225,15 +225,15 @@ let FriendsService = class FriendsService {
             },
             order: {
                 exercises: {
-                    order: "ASC",
+                    order: 'ASC',
                     sets: {
-                        setNumber: "ASC",
+                        setNumber: 'ASC',
                     },
                 },
             },
         });
         if (!workout) {
-            throw new common_1.NotFoundException("Workout not found");
+            throw new common_1.NotFoundException('Workout not found');
         }
         return {
             ...this.mapWorkoutSummary(workout),
@@ -255,7 +255,7 @@ let FriendsService = class FriendsService {
             },
         });
         if (!request) {
-            throw new common_1.NotFoundException("Friend request not found");
+            throw new common_1.NotFoundException('Friend request not found');
         }
         request.status = friendship_entity_1.FriendshipStatus.ACCEPTED;
         request.respondedAt = new Date();
@@ -279,14 +279,14 @@ let FriendsService = class FriendsService {
             },
         });
         if (!request) {
-            throw new common_1.NotFoundException("Friend request not found");
+            throw new common_1.NotFoundException('Friend request not found');
         }
         request.status = friendship_entity_1.FriendshipStatus.REJECTED;
         request.respondedAt = new Date();
         await this.friendshipRepository.save(request);
         return {
             success: true,
-            message: "Friend request rejected",
+            message: 'Friend request rejected',
             id: request.id,
             status: request.status,
         };
@@ -300,12 +300,12 @@ let FriendsService = class FriendsService {
             },
         });
         if (!request) {
-            throw new common_1.NotFoundException("Friend request not found");
+            throw new common_1.NotFoundException('Friend request not found');
         }
         await this.friendshipRepository.delete(request.id);
         return {
             success: true,
-            message: "Friend request canceled",
+            message: 'Friend request canceled',
             id: request.id,
         };
     }
@@ -325,12 +325,12 @@ let FriendsService = class FriendsService {
             ],
         });
         if (!friendship) {
-            throw new common_1.NotFoundException("Friendship not found");
+            throw new common_1.NotFoundException('Friendship not found');
         }
         await this.friendshipRepository.delete(friendship.id);
         return {
             success: true,
-            message: "Friend removed",
+            message: 'Friend removed',
             id: friendship.id,
             friendUserId,
         };
@@ -364,7 +364,7 @@ let FriendsService = class FriendsService {
             },
         });
         if (!friendship) {
-            throw new common_1.NotFoundException("Friendship not found");
+            throw new common_1.NotFoundException('Friendship not found');
         }
         return friendship.requesterUserId === userId
             ? friendship.receiverUser
@@ -463,17 +463,17 @@ let FriendsService = class FriendsService {
     }
     summarizeSets(sets) {
         const confirmedSets = sets.filter((set) => set.confirmed);
-        const totalWeight = confirmedSets.reduce((sum, set) => sum + (typeof set.currentWeight === "number" ? set.currentWeight : 0), 0);
-        const totalReps = confirmedSets.reduce((sum, set) => sum + (typeof set.currentReps === "number" ? set.currentReps : 0), 0);
+        const totalWeight = confirmedSets.reduce((sum, set) => sum + (typeof set.currentWeight === 'number' ? set.currentWeight : 0), 0);
+        const totalReps = confirmedSets.reduce((sum, set) => sum + (typeof set.currentReps === 'number' ? set.currentReps : 0), 0);
         const totalVolume = confirmedSets.reduce((sum, set) => sum +
-            (typeof set.currentWeight === "number" &&
-                typeof set.currentReps === "number"
+            (typeof set.currentWeight === 'number' &&
+                typeof set.currentReps === 'number'
                 ? set.currentWeight * set.currentReps
                 : 0), 0);
         const bestSet = [...confirmedSets]
-            .filter((set) => typeof set.currentWeight === "number" &&
-            typeof set.currentReps === "number" &&
-            typeof set.repMax === "number")
+            .filter((set) => typeof set.currentWeight === 'number' &&
+            typeof set.currentReps === 'number' &&
+            typeof set.repMax === 'number')
             .sort((left, right) => {
             const repMaxDifference = (right.repMax ?? 0) - (left.repMax ?? 0);
             if (repMaxDifference !== 0) {

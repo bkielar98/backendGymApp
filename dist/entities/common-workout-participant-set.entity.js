@@ -61,6 +61,10 @@ __decorate([
     __metadata("design:type", Number)
 ], CommonWorkoutParticipantSet.prototype, "currentReps", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], CommonWorkoutParticipantSet.prototype, "durationSeconds", void 0);
+__decorate([
     (0, typeorm_1.Column)('float', { nullable: true }),
     __metadata("design:type", Number)
 ], CommonWorkoutParticipantSet.prototype, "repMax", void 0);

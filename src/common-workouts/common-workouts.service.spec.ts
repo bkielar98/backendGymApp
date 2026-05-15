@@ -7,8 +7,18 @@ describe('CommonWorkoutsService', () => {
   let commonWorkoutRepository: {
     delete: jest.Mock;
   };
+  let commonWorkoutBlockRepository: {
+    findOne: jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
+  };
   let participantSetRepository: {
     update: jest.Mock;
+  };
+  let commonWorkoutExerciseRepository: {
+    findOne: jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
   };
   let workoutRepository: {
     create: jest.Mock;
@@ -41,8 +51,18 @@ describe('CommonWorkoutsService', () => {
     commonWorkoutRepository = {
       delete: jest.fn(),
     };
+    commonWorkoutBlockRepository = {
+      findOne: jest.fn(),
+      create: jest.fn((value) => value),
+      save: jest.fn(),
+    };
     participantSetRepository = {
       update: jest.fn(),
+    };
+    commonWorkoutExerciseRepository = {
+      findOne: jest.fn(),
+      create: jest.fn((value) => value),
+      save: jest.fn(),
     };
     workoutRepository = {
       create: jest.fn(),
@@ -73,8 +93,9 @@ describe('CommonWorkoutsService', () => {
 
     service = new CommonWorkoutsService(
       commonWorkoutRepository as never,
+      commonWorkoutBlockRepository as never,
       {} as never,
-      {} as never,
+      commonWorkoutExerciseRepository as never,
       participantSetRepository as never,
       workoutRepository as never,
       workoutExerciseRepository as never,
@@ -111,10 +132,12 @@ describe('CommonWorkoutsService', () => {
   it('discards active workout and emits event when room has subscribers', async () => {
     gateway.hasSubscribers.mockReturnValue(true);
     commonWorkoutRepository.delete.mockResolvedValue({ affected: 1 } as never);
-    jest.spyOn(service as any, 'getActiveCommonWorkoutEntityForUser').mockResolvedValue({
-      id: 44,
-      status: 'active',
-    } as never);
+    jest
+      .spyOn(service as any, 'getActiveCommonWorkoutEntityForUser')
+      .mockResolvedValue({
+        id: 44,
+        status: 'active',
+      } as never);
 
     await expect(service.removeActiveWorkout(14, 44)).resolves.toEqual({
       success: true,
@@ -147,6 +170,9 @@ describe('CommonWorkoutsService', () => {
       workout: { id: 44 },
       exercise: { id: 201 },
     } as never);
+    jest
+      .spyOn(service as any, 'syncWorkoutExerciseCompletion')
+      .mockResolvedValue(undefined);
 
     await expect(
       service.updateSet(14, 301, {
@@ -161,6 +187,7 @@ describe('CommonWorkoutsService', () => {
     expect(participantSetRepository.update).toHaveBeenCalledWith(301, {
       currentWeight: 85,
       currentReps: 6,
+      durationSeconds: undefined,
       repMax: expect.any(Number),
       confirmed: true,
     });
@@ -240,6 +267,8 @@ describe('CommonWorkoutsService', () => {
     expect(payload.participantCount).toBe(1);
     expect(payload.exercises).toEqual([
       {
+        id: 201,
+        workoutExerciseId: 201,
         userId: 1,
         order: 0,
         exerciseId: 44,
@@ -254,6 +283,7 @@ describe('CommonWorkoutsService', () => {
             previousReps: 8,
             currentWeight: 85,
             currentReps: 6,
+            durationSeconds: null,
             repMax: 102,
             confirmed: true,
           },
@@ -305,6 +335,7 @@ describe('CommonWorkoutsService', () => {
           previousReps: 8,
           currentWeight: 85,
           currentReps: 6,
+          durationSeconds: null,
           repMax: 102,
           confirmed: true,
         },
@@ -312,6 +343,8 @@ describe('CommonWorkoutsService', () => {
     });
 
     expect(payload).toEqual({
+      id: 201,
+      workoutExerciseId: 201,
       userId: 1,
       order: 0,
       exerciseId: 44,
@@ -326,6 +359,7 @@ describe('CommonWorkoutsService', () => {
           previousReps: 8,
           currentWeight: 85,
           currentReps: 6,
+          durationSeconds: null,
           repMax: 102,
           confirmed: true,
         },
@@ -395,6 +429,8 @@ describe('CommonWorkoutsService', () => {
     expect(payload.confirmedSets).toBe(1);
     expect(payload.exercises).toEqual([
       {
+        id: 201,
+        workoutExerciseId: 201,
         userId: 1,
         order: 0,
         exerciseId: 44,
@@ -408,6 +444,80 @@ describe('CommonWorkoutsService', () => {
     expect(payload.exercises[0]).not.toHaveProperty('participants');
   });
 
+  it('finds active workout exercise by order, row id or exercise id', () => {
+    const exercises = [
+      { id: 201, order: 0, exerciseId: 44 },
+      { id: 202, order: 1, exerciseId: 45 },
+    ];
+
+    expect(
+      (service as any).getParticipantExerciseByOrder(exercises, 0),
+    ).toMatchObject({
+      id: 201,
+    });
+    expect(
+      (service as any).getParticipantExerciseByOrder(exercises, 202),
+    ).toMatchObject({
+      id: 202,
+    });
+    expect(
+      (service as any).getParticipantExerciseByOrder(exercises, 45),
+    ).toMatchObject({
+      id: 202,
+    });
+  });
+
+  it('automatically completes user exercise and block when all participant exercises are valid', async () => {
+    commonWorkoutExerciseRepository.findOne = jest.fn().mockResolvedValue({
+      id: 201,
+      blockId: 301,
+      completed: false,
+      completedAt: null,
+      participantSets: [
+        {
+          id: 401,
+          confirmed: true,
+          currentReps: 10,
+          durationSeconds: null,
+        },
+      ],
+    } as never);
+    commonWorkoutBlockRepository.findOne.mockResolvedValue({
+      id: 301,
+      status: 'active',
+      completedAt: null,
+      userExercises: [
+        {
+          id: 201,
+          completed: true,
+          participantSets: [],
+        },
+        {
+          id: 202,
+          completed: true,
+          participantSets: [],
+        },
+      ],
+    } as never);
+    commonWorkoutExerciseRepository.save.mockResolvedValue(undefined as never);
+    commonWorkoutBlockRepository.save.mockResolvedValue(undefined as never);
+
+    await (service as any).syncWorkoutExerciseCompletion(201);
+
+    expect(commonWorkoutExerciseRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        completed: true,
+        completedAt: expect.any(Date),
+      }),
+    );
+    expect(commonWorkoutBlockRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'completed',
+        completedAt: expect.any(Date),
+      }),
+    );
+  });
+
   it('builds exercise mutation response with workout index and exercise detail', async () => {
     jest
       .spyOn(service, 'getIndexForUser')
@@ -416,7 +526,9 @@ describe('CommonWorkoutsService', () => {
       .spyOn(service, 'getExerciseByIdForUser')
       .mockResolvedValue({ id: 201, setsCount: 2 } as never);
 
-    await expect((service as any).getWorkoutExerciseResponse(14, 9, 201)).resolves.toEqual({
+    await expect(
+      (service as any).getWorkoutExerciseResponse(14, 9, 201),
+    ).resolves.toEqual({
       workout: { id: 9, exercises: [{ id: 201 }] },
       exercise: { id: 201, setsCount: 2 },
     });
@@ -535,72 +647,104 @@ describe('CommonWorkoutsService', () => {
   });
 
   it('builds workout summary for active and historical workout ids', async () => {
-    jest.spyOn(service as any, 'getCommonWorkoutEntityForUser').mockResolvedValue({
-      id: 12,
-      name: 'Workout',
-      status: 'active',
-      startedAt: new Date('2026-04-20T10:00:00.000Z'),
-      finishedAt: null,
-      template: null,
-      participants: [
-        {
-          id: 1,
-          userId: 15,
-          user: { id: 15, email: 'adam@example.com', name: 'Adam', avatarPath: null },
-        },
-        {
-          id: 2,
-          userId: 16,
-          user: { id: 16, email: 'ewa@example.com', name: 'Ewa', avatarPath: null },
-        },
-      ],
-      exercises: [
-        {
-          id: 101,
-          participantId: 1,
-          participant: {
+    jest
+      .spyOn(service as any, 'getCommonWorkoutEntityForUser')
+      .mockResolvedValue({
+        id: 12,
+        name: 'Workout',
+        status: 'active',
+        startedAt: new Date('2026-04-20T10:00:00.000Z'),
+        finishedAt: null,
+        template: null,
+        participants: [
+          {
             id: 1,
             userId: 15,
-            user: { id: 15, email: 'adam@example.com', name: 'Adam', avatarPath: null },
-          },
-          order: 0,
-          exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
-          participantSets: [
-            {
-              id: 1001,
-              participantId: 1,
-              setNumber: 1,
-              currentWeight: 100,
-              currentReps: 5,
-              repMax: 116,
-              confirmed: true,
+            user: {
+              id: 15,
+              email: 'adam@example.com',
+              name: 'Adam',
+              avatarPath: null,
             },
-          ],
-        },
-        {
-          id: 102,
-          participantId: 2,
-          participant: {
+          },
+          {
             id: 2,
             userId: 16,
-            user: { id: 16, email: 'ewa@example.com', name: 'Ewa', avatarPath: null },
-          },
-          order: 0,
-          exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
-          participantSets: [
-            {
-              id: 1002,
-              participantId: 2,
-              setNumber: 1,
-              currentWeight: 80,
-              currentReps: 10,
-              repMax: 107,
-              confirmed: true,
+            user: {
+              id: 16,
+              email: 'ewa@example.com',
+              name: 'Ewa',
+              avatarPath: null,
             },
-          ],
-        },
-      ],
-    } as never);
+          },
+        ],
+        exercises: [
+          {
+            id: 101,
+            participantId: 1,
+            participant: {
+              id: 1,
+              userId: 15,
+              user: {
+                id: 15,
+                email: 'adam@example.com',
+                name: 'Adam',
+                avatarPath: null,
+              },
+            },
+            order: 0,
+            exercise: {
+              id: 7,
+              name: 'Bench Press',
+              description: null,
+              muscleGroups: ['chest'],
+            },
+            participantSets: [
+              {
+                id: 1001,
+                participantId: 1,
+                setNumber: 1,
+                currentWeight: 100,
+                currentReps: 5,
+                repMax: 116,
+                confirmed: true,
+              },
+            ],
+          },
+          {
+            id: 102,
+            participantId: 2,
+            participant: {
+              id: 2,
+              userId: 16,
+              user: {
+                id: 16,
+                email: 'ewa@example.com',
+                name: 'Ewa',
+                avatarPath: null,
+              },
+            },
+            order: 0,
+            exercise: {
+              id: 7,
+              name: 'Bench Press',
+              description: null,
+              muscleGroups: ['chest'],
+            },
+            participantSets: [
+              {
+                id: 1002,
+                participantId: 2,
+                setNumber: 1,
+                currentWeight: 80,
+                currentReps: 10,
+                repMax: 107,
+                confirmed: true,
+              },
+            ],
+          },
+        ],
+      } as never);
 
     await expect(service.getSummaryForUser(15, 12)).resolves.toMatchObject({
       id: 12,
@@ -711,7 +855,12 @@ describe('CommonWorkoutsService', () => {
         {
           id: 201,
           order: 0,
-          exercise: { id: 77, name: 'Squat', description: null, muscleGroups: ['legs'] },
+          exercise: {
+            id: 77,
+            name: 'Squat',
+            description: null,
+            muscleGroups: ['legs'],
+          },
           sets: [
             {
               id: 301,
@@ -730,7 +879,10 @@ describe('CommonWorkoutsService', () => {
 
     workoutRepository.find.mockResolvedValue([historyWorkout] as never);
     workoutRepository.findOne.mockResolvedValue(historyWorkout as never);
-    workoutRepository.save.mockResolvedValue({ ...historyWorkout, name: 'Edited' } as never);
+    workoutRepository.save.mockResolvedValue({
+      ...historyWorkout,
+      name: 'Edited',
+    } as never);
     workoutRepository.delete.mockResolvedValue({ affected: 1 } as never);
 
     await expect(service.getHistoryForUser(15)).resolves.toMatchObject([
@@ -740,7 +892,9 @@ describe('CommonWorkoutsService', () => {
         totalSets: 1,
       },
     ]);
-    await expect(service.getHistoricalByIdForUser(15, 55)).resolves.toMatchObject({
+    await expect(
+      service.getHistoricalByIdForUser(15, 55),
+    ).resolves.toMatchObject({
       id: 55,
       exercises: [
         {

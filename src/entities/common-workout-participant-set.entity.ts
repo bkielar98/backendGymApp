@@ -10,9 +10,13 @@ export class CommonWorkoutParticipantSet {
   @Column()
   participantId: number;
 
-  @ManyToOne(() => CommonWorkoutParticipant, (participant) => participant.sets, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    () => CommonWorkoutParticipant,
+    (participant) => participant.sets,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   participant: CommonWorkoutParticipant;
 
   @Column()
@@ -41,6 +45,9 @@ export class CommonWorkoutParticipantSet {
 
   @Column({ nullable: true })
   currentReps: number | null;
+
+  @Column({ nullable: true })
+  durationSeconds: number | null;
 
   @Column('float', { nullable: true })
   repMax: number | null;

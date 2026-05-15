@@ -9,7 +9,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
         participantRepository = {
             findOne: globals_1.jest.fn(),
         };
-        service = new common_workouts_service_1.CommonWorkoutsService({}, participantRepository, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+        service = new common_workouts_service_1.CommonWorkoutsService({}, {}, participantRepository, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
     });
     (0, globals_1.it)('returns null when there is no active common workout', async () => {
         participantRepository.findOne.mockResolvedValue(null);

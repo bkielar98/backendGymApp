@@ -77,6 +77,11 @@ describe('CommonWorkoutsService workflow', () => {
 
     service = new CommonWorkoutsService(
       commonWorkoutRepository as never,
+      {
+        findOne: jest.fn(),
+        create: jest.fn((value) => value),
+        save: jest.fn(),
+      } as never,
       participantRepository as never,
       commonWorkoutExerciseRepository as never,
       participantSetRepository as never,
@@ -108,7 +113,12 @@ describe('CommonWorkoutsService workflow', () => {
       participants: [],
       exercises: [],
     };
-    const soloUser = { id: 14, email: 'solo@example.com', name: 'Solo', avatarPath: null };
+    const soloUser = {
+      id: 14,
+      email: 'solo@example.com',
+      name: 'Solo',
+      avatarPath: null,
+    };
 
     commonWorkoutRepository.save.mockResolvedValue(savedWorkout as never);
     templateRepository.findOne.mockResolvedValue({
@@ -140,26 +150,28 @@ describe('CommonWorkoutsService workflow', () => {
       id: 71,
       name: 'Bench Press',
     } as never);
-    commonWorkoutExerciseRepository.save.mockResolvedValue({ id: 444 } as never);
+    commonWorkoutExerciseRepository.save.mockResolvedValue({
+      id: 444,
+    } as never);
     participantSetRepository.save.mockResolvedValue([] as never);
-    jest
-      .spyOn(service as any, 'getByIdForUser')
-      .mockResolvedValue({
-        id: 33,
-        name: 'Workout',
-        mode: 'solo',
-        isSolo: true,
-        participantCount: 1,
-        participants: [{ id: 101, user: { id: 14 } }],
-        exercises: [{ id: 444, setsCount: 2 }],
-      } as never);
+    jest.spyOn(service as any, 'getByIdForUser').mockResolvedValue({
+      id: 33,
+      name: 'Workout',
+      mode: 'solo',
+      isSolo: true,
+      participantCount: 1,
+      participants: [{ id: 101, user: { id: 14 } }],
+      exercises: [{ id: 444, setsCount: 2 }],
+    } as never);
     jest
       .spyOn(service as any, 'getPreviousSetsByUserIdForExercise')
       .mockResolvedValue(new Map([[14, new Map()]]) as never);
 
     const result = await service.start(14, { templateId: 5 });
 
-    expect(userRepository.findBy).toHaveBeenCalledWith({ id: expect.anything() });
+    expect(userRepository.findBy).toHaveBeenCalledWith({
+      id: expect.anything(),
+    });
     expect(participantRepository.save).toHaveBeenCalledWith([
       expect.objectContaining({
         commonWorkoutId: 33,
@@ -186,7 +198,12 @@ describe('CommonWorkoutsService workflow', () => {
       participants: [],
       exercises: [],
     };
-    const user = { id: 14, email: 'member@example.com', name: 'Member', avatarPath: null };
+    const user = {
+      id: 14,
+      email: 'member@example.com',
+      name: 'Member',
+      avatarPath: null,
+    };
 
     commonWorkoutRepository.save.mockResolvedValue(savedWorkout as never);
     templateRepository.findOne.mockResolvedValue({
@@ -207,14 +224,12 @@ describe('CommonWorkoutsService workflow', () => {
     ] as never);
     participantRepository.find.mockResolvedValue([] as never);
     workoutRepository.find.mockResolvedValue([] as never);
-    jest
-      .spyOn(service as any, 'getByIdForUser')
-      .mockResolvedValue({
-        id: 34,
-        name: 'Shared plan',
-        mode: 'solo',
-        isSolo: true,
-      } as never);
+    jest.spyOn(service as any, 'getByIdForUser').mockResolvedValue({
+      id: 34,
+      name: 'Shared plan',
+      mode: 'solo',
+      isSolo: true,
+    } as never);
 
     await expect(service.start(14, { templateId: 8 })).resolves.toMatchObject({
       id: 34,

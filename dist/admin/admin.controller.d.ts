@@ -1,10 +1,10 @@
-import { Request } from "express";
-import { AdminService } from "./admin.service";
-import { AdminListUsersQueryDto } from "./dto/admin-list-users-query.dto";
-import { AdminUpdateUserRoleDto } from "./dto/admin-update-user-role.dto";
-import { AdminUpdateUserStatusDto } from "./dto/admin-update-user-status.dto";
-import { AdminListUserWorkoutsQueryDto } from "./dto/admin-list-user-workouts-query.dto";
-import { User } from "../entities/user.entity";
+import { Request } from 'express';
+import { AdminService } from './admin.service';
+import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
+import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
+import { AdminUpdateUserStatusDto } from './dto/admin-update-user-status.dto';
+import { AdminListUserWorkoutsQueryDto } from './dto/admin-list-user-workouts-query.dto';
+import { User } from '../entities/user.entity';
 type AuthenticatedRequest = Request & {
     user: User;
 };

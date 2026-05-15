@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { CommonWorkout } from '../entities/common-workout.entity';
+import { CommonWorkoutBlock } from '../entities/common-workout-block.entity';
 import { CommonWorkoutParticipant } from '../entities/common-workout-participant.entity';
 import { CommonWorkoutExercise } from '../entities/common-workout-exercise.entity';
 import { CommonWorkoutParticipantSet } from '../entities/common-workout-participant-set.entity';
@@ -21,6 +22,7 @@ import { CommonWorkoutsService } from './common-workouts.service';
     AuthModule,
     TypeOrmModule.forFeature([
       CommonWorkout,
+      CommonWorkoutBlock,
       CommonWorkoutParticipant,
       CommonWorkoutExercise,
       CommonWorkoutParticipantSet,

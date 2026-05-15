@@ -1,5 +1,6 @@
 import { Repository } from 'typeorm';
 import { CommonWorkout, CommonWorkoutStatus } from '../entities/common-workout.entity';
+import { CommonWorkoutBlock, CommonWorkoutBlockStatus } from '../entities/common-workout-block.entity';
 import { CommonWorkoutParticipant } from '../entities/common-workout-participant.entity';
 import { CommonWorkoutExercise } from '../entities/common-workout-exercise.entity';
 import { CommonWorkoutParticipantSet } from '../entities/common-workout-participant-set.entity';
@@ -14,12 +15,14 @@ import { CommonWorkoutsGateway } from './common-workouts.gateway';
 import { StartCommonWorkoutDto } from './dto/start-common-workout.dto';
 import { UpdateCommonWorkoutDto } from './dto/update-common-workout.dto';
 import { AddCommonWorkoutExerciseDto } from './dto/add-common-workout-exercise.dto';
+import { CreateCommonWorkoutBlockDto } from './dto/create-common-workout-block.dto';
 import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-workout-exercise-position.dto';
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
 export declare class CommonWorkoutsService {
     private readonly commonWorkoutRepository;
+    private readonly commonWorkoutBlockRepository;
     private readonly participantRepository;
     private readonly commonWorkoutExerciseRepository;
     private readonly participantSetRepository;
@@ -32,7 +35,7 @@ export declare class CommonWorkoutsService {
     private readonly personalBestRepository;
     private readonly gateway;
     private readonly logger;
-    constructor(commonWorkoutRepository: Repository<CommonWorkout>, participantRepository: Repository<CommonWorkoutParticipant>, commonWorkoutExerciseRepository: Repository<CommonWorkoutExercise>, participantSetRepository: Repository<CommonWorkoutParticipantSet>, workoutRepository: Repository<Workout>, workoutExerciseRepository: Repository<WorkoutExercise>, workoutSetRepository: Repository<WorkoutSet>, templateRepository: Repository<WorkoutTemplate>, exerciseRepository: Repository<Exercise>, userRepository: Repository<User>, personalBestRepository: Repository<UserExercisePersonalBest>, gateway: CommonWorkoutsGateway);
+    constructor(commonWorkoutRepository: Repository<CommonWorkout>, commonWorkoutBlockRepository: Repository<CommonWorkoutBlock>, participantRepository: Repository<CommonWorkoutParticipant>, commonWorkoutExerciseRepository: Repository<CommonWorkoutExercise>, participantSetRepository: Repository<CommonWorkoutParticipantSet>, workoutRepository: Repository<Workout>, workoutExerciseRepository: Repository<WorkoutExercise>, workoutSetRepository: Repository<WorkoutSet>, templateRepository: Repository<WorkoutTemplate>, exerciseRepository: Repository<Exercise>, userRepository: Repository<User>, personalBestRepository: Repository<UserExercisePersonalBest>, gateway: CommonWorkoutsGateway);
     start(userId: number, dto: StartCommonWorkoutDto): Promise<{
         participants: {
             id: number;
@@ -44,7 +47,54 @@ export declare class CommonWorkoutsService {
                 avatarUrl: string;
             };
         }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
         exercises: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -58,6 +108,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -72,6 +123,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         totalSets: number;
         confirmedSets: number;
@@ -92,7 +144,54 @@ export declare class CommonWorkoutsService {
                 avatarUrl: string;
             };
         }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
         exercises: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -106,6 +205,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -120,6 +220,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         totalSets: number;
         confirmedSets: number;
@@ -129,6 +230,94 @@ export declare class CommonWorkoutsService {
             name: string;
         };
     }>;
+    listForUser(userId: number): Promise<{
+        participants: {
+            id: number;
+            user: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+            };
+        }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
+        exercises: {
+            id: number;
+            workoutExerciseId: number;
+            userId: number;
+            order: number;
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            setsCount: number;
+            confirmedSets: number;
+        }[];
+        id: number;
+        name: string;
+        status: CommonWorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        blockCount: number;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
+    }[]>;
     finishActive(userId: number): Promise<{
         participants: {
             id: number;
@@ -140,7 +329,54 @@ export declare class CommonWorkoutsService {
                 avatarUrl: string;
             };
         }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
         exercises: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -154,6 +390,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -168,6 +405,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         totalSets: number;
         confirmedSets: number;
@@ -188,7 +426,54 @@ export declare class CommonWorkoutsService {
                 avatarUrl: string;
             };
         }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
         exercises: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -202,6 +487,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -216,6 +502,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         totalSets: number;
         confirmedSets: number;
@@ -236,7 +523,54 @@ export declare class CommonWorkoutsService {
                 avatarUrl: string;
             };
         }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
         exercises: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -256,6 +590,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         totalSets: number;
         confirmedSets: number;
@@ -660,6 +995,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         exerciseNames: string[];
         template: {
@@ -866,6 +1202,8 @@ export declare class CommonWorkoutsService {
         };
     }>;
     getExerciseByIdForUser(userId: number, commonWorkoutId: number, commonWorkoutExerciseId: number): Promise<{
+        id: number;
+        workoutExerciseId: number;
         userId: number;
         order: number;
         exerciseId: number;
@@ -879,9 +1217,56 @@ export declare class CommonWorkoutsService {
             previousReps: number;
             currentWeight: number;
             currentReps: number;
+            durationSeconds: number;
             repMax: number;
             confirmed: boolean;
         }[];
+    }>;
+    getBlockForUser(userId: number, commonWorkoutId: number, blockId: number): Promise<{
+        id: number;
+        order: number;
+        status: CommonWorkoutBlockStatus;
+        completedAt: any;
+        defaultExercise: any;
+        users: {
+            sets?: {
+                id: number;
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                durationSeconds: number;
+                repMax: number;
+                confirmed: boolean;
+            }[];
+            availableActions?: {
+                changeExercise: boolean;
+                addSet: boolean;
+                updateOwnSets: boolean;
+                removeOwnSets: boolean;
+            };
+            participantId: number;
+            user: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+            };
+            workoutExerciseId: number;
+            exercise: {
+                id: number;
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+            completed: boolean;
+            completedAt: Date;
+            setsCount: number;
+            confirmedSets: number;
+        }[];
+        workoutId: number;
     }>;
     updateCommonWorkout(userId: number, commonWorkoutId: number, dto: UpdateCommonWorkoutDto): Promise<{
         workout: {
@@ -895,7 +1280,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -915,6 +1347,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -942,7 +1375,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -962,6 +1442,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -971,23 +1452,187 @@ export declare class CommonWorkoutsService {
                 name: string;
             };
         };
-        exercise: {
-            userId: number;
+        block: {
+            id: number;
             order: number;
-            exerciseId: number;
-            exerciseName: string;
-            exerciseDescription: string;
-            exerciseMuscleGroups: string[];
-            sets: {
-                id: number;
-                setNumber: number;
-                previousWeight: number;
-                previousReps: number;
-                currentWeight: number;
-                currentReps: number;
-                repMax: number;
-                confirmed: boolean;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
             }[];
+            workoutId: number;
+        };
+    }>;
+    addBlock(userId: number, commonWorkoutId: number, dto: CreateCommonWorkoutBlockDto): Promise<{
+        workout: {
+            participants: {
+                id: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+            }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
+            exercises: {
+                id: number;
+                workoutExerciseId: number;
+                userId: number;
+                order: number;
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+            id: number;
+            name: string;
+            status: CommonWorkoutStatus;
+            mode: string;
+            isSolo: boolean;
+            participantCount: number;
+            startedAt: Date;
+            finishedAt: Date;
+            durationSeconds: number;
+            durationLabel: string;
+            blockCount: number;
+            exerciseCount: number;
+            totalSets: number;
+            confirmedSets: number;
+            exerciseNames: string[];
+            template: {
+                id: number;
+                name: string;
+            };
+        };
+        block: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+            workoutId: number;
         };
     }>;
     changeExercisePosition(userId: number, commonWorkoutId: number, exerciseOrder: number, dto: ChangeCommonWorkoutExercisePositionDto): Promise<{
@@ -1002,7 +1647,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -1022,6 +1714,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -1032,6 +1725,8 @@ export declare class CommonWorkoutsService {
             };
         };
         exercise: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -1045,6 +1740,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -1062,7 +1758,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -1082,6 +1825,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -1092,6 +1836,8 @@ export declare class CommonWorkoutsService {
             };
         };
         exercise: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -1105,6 +1851,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -1122,7 +1869,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -1142,6 +1936,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -1164,7 +1959,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -1184,6 +2026,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -1194,6 +2037,8 @@ export declare class CommonWorkoutsService {
             };
         };
         exercise: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -1207,6 +2052,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -1224,7 +2070,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -1244,6 +2137,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -1254,6 +2148,8 @@ export declare class CommonWorkoutsService {
             };
         };
         exercise: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -1267,6 +2163,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -1284,7 +2181,54 @@ export declare class CommonWorkoutsService {
                     avatarUrl: string;
                 };
             }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
             exercises: {
+                id: number;
+                workoutExerciseId: number;
                 userId: number;
                 order: number;
                 exerciseId: number;
@@ -1304,6 +2248,7 @@ export declare class CommonWorkoutsService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
+            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -1314,6 +2259,8 @@ export declare class CommonWorkoutsService {
             };
         };
         exercise: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -1327,6 +2274,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -1343,7 +2291,54 @@ export declare class CommonWorkoutsService {
                 avatarUrl: string;
             };
         }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
         exercises: {
+            id: number;
+            workoutExerciseId: number;
             userId: number;
             order: number;
             exerciseId: number;
@@ -1357,6 +2352,7 @@ export declare class CommonWorkoutsService {
                 previousReps: number;
                 currentWeight: number;
                 currentReps: number;
+                durationSeconds: number;
                 repMax: number;
                 confirmed: boolean;
             }[];
@@ -1371,6 +2367,7 @@ export declare class CommonWorkoutsService {
         finishedAt: Date;
         durationSeconds: number;
         durationLabel: string;
+        blockCount: number;
         exerciseCount: number;
         totalSets: number;
         confirmedSets: number;
@@ -1386,7 +2383,13 @@ export declare class CommonWorkoutsService {
     private logPayloadMetrics;
     private getWorkoutResponse;
     private getWorkoutExerciseResponse;
+    private getBlockResponse;
     private createCommonExercise;
+    private createCommonWorkoutBlock;
+    private getOrCreateCommonWorkoutBlock;
+    private syncWorkoutExerciseCompletion;
+    private syncWorkoutBlockCompletion;
+    private hasValidTrainingValue;
     private createIndividualWorkoutFromCommonWorkout;
     private ensureUsersExist;
     private ensureParticipantsHaveNoActiveWorkouts;
@@ -1421,6 +2424,10 @@ export declare class CommonWorkoutsService {
     private mapHistoricalWorkoutPerformanceSummary;
     private mapHistoricalWorkout;
     private mapCommonWorkoutExerciseDetail;
+    private mapWorkoutBlocks;
+    private mapLegacyWorkoutBlock;
+    private mapBlockUserExercise;
+    private getLegacyBlockOrders;
     private mapWorkoutExerciseIndex;
     private mapCommonParticipantPerformance;
     private mapCommonExercisePerformance;
@@ -1435,6 +2442,7 @@ export declare class CommonWorkoutsService {
     private mapHistoricalWorkoutExercise;
     private mapParticipantSummary;
     private mapWorkoutExercise;
+    private mapCommonSet;
     private compareParticipantExercises;
     private compareSetPerformance;
     private formatSetLabel;

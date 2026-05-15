@@ -6,7 +6,9 @@ const common_workouts_service_1 = require("./common-workouts.service");
 (0, globals_1.describe)('CommonWorkoutsService', () => {
     let service;
     let commonWorkoutRepository;
+    let commonWorkoutBlockRepository;
     let participantSetRepository;
+    let commonWorkoutExerciseRepository;
     let workoutRepository;
     let workoutExerciseRepository;
     let workoutSetRepository;
@@ -16,8 +18,18 @@ const common_workouts_service_1 = require("./common-workouts.service");
         commonWorkoutRepository = {
             delete: globals_1.jest.fn(),
         };
+        commonWorkoutBlockRepository = {
+            findOne: globals_1.jest.fn(),
+            create: globals_1.jest.fn((value) => value),
+            save: globals_1.jest.fn(),
+        };
         participantSetRepository = {
             update: globals_1.jest.fn(),
+        };
+        commonWorkoutExerciseRepository = {
+            findOne: globals_1.jest.fn(),
+            create: globals_1.jest.fn((value) => value),
+            save: globals_1.jest.fn(),
         };
         workoutRepository = {
             create: globals_1.jest.fn(),
@@ -45,7 +57,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
             create: globals_1.jest.fn((value) => value),
             save: globals_1.jest.fn(),
         };
-        service = new common_workouts_service_1.CommonWorkoutsService(commonWorkoutRepository, {}, {}, participantSetRepository, workoutRepository, workoutExerciseRepository, workoutSetRepository, {}, {}, {}, personalBestRepository, gateway);
+        service = new common_workouts_service_1.CommonWorkoutsService(commonWorkoutRepository, commonWorkoutBlockRepository, {}, commonWorkoutExerciseRepository, participantSetRepository, workoutRepository, workoutExerciseRepository, workoutSetRepository, {}, {}, {}, personalBestRepository, gateway);
     });
     (0, globals_1.it)('does not emit update when room has no subscribers', () => {
         gateway.hasSubscribers.mockReturnValue(false);
@@ -65,7 +77,9 @@ const common_workouts_service_1 = require("./common-workouts.service");
     (0, globals_1.it)('discards active workout and emits event when room has subscribers', async () => {
         gateway.hasSubscribers.mockReturnValue(true);
         commonWorkoutRepository.delete.mockResolvedValue({ affected: 1 });
-        globals_1.jest.spyOn(service, 'getActiveCommonWorkoutEntityForUser').mockResolvedValue({
+        globals_1.jest
+            .spyOn(service, 'getActiveCommonWorkoutEntityForUser')
+            .mockResolvedValue({
             id: 44,
             status: 'active',
         });
@@ -98,6 +112,9 @@ const common_workouts_service_1 = require("./common-workouts.service");
             workout: { id: 44 },
             exercise: { id: 201 },
         });
+        globals_1.jest
+            .spyOn(service, 'syncWorkoutExerciseCompletion')
+            .mockResolvedValue(undefined);
         await (0, globals_1.expect)(service.updateSet(14, 301, {
             currentWeight: 85,
             currentReps: 6,
@@ -108,6 +125,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
         (0, globals_1.expect)(participantSetRepository.update).toHaveBeenCalledWith(301, {
             currentWeight: 85,
             currentReps: 6,
+            durationSeconds: undefined,
             repMax: globals_1.expect.any(Number),
             confirmed: true,
         });
@@ -185,6 +203,8 @@ const common_workouts_service_1 = require("./common-workouts.service");
         (0, globals_1.expect)(payload.participantCount).toBe(1);
         (0, globals_1.expect)(payload.exercises).toEqual([
             {
+                id: 201,
+                workoutExerciseId: 201,
                 userId: 1,
                 order: 0,
                 exerciseId: 44,
@@ -199,6 +219,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
                         previousReps: 8,
                         currentWeight: 85,
                         currentReps: 6,
+                        durationSeconds: null,
                         repMax: 102,
                         confirmed: true,
                     },
@@ -249,12 +270,15 @@ const common_workouts_service_1 = require("./common-workouts.service");
                     previousReps: 8,
                     currentWeight: 85,
                     currentReps: 6,
+                    durationSeconds: null,
                     repMax: 102,
                     confirmed: true,
                 },
             ],
         });
         (0, globals_1.expect)(payload).toEqual({
+            id: 201,
+            workoutExerciseId: 201,
             userId: 1,
             order: 0,
             exerciseId: 44,
@@ -269,6 +293,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
                     previousReps: 8,
                     currentWeight: 85,
                     currentReps: 6,
+                    durationSeconds: null,
                     repMax: 102,
                     confirmed: true,
                 },
@@ -336,6 +361,8 @@ const common_workouts_service_1 = require("./common-workouts.service");
         (0, globals_1.expect)(payload.confirmedSets).toBe(1);
         (0, globals_1.expect)(payload.exercises).toEqual([
             {
+                id: 201,
+                workoutExerciseId: 201,
                 userId: 1,
                 order: 0,
                 exerciseId: 44,
@@ -347,6 +374,65 @@ const common_workouts_service_1 = require("./common-workouts.service");
             },
         ]);
         (0, globals_1.expect)(payload.exercises[0]).not.toHaveProperty('participants');
+    });
+    (0, globals_1.it)('finds active workout exercise by order, row id or exercise id', () => {
+        const exercises = [
+            { id: 201, order: 0, exerciseId: 44 },
+            { id: 202, order: 1, exerciseId: 45 },
+        ];
+        (0, globals_1.expect)(service.getParticipantExerciseByOrder(exercises, 0)).toMatchObject({
+            id: 201,
+        });
+        (0, globals_1.expect)(service.getParticipantExerciseByOrder(exercises, 202)).toMatchObject({
+            id: 202,
+        });
+        (0, globals_1.expect)(service.getParticipantExerciseByOrder(exercises, 45)).toMatchObject({
+            id: 202,
+        });
+    });
+    (0, globals_1.it)('automatically completes user exercise and block when all participant exercises are valid', async () => {
+        commonWorkoutExerciseRepository.findOne = globals_1.jest.fn().mockResolvedValue({
+            id: 201,
+            blockId: 301,
+            completed: false,
+            completedAt: null,
+            participantSets: [
+                {
+                    id: 401,
+                    confirmed: true,
+                    currentReps: 10,
+                    durationSeconds: null,
+                },
+            ],
+        });
+        commonWorkoutBlockRepository.findOne.mockResolvedValue({
+            id: 301,
+            status: 'active',
+            completedAt: null,
+            userExercises: [
+                {
+                    id: 201,
+                    completed: true,
+                    participantSets: [],
+                },
+                {
+                    id: 202,
+                    completed: true,
+                    participantSets: [],
+                },
+            ],
+        });
+        commonWorkoutExerciseRepository.save.mockResolvedValue(undefined);
+        commonWorkoutBlockRepository.save.mockResolvedValue(undefined);
+        await service.syncWorkoutExerciseCompletion(201);
+        (0, globals_1.expect)(commonWorkoutExerciseRepository.save).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            completed: true,
+            completedAt: globals_1.expect.any(Date),
+        }));
+        (0, globals_1.expect)(commonWorkoutBlockRepository.save).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            status: 'completed',
+            completedAt: globals_1.expect.any(Date),
+        }));
     });
     (0, globals_1.it)('builds exercise mutation response with workout index and exercise detail', async () => {
         globals_1.jest
@@ -458,7 +544,9 @@ const common_workouts_service_1 = require("./common-workouts.service");
         }));
     });
     (0, globals_1.it)('builds workout summary for active and historical workout ids', async () => {
-        globals_1.jest.spyOn(service, 'getCommonWorkoutEntityForUser').mockResolvedValue({
+        globals_1.jest
+            .spyOn(service, 'getCommonWorkoutEntityForUser')
+            .mockResolvedValue({
             id: 12,
             name: 'Workout',
             status: 'active',
@@ -469,12 +557,22 @@ const common_workouts_service_1 = require("./common-workouts.service");
                 {
                     id: 1,
                     userId: 15,
-                    user: { id: 15, email: 'adam@example.com', name: 'Adam', avatarPath: null },
+                    user: {
+                        id: 15,
+                        email: 'adam@example.com',
+                        name: 'Adam',
+                        avatarPath: null,
+                    },
                 },
                 {
                     id: 2,
                     userId: 16,
-                    user: { id: 16, email: 'ewa@example.com', name: 'Ewa', avatarPath: null },
+                    user: {
+                        id: 16,
+                        email: 'ewa@example.com',
+                        name: 'Ewa',
+                        avatarPath: null,
+                    },
                 },
             ],
             exercises: [
@@ -484,10 +582,20 @@ const common_workouts_service_1 = require("./common-workouts.service");
                     participant: {
                         id: 1,
                         userId: 15,
-                        user: { id: 15, email: 'adam@example.com', name: 'Adam', avatarPath: null },
+                        user: {
+                            id: 15,
+                            email: 'adam@example.com',
+                            name: 'Adam',
+                            avatarPath: null,
+                        },
                     },
                     order: 0,
-                    exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
+                    exercise: {
+                        id: 7,
+                        name: 'Bench Press',
+                        description: null,
+                        muscleGroups: ['chest'],
+                    },
                     participantSets: [
                         {
                             id: 1001,
@@ -506,10 +614,20 @@ const common_workouts_service_1 = require("./common-workouts.service");
                     participant: {
                         id: 2,
                         userId: 16,
-                        user: { id: 16, email: 'ewa@example.com', name: 'Ewa', avatarPath: null },
+                        user: {
+                            id: 16,
+                            email: 'ewa@example.com',
+                            name: 'Ewa',
+                            avatarPath: null,
+                        },
                     },
                     order: 0,
-                    exercise: { id: 7, name: 'Bench Press', description: null, muscleGroups: ['chest'] },
+                    exercise: {
+                        id: 7,
+                        name: 'Bench Press',
+                        description: null,
+                        muscleGroups: ['chest'],
+                    },
                     participantSets: [
                         {
                             id: 1002,
@@ -628,7 +746,12 @@ const common_workouts_service_1 = require("./common-workouts.service");
                 {
                     id: 201,
                     order: 0,
-                    exercise: { id: 77, name: 'Squat', description: null, muscleGroups: ['legs'] },
+                    exercise: {
+                        id: 77,
+                        name: 'Squat',
+                        description: null,
+                        muscleGroups: ['legs'],
+                    },
                     sets: [
                         {
                             id: 301,
@@ -646,7 +769,10 @@ const common_workouts_service_1 = require("./common-workouts.service");
         };
         workoutRepository.find.mockResolvedValue([historyWorkout]);
         workoutRepository.findOne.mockResolvedValue(historyWorkout);
-        workoutRepository.save.mockResolvedValue({ ...historyWorkout, name: 'Edited' });
+        workoutRepository.save.mockResolvedValue({
+            ...historyWorkout,
+            name: 'Edited',
+        });
         workoutRepository.delete.mockResolvedValue({ affected: 1 });
         await (0, globals_1.expect)(service.getHistoryForUser(15)).resolves.toMatchObject([
             {

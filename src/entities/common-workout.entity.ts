@@ -9,6 +9,7 @@ import { User } from './user.entity';
 import { WorkoutTemplate } from './workout-template.entity';
 import { CommonWorkoutParticipant } from './common-workout-participant.entity';
 import { CommonWorkoutExercise } from './common-workout-exercise.entity';
+import { CommonWorkoutBlock } from './common-workout-block.entity';
 
 export enum CommonWorkoutStatus {
   ACTIVE = 'active',
@@ -48,13 +49,26 @@ export class CommonWorkout {
   @Column({ type: 'timestamp', nullable: true })
   finishedAt: Date | null;
 
-  @OneToMany(() => CommonWorkoutParticipant, (participant) => participant.commonWorkout, {
-    cascade: true,
-  })
+  @OneToMany(
+    () => CommonWorkoutParticipant,
+    (participant) => participant.commonWorkout,
+    {
+      cascade: true,
+    },
+  )
   participants: CommonWorkoutParticipant[];
 
-  @OneToMany(() => CommonWorkoutExercise, (exercise) => exercise.commonWorkout, {
+  @OneToMany(
+    () => CommonWorkoutExercise,
+    (exercise) => exercise.commonWorkout,
+    {
+      cascade: true,
+    },
+  )
+  exercises: CommonWorkoutExercise[];
+
+  @OneToMany(() => CommonWorkoutBlock, (block) => block.commonWorkout, {
     cascade: true,
   })
-  exercises: CommonWorkoutExercise[];
+  blocks: CommonWorkoutBlock[];
 }

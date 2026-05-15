@@ -22,4 +22,11 @@ export class UpdateCommonWorkoutSetDto {
   @Max(MAX_REPS_PER_SET)
   @Type(() => Number)
   currentReps?: number;
+
+  @ApiPropertyOptional({ example: 45 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  durationSeconds?: number;
 }

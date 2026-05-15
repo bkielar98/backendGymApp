@@ -9,6 +9,7 @@ import { CommonWorkout } from './common-workout.entity';
 import { CommonWorkoutParticipant } from './common-workout-participant.entity';
 import { Exercise } from './exercise.entity';
 import { CommonWorkoutParticipantSet } from './common-workout-participant-set.entity';
+import { CommonWorkoutBlock } from './common-workout-block.entity';
 
 @Entity()
 export class CommonWorkoutExercise {
@@ -26,23 +27,46 @@ export class CommonWorkoutExercise {
   @Column({ nullable: true })
   participantId: number | null;
 
-  @ManyToOne(() => CommonWorkoutParticipant, (participant) => participant.exercises, {
+  @ManyToOne(
+    () => CommonWorkoutParticipant,
+    (participant) => participant.exercises,
+    {
+      nullable: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  participant: CommonWorkoutParticipant | null;
+
+  @Column({ nullable: true })
+  blockId: number | null;
+
+  @ManyToOne(() => CommonWorkoutBlock, (block) => block.userExercises, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  participant: CommonWorkoutParticipant | null;
+  block: CommonWorkoutBlock | null;
 
-  @Column()
-  exerciseId: number;
+  @Column({ nullable: true })
+  exerciseId: number | null;
 
-  @ManyToOne(() => Exercise, { onDelete: 'CASCADE' })
-  exercise: Exercise;
+  @ManyToOne(() => Exercise, { nullable: true, onDelete: 'SET NULL' })
+  exercise: Exercise | null;
 
   @Column({ default: 0 })
   order: number;
 
-  @OneToMany(() => CommonWorkoutParticipantSet, (set) => set.commonWorkoutExercise, {
-    cascade: true,
-  })
+  @Column({ default: false })
+  completed: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt: Date | null;
+
+  @OneToMany(
+    () => CommonWorkoutParticipantSet,
+    (set) => set.commonWorkoutExercise,
+    {
+      cascade: true,
+    },
+  )
   participantSets: CommonWorkoutParticipantSet[];
 }

@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const auth_module_1 = require("../auth/auth.module");
 const common_workout_entity_1 = require("../entities/common-workout.entity");
+const common_workout_block_entity_1 = require("../entities/common-workout-block.entity");
 const common_workout_participant_entity_1 = require("../entities/common-workout-participant.entity");
 const common_workout_exercise_entity_1 = require("../entities/common-workout-exercise.entity");
 const common_workout_participant_set_entity_1 = require("../entities/common-workout-participant-set.entity");
@@ -33,6 +34,7 @@ exports.CommonWorkoutsModule = CommonWorkoutsModule = __decorate([
             auth_module_1.AuthModule,
             typeorm_1.TypeOrmModule.forFeature([
                 common_workout_entity_1.CommonWorkout,
+                common_workout_block_entity_1.CommonWorkoutBlock,
                 common_workout_participant_entity_1.CommonWorkoutParticipant,
                 common_workout_exercise_entity_1.CommonWorkoutExercise,
                 common_workout_participant_set_entity_1.CommonWorkoutParticipantSet,

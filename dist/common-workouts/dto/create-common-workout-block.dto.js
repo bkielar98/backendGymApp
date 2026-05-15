@@ -9,38 +9,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateCommonWorkoutSetDto = void 0;
+exports.CreateCommonWorkoutBlockDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const workout_constants_1 = require("../../common/constants/workout.constants");
-class UpdateCommonWorkoutSetDto {
+class CreateCommonWorkoutBlockDto {
 }
-exports.UpdateCommonWorkoutSetDto = UpdateCommonWorkoutSetDto;
+exports.CreateCommonWorkoutBlockDto = CreateCommonWorkoutBlockDto;
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 80 }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(workout_constants_1.MAX_WEIGHT_KG),
-    (0, class_transformer_1.Type)(() => Number),
-    __metadata("design:type", Number)
-], UpdateCommonWorkoutSetDto.prototype, "currentWeight", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 8 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 27 }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(workout_constants_1.MAX_REPS_PER_SET),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
-], UpdateCommonWorkoutSetDto.prototype, "currentReps", void 0);
+], CreateCommonWorkoutBlockDto.prototype, "defaultExerciseId", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 45 }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 0 }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
-], UpdateCommonWorkoutSetDto.prototype, "durationSeconds", void 0);
-//# sourceMappingURL=update-common-workout-set.dto.js.map
+], CreateCommonWorkoutBlockDto.prototype, "order", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 4 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(workout_constants_1.MAX_EXERCISE_SETS),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CreateCommonWorkoutBlockDto.prototype, "setsCount", void 0);
+//# sourceMappingURL=create-common-workout-block.dto.js.map

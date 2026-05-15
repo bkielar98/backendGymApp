@@ -49,7 +49,11 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             create: globals_1.jest.fn((value) => value),
             save: globals_1.jest.fn(),
         };
-        service = new common_workouts_service_1.CommonWorkoutsService(commonWorkoutRepository, participantRepository, commonWorkoutExerciseRepository, participantSetRepository, workoutRepository, { create: globals_1.jest.fn(), save: globals_1.jest.fn() }, { create: globals_1.jest.fn(), save: globals_1.jest.fn() }, templateRepository, exerciseRepository, userRepository, personalBestRepository, {
+        service = new common_workouts_service_1.CommonWorkoutsService(commonWorkoutRepository, {
+            findOne: globals_1.jest.fn(),
+            create: globals_1.jest.fn((value) => value),
+            save: globals_1.jest.fn(),
+        }, participantRepository, commonWorkoutExerciseRepository, participantSetRepository, workoutRepository, { create: globals_1.jest.fn(), save: globals_1.jest.fn() }, { create: globals_1.jest.fn(), save: globals_1.jest.fn() }, templateRepository, exerciseRepository, userRepository, personalBestRepository, {
             hasSubscribers: globals_1.jest.fn().mockReturnValue(false),
             emitUpdated: globals_1.jest.fn(),
             emitFinished: globals_1.jest.fn(),
@@ -68,7 +72,12 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             participants: [],
             exercises: [],
         };
-        const soloUser = { id: 14, email: 'solo@example.com', name: 'Solo', avatarPath: null };
+        const soloUser = {
+            id: 14,
+            email: 'solo@example.com',
+            name: 'Solo',
+            avatarPath: null,
+        };
         commonWorkoutRepository.save.mockResolvedValue(savedWorkout);
         templateRepository.findOne.mockResolvedValue({
             id: 5,
@@ -99,11 +108,11 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             id: 71,
             name: 'Bench Press',
         });
-        commonWorkoutExerciseRepository.save.mockResolvedValue({ id: 444 });
+        commonWorkoutExerciseRepository.save.mockResolvedValue({
+            id: 444,
+        });
         participantSetRepository.save.mockResolvedValue([]);
-        globals_1.jest
-            .spyOn(service, 'getByIdForUser')
-            .mockResolvedValue({
+        globals_1.jest.spyOn(service, 'getByIdForUser').mockResolvedValue({
             id: 33,
             name: 'Workout',
             mode: 'solo',
@@ -116,7 +125,9 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             .spyOn(service, 'getPreviousSetsByUserIdForExercise')
             .mockResolvedValue(new Map([[14, new Map()]]));
         const result = await service.start(14, { templateId: 5 });
-        (0, globals_1.expect)(userRepository.findBy).toHaveBeenCalledWith({ id: globals_1.expect.anything() });
+        (0, globals_1.expect)(userRepository.findBy).toHaveBeenCalledWith({
+            id: globals_1.expect.anything(),
+        });
         (0, globals_1.expect)(participantRepository.save).toHaveBeenCalledWith([
             globals_1.expect.objectContaining({
                 commonWorkoutId: 33,
@@ -142,7 +153,12 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             participants: [],
             exercises: [],
         };
-        const user = { id: 14, email: 'member@example.com', name: 'Member', avatarPath: null };
+        const user = {
+            id: 14,
+            email: 'member@example.com',
+            name: 'Member',
+            avatarPath: null,
+        };
         commonWorkoutRepository.save.mockResolvedValue(savedWorkout);
         templateRepository.findOne.mockResolvedValue({
             id: 8,
@@ -162,9 +178,7 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
         ]);
         participantRepository.find.mockResolvedValue([]);
         workoutRepository.find.mockResolvedValue([]);
-        globals_1.jest
-            .spyOn(service, 'getByIdForUser')
-            .mockResolvedValue({
+        globals_1.jest.spyOn(service, 'getByIdForUser').mockResolvedValue({
             id: 34,
             name: 'Shared plan',
             mode: 'solo',

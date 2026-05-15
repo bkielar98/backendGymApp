@@ -15,6 +15,7 @@ const common_workout_entity_1 = require("./common-workout.entity");
 const common_workout_participant_entity_1 = require("./common-workout-participant.entity");
 const exercise_entity_1 = require("./exercise.entity");
 const common_workout_participant_set_entity_1 = require("./common-workout-participant-set.entity");
+const common_workout_block_entity_1 = require("./common-workout-block.entity");
 let CommonWorkoutExercise = class CommonWorkoutExercise {
 };
 exports.CommonWorkoutExercise = CommonWorkoutExercise;
@@ -44,17 +45,36 @@ __decorate([
     __metadata("design:type", common_workout_participant_entity_1.CommonWorkoutParticipant)
 ], CommonWorkoutExercise.prototype, "participant", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], CommonWorkoutExercise.prototype, "blockId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => common_workout_block_entity_1.CommonWorkoutBlock, (block) => block.userExercises, {
+        nullable: true,
+        onDelete: 'CASCADE',
+    }),
+    __metadata("design:type", common_workout_block_entity_1.CommonWorkoutBlock)
+], CommonWorkoutExercise.prototype, "block", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
 ], CommonWorkoutExercise.prototype, "exerciseId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => exercise_entity_1.Exercise, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => exercise_entity_1.Exercise, { nullable: true, onDelete: 'SET NULL' }),
     __metadata("design:type", exercise_entity_1.Exercise)
 ], CommonWorkoutExercise.prototype, "exercise", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: 0 }),
     __metadata("design:type", Number)
 ], CommonWorkoutExercise.prototype, "order", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], CommonWorkoutExercise.prototype, "completed", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], CommonWorkoutExercise.prototype, "completedAt", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => common_workout_participant_set_entity_1.CommonWorkoutParticipantSet, (set) => set.commonWorkoutExercise, {
         cascade: true,

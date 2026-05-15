@@ -14,6 +14,7 @@ describe('CommonWorkoutsService active state', () => {
 
     service = new CommonWorkoutsService(
       {} as never,
+      {} as never,
       participantRepository as never,
       {} as never,
       {} as never,
