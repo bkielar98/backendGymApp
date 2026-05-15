@@ -33,7 +33,7 @@ import { AdminModule } from './admin/admin.module';
       synchronize: true,
       autoLoadEntities: true,
       extra: {
-        max: Number(process.env.DB_POOL_MAX ?? 1),
+        max: Number(process.env.DB_POOL_MAX ?? 5),
       },
       ssl: {
         rejectUnauthorized: false,

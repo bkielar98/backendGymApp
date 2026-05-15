@@ -24,9 +24,11 @@ const common_workouts_service_1 = require("./common-workouts.service");
             save: globals_1.jest.fn(),
         };
         participantSetRepository = {
+            find: globals_1.jest.fn(),
             update: globals_1.jest.fn(),
         };
         commonWorkoutExerciseRepository = {
+            find: globals_1.jest.fn(),
             findOne: globals_1.jest.fn(),
             create: globals_1.jest.fn((value) => value),
             save: globals_1.jest.fn(),
@@ -396,32 +398,30 @@ const common_workouts_service_1 = require("./common-workouts.service");
             blockId: 301,
             completed: false,
             completedAt: null,
-            participantSets: [
-                {
-                    id: 401,
-                    confirmed: true,
-                    currentReps: 10,
-                    durationSeconds: null,
-                },
-            ],
         });
+        participantSetRepository.find.mockResolvedValue([
+            {
+                id: 401,
+                confirmed: true,
+                currentReps: 10,
+                durationSeconds: null,
+            },
+        ]);
         commonWorkoutBlockRepository.findOne.mockResolvedValue({
             id: 301,
             status: 'active',
             completedAt: null,
-            userExercises: [
-                {
-                    id: 201,
-                    completed: true,
-                    participantSets: [],
-                },
-                {
-                    id: 202,
-                    completed: true,
-                    participantSets: [],
-                },
-            ],
         });
+        commonWorkoutExerciseRepository.find.mockResolvedValue([
+            {
+                id: 201,
+                completed: true,
+            },
+            {
+                id: 202,
+                completed: true,
+            },
+        ]);
         commonWorkoutExerciseRepository.save.mockResolvedValue(undefined);
         commonWorkoutBlockRepository.save.mockResolvedValue(undefined);
         await service.syncWorkoutExerciseCompletion(201);

@@ -2397,10 +2397,15 @@ export declare class CommonWorkoutsService {
     private ensureCommonWorkoutExerciseLimit;
     private ensureCommonWorkoutTotalSetsLimit;
     private getCommonWorkoutTotalSets;
+    private countCommonWorkoutSets;
     private getActiveCommonWorkoutEntityForUser;
     private getActiveCommonWorkoutStructureEntityForUser;
     private getCommonWorkoutEntityForUser;
+    private getCommonWorkoutIndexEntityForUser;
+    private getCommonWorkoutBlockEntityForUser;
     private getCommonWorkoutStructureEntityForUser;
+    private attachCommonWorkoutGraph;
+    private ensureUserParticipatesInCommonWorkout;
     private getHistoricalWorkoutEntityForUser;
     private getWorkoutParticipantForUser;
     private getSortedParticipantExercises;

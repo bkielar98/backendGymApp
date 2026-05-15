@@ -13,9 +13,11 @@ describe('CommonWorkoutsService', () => {
     save: jest.Mock;
   };
   let participantSetRepository: {
+    find: jest.Mock;
     update: jest.Mock;
   };
   let commonWorkoutExerciseRepository: {
+    find: jest.Mock;
     findOne: jest.Mock;
     create: jest.Mock;
     save: jest.Mock;
@@ -57,9 +59,11 @@ describe('CommonWorkoutsService', () => {
       save: jest.fn(),
     };
     participantSetRepository = {
+      find: jest.fn(),
       update: jest.fn(),
     };
     commonWorkoutExerciseRepository = {
+      find: jest.fn(),
       findOne: jest.fn(),
       create: jest.fn((value) => value),
       save: jest.fn(),
@@ -473,32 +477,30 @@ describe('CommonWorkoutsService', () => {
       blockId: 301,
       completed: false,
       completedAt: null,
-      participantSets: [
-        {
-          id: 401,
-          confirmed: true,
-          currentReps: 10,
-          durationSeconds: null,
-        },
-      ],
     } as never);
+    participantSetRepository.find.mockResolvedValue([
+      {
+        id: 401,
+        confirmed: true,
+        currentReps: 10,
+        durationSeconds: null,
+      },
+    ] as never);
     commonWorkoutBlockRepository.findOne.mockResolvedValue({
       id: 301,
       status: 'active',
       completedAt: null,
-      userExercises: [
-        {
-          id: 201,
-          completed: true,
-          participantSets: [],
-        },
-        {
-          id: 202,
-          completed: true,
-          participantSets: [],
-        },
-      ],
     } as never);
+    commonWorkoutExerciseRepository.find.mockResolvedValue([
+      {
+        id: 201,
+        completed: true,
+      },
+      {
+        id: 202,
+        completed: true,
+      },
+    ] as never);
     commonWorkoutExerciseRepository.save.mockResolvedValue(undefined as never);
     commonWorkoutBlockRepository.save.mockResolvedValue(undefined as never);
 

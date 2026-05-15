@@ -245,7 +245,7 @@ export class CommonWorkoutsService {
   }
 
   async getIndexForUser(userId: number, commonWorkoutId: number) {
-    const commonWorkout = await this.getCommonWorkoutEntityForUser(
+    const commonWorkout = await this.getCommonWorkoutIndexEntityForUser(
       userId,
       commonWorkoutId,
     );
@@ -499,9 +499,10 @@ export class CommonWorkoutsService {
     commonWorkoutId: number,
     blockId: number,
   ) {
-    const commonWorkout = await this.getCommonWorkoutEntityForUser(
+    const commonWorkout = await this.getCommonWorkoutBlockEntityForUser(
       userId,
       commonWorkoutId,
+      blockId,
     );
     const blocks = this.mapWorkoutBlocks(commonWorkout, true);
     const block = blocks.find(
@@ -587,7 +588,6 @@ export class CommonWorkoutsService {
       typeof defaultExerciseId === 'number'
         ? await this.getAccessibleExerciseForUser(userId, defaultExerciseId)
         : null;
-    const exercises = [...(commonWorkout.exercises || [])];
     const existingOrders = [...(commonWorkout.blocks || [])].map(
       (block) => block.order,
     );
@@ -596,13 +596,19 @@ export class CommonWorkoutsService {
       0,
       Math.min(dto.order ?? nextOrder, nextOrder),
     );
+    const setsCount = dto.setsCount ?? 0;
+    const [existingExerciseCount, existingSetsCount] = await Promise.all([
+      this.commonWorkoutExerciseRepository.count({
+        where: { commonWorkoutId: commonWorkout.id },
+      }),
+      this.countCommonWorkoutSets(commonWorkout.id),
+    ]);
 
     this.ensureCommonWorkoutExerciseLimit(
-      exercises.length + participants.length,
+      existingExerciseCount + participants.length,
     );
     this.ensureCommonWorkoutTotalSetsLimit(
-      this.getCommonWorkoutTotalSets(exercises) +
-        (dto.setsCount ?? 0) * participants.length,
+      existingSetsCount + setsCount * participants.length,
     );
 
     const shiftedBlocks = [...(commonWorkout.blocks || [])];
@@ -611,7 +617,12 @@ export class CommonWorkoutsService {
         block.order += 1;
       }
     }
-    await this.commonWorkoutBlockRepository.save(shiftedBlocks);
+    const blocksToShift = shiftedBlocks.filter(
+      (block) => block.order > insertOrder,
+    );
+    if (blocksToShift.length > 0) {
+      await this.commonWorkoutBlockRepository.save(blocksToShift);
+    }
 
     const block = await this.createCommonWorkoutBlock(
       commonWorkout,
@@ -619,15 +630,66 @@ export class CommonWorkoutsService {
       insertOrder,
     );
 
-    for (const participant of participants) {
-      await this.createCommonExercise(
-        commonWorkout.id,
+    const previousSetsByUserId =
+      typeof exercise?.id === 'number' && setsCount > 0
+        ? await this.getPreviousSetsByUserIdForExercise(
+            participants.map((participant) => participant.userId),
+            exercise.id,
+          )
+        : new Map<number, Map<number, WorkoutSet>>();
+    const commonWorkoutExercises = participants.map((participant) =>
+      this.commonWorkoutExerciseRepository.create({
+        commonWorkoutId: commonWorkout.id,
+        participantId: participant.id,
         participant,
-        exercise?.id ?? null,
-        insertOrder,
-        dto.setsCount ?? 0,
+        blockId: block.id,
         block,
+        exerciseId: exercise?.id ?? null,
+        exercise,
+        order: insertOrder,
+        completed: false,
+        completedAt: null,
+        participantSets: [],
+      }),
+    );
+    const savedExercises = await this.commonWorkoutExerciseRepository.save(
+      commonWorkoutExercises,
+    );
+
+    if (setsCount > 0) {
+      const participantById = new Map(
+        participants.map((participant) => [participant.id, participant]),
       );
+      const participantSets = savedExercises.flatMap((savedExercise) => {
+        if (typeof savedExercise.participantId !== 'number') {
+          return [];
+        }
+
+        const participant = participantById.get(savedExercise.participantId);
+        const previousSets = participant
+          ? previousSetsByUserId.get(participant.userId)
+          : undefined;
+
+        return Array.from({ length: setsCount }, (_, index) => {
+          const setNumber = index + 1;
+          const previousSet = previousSets?.get(setNumber);
+
+          return this.participantSetRepository.create({
+            participantId: savedExercise.participantId,
+            commonWorkoutExerciseId: savedExercise.id,
+            setNumber,
+            previousWeight: previousSet?.currentWeight ?? null,
+            previousReps: previousSet?.currentReps ?? null,
+            currentWeight: null,
+            currentReps: null,
+            durationSeconds: null,
+            repMax: null,
+            confirmed: false,
+          });
+        });
+      });
+
+      await this.participantSetRepository.save(participantSets);
     }
 
     const payload = await this.getBlockResponse(
@@ -801,9 +863,9 @@ export class CommonWorkoutsService {
     }
 
     this.ensureCommonWorkoutTotalSetsLimit(
-      this.getCommonWorkoutTotalSets(
-        commonWorkoutExercise.commonWorkout.exercises || [],
-      ) + 1,
+      (await this.countCommonWorkoutSets(
+        commonWorkoutExercise.commonWorkoutId,
+      )) + 1,
     );
 
     const previousSetsByUserId =
@@ -1009,10 +1071,12 @@ export class CommonWorkoutsService {
     commonWorkoutId: number,
     exerciseOrder: number,
   ) {
-    const [workout, exercise] = await Promise.all([
-      this.getIndexForUser(userId, commonWorkoutId),
-      this.getExerciseByIdForUser(userId, commonWorkoutId, exerciseOrder),
-    ]);
+    const workout = await this.getIndexForUser(userId, commonWorkoutId);
+    const exercise = await this.getExerciseByIdForUser(
+      userId,
+      commonWorkoutId,
+      exerciseOrder,
+    );
 
     return { workout, exercise };
   }
@@ -1022,10 +1086,8 @@ export class CommonWorkoutsService {
     commonWorkoutId: number,
     blockId: number,
   ) {
-    const [workout, block] = await Promise.all([
-      this.getIndexForUser(userId, commonWorkoutId),
-      this.getBlockForUser(userId, commonWorkoutId, blockId),
-    ]);
+    const workout = await this.getIndexForUser(userId, commonWorkoutId);
+    const block = await this.getBlockForUser(userId, commonWorkoutId, blockId);
 
     return { workout, block };
   }
@@ -1142,21 +1204,15 @@ export class CommonWorkoutsService {
   private async syncWorkoutExerciseCompletion(commonWorkoutExerciseId: number) {
     const exercise = await this.commonWorkoutExerciseRepository.findOne({
       where: { id: commonWorkoutExerciseId },
-      relations: {
-        participantSets: true,
-        block: {
-          userExercises: {
-            participantSets: true,
-          },
-        },
-      },
     });
 
     if (!exercise) {
       return;
     }
 
-    const sets = exercise.participantSets || [];
+    const sets = await this.participantSetRepository.find({
+      where: { commonWorkoutExerciseId },
+    });
     const completed =
       sets.length > 0 &&
       sets.every((set) => set.confirmed && this.hasValidTrainingValue(set));
@@ -1175,18 +1231,15 @@ export class CommonWorkoutsService {
   private async syncWorkoutBlockCompletion(blockId: number) {
     const block = await this.commonWorkoutBlockRepository.findOne({
       where: { id: blockId },
-      relations: {
-        userExercises: {
-          participantSets: true,
-        },
-      },
     });
 
     if (!block) {
       return;
     }
 
-    const userExercises = block.userExercises || [];
+    const userExercises = await this.commonWorkoutExerciseRepository.find({
+      where: { blockId },
+    });
     const completed =
       userExercises.length > 0 &&
       userExercises.every((exercise) => exercise.completed);
@@ -1352,6 +1405,19 @@ export class CommonWorkoutsService {
     }, 0);
   }
 
+  private countCommonWorkoutSets(commonWorkoutId: number) {
+    return this.participantSetRepository
+      .createQueryBuilder('participantSet')
+      .innerJoin(
+        'participantSet.commonWorkoutExercise',
+        'commonWorkoutExercise',
+      )
+      .where('commonWorkoutExercise.commonWorkoutId = :commonWorkoutId', {
+        commonWorkoutId,
+      })
+      .getCount();
+  }
+
   private async getActiveCommonWorkoutEntityForUser(
     userId: number,
     commonWorkoutId: number,
@@ -1390,27 +1456,6 @@ export class CommonWorkoutsService {
       where: { id: commonWorkoutId },
       relations: {
         template: true,
-        participants: {
-          user: true,
-          sets: true,
-        },
-        blocks: {
-          defaultExercise: true,
-          userExercises: {
-            participant: {
-              user: true,
-            },
-            exercise: true,
-            participantSets: true,
-          },
-        },
-        exercises: {
-          participant: {
-            user: true,
-          },
-          exercise: true,
-          participantSets: true,
-        },
       },
     });
 
@@ -1418,13 +1463,93 @@ export class CommonWorkoutsService {
       throw new NotFoundException('Common workout not found');
     }
 
-    const isParticipant = (commonWorkout.participants || []).some(
-      (participant) => participant.userId === userId,
-    );
+    await this.attachCommonWorkoutGraph(commonWorkout, true);
+    this.ensureUserParticipatesInCommonWorkout(commonWorkout, userId);
 
-    if (!isParticipant) {
+    return commonWorkout;
+  }
+
+  private async getCommonWorkoutIndexEntityForUser(
+    userId: number,
+    commonWorkoutId: number,
+  ) {
+    const commonWorkout = await this.commonWorkoutRepository.findOne({
+      where: { id: commonWorkoutId },
+      relations: {
+        template: true,
+      },
+    });
+
+    if (!commonWorkout) {
       throw new NotFoundException('Common workout not found');
     }
+
+    await this.attachCommonWorkoutGraph(commonWorkout, true);
+    this.ensureUserParticipatesInCommonWorkout(commonWorkout, userId);
+
+    return commonWorkout;
+  }
+
+  private async getCommonWorkoutBlockEntityForUser(
+    userId: number,
+    commonWorkoutId: number,
+    blockIdentifier: number,
+  ) {
+    const commonWorkout = await this.commonWorkoutRepository.findOne({
+      where: { id: commonWorkoutId },
+      relations: {
+        template: true,
+      },
+    });
+
+    if (!commonWorkout) {
+      throw new NotFoundException('Common workout not found');
+    }
+
+    const participants = await this.participantRepository.find({
+      where: { commonWorkoutId },
+      relations: {
+        user: true,
+      },
+      order: { id: 'ASC' },
+    });
+    commonWorkout.participants = participants;
+    this.ensureUserParticipatesInCommonWorkout(commonWorkout, userId);
+
+    const block = await this.commonWorkoutBlockRepository.findOne({
+      where: [
+        { id: blockIdentifier, commonWorkoutId },
+        { order: blockIdentifier, commonWorkoutId },
+      ],
+      relations: {
+        defaultExercise: true,
+      },
+    });
+
+    if (!block) {
+      await this.attachCommonWorkoutGraph(commonWorkout, true);
+      return commonWorkout;
+    }
+
+    const exercises = await this.commonWorkoutExerciseRepository.find({
+      where: { commonWorkoutId, blockId: block.id },
+      relations: {
+        participant: {
+          user: true,
+        },
+        exercise: true,
+        participantSets: true,
+      },
+      order: {
+        participantId: 'ASC',
+        participantSets: {
+          setNumber: 'ASC',
+        },
+      },
+    });
+
+    commonWorkout.blocks = [block];
+    commonWorkout.exercises = exercises;
 
     return commonWorkout;
   }
@@ -1433,29 +1558,71 @@ export class CommonWorkoutsService {
     userId: number,
     commonWorkoutId: number,
   ) {
-    const commonWorkout = await this.commonWorkoutRepository
-      .createQueryBuilder('commonWorkout')
-      .leftJoinAndSelect('commonWorkout.participants', 'participant')
-      .leftJoinAndSelect('participant.user', 'participantUser')
-      .leftJoinAndSelect('commonWorkout.blocks', 'block')
-      .leftJoinAndSelect('block.defaultExercise', 'blockDefaultExercise')
-      .leftJoinAndSelect('commonWorkout.exercises', 'exerciseEntry')
-      .leftJoinAndSelect('exerciseEntry.block', 'exerciseBlock')
-      .leftJoinAndSelect('exerciseEntry.participant', 'exerciseParticipant')
-      .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
-      .leftJoinAndSelect('exerciseEntry.participantSets', 'participantSet')
-      .where('commonWorkout.id = :commonWorkoutId', { commonWorkoutId })
-      .orderBy('block.order', 'ASC')
-      .addOrderBy('exerciseParticipant.id', 'ASC')
-      .addOrderBy('exerciseEntry.order', 'ASC')
-      .addOrderBy('participantSet.setNumber', 'ASC')
-      .addOrderBy('participant.id', 'ASC')
-      .getOne();
+    const commonWorkout = await this.commonWorkoutRepository.findOne({
+      where: { id: commonWorkoutId },
+    });
 
     if (!commonWorkout) {
       throw new NotFoundException('Common workout not found');
     }
 
+    await this.attachCommonWorkoutGraph(commonWorkout, false);
+    this.ensureUserParticipatesInCommonWorkout(commonWorkout, userId);
+
+    return commonWorkout;
+  }
+
+  private async attachCommonWorkoutGraph(
+    commonWorkout: CommonWorkout,
+    includeSets: boolean,
+  ) {
+    const [participants, blocks, exercises] = await Promise.all([
+      this.participantRepository.find({
+        where: { commonWorkoutId: commonWorkout.id },
+        relations: {
+          user: true,
+        },
+        order: { id: 'ASC' },
+      }),
+      this.commonWorkoutBlockRepository.find({
+        where: { commonWorkoutId: commonWorkout.id },
+        relations: {
+          defaultExercise: true,
+        },
+        order: { order: 'ASC' },
+      }),
+      this.commonWorkoutExerciseRepository.find({
+        where: { commonWorkoutId: commonWorkout.id },
+        relations: {
+          participant: {
+            user: true,
+          },
+          exercise: true,
+          ...(includeSets ? { participantSets: true } : {}),
+        },
+        order: {
+          order: 'ASC',
+          participantId: 'ASC',
+          ...(includeSets
+            ? {
+                participantSets: {
+                  setNumber: 'ASC',
+                },
+              }
+            : {}),
+        },
+      }),
+    ]);
+
+    commonWorkout.participants = participants;
+    commonWorkout.blocks = blocks;
+    commonWorkout.exercises = exercises;
+  }
+
+  private ensureUserParticipatesInCommonWorkout(
+    commonWorkout: CommonWorkout,
+    userId: number,
+  ) {
     const isParticipant = (commonWorkout.participants || []).some(
       (participant) => participant.userId === userId,
     );
@@ -1463,8 +1630,6 @@ export class CommonWorkoutsService {
     if (!isParticipant) {
       throw new NotFoundException('Common workout not found');
     }
-
-    return commonWorkout;
   }
 
   private async getHistoricalWorkoutEntityForUser(
