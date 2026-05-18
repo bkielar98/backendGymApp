@@ -5,12 +5,15 @@ const common_1 = require("@nestjs/common");
 const admin_service_1 = require("./admin.service");
 const user_entity_1 = require("../entities/user.entity");
 const workout_entity_1 = require("../entities/workout.entity");
+const common_workout_entity_1 = require("../entities/common-workout.entity");
 (0, globals_1.describe)('AdminService', () => {
     let service;
     let userRepository;
     let workoutRepository;
+    let commonWorkoutRepository;
     let exerciseRepository;
     let usersService;
+    let commonWorkoutsService;
     (0, globals_1.beforeEach)(() => {
         userRepository = {
             createQueryBuilder: globals_1.jest.fn(),
@@ -20,15 +23,28 @@ const workout_entity_1 = require("../entities/workout.entity");
         };
         workoutRepository = {
             count: globals_1.jest.fn(),
+            find: globals_1.jest.fn(),
             findAndCount: globals_1.jest.fn(),
+            findOne: globals_1.jest.fn(),
+            save: globals_1.jest.fn(),
+        };
+        commonWorkoutRepository = {
+            count: globals_1.jest.fn(),
+            find: globals_1.jest.fn(),
+            findOne: globals_1.jest.fn(),
         };
         exerciseRepository = {
             count: globals_1.jest.fn(),
+            createQueryBuilder: globals_1.jest.fn(),
+            find: globals_1.jest.fn(),
         };
         usersService = {
             updateAvatar: globals_1.jest.fn(),
         };
-        service = new admin_service_1.AdminService(userRepository, workoutRepository, exerciseRepository, usersService);
+        commonWorkoutsService = {
+            finish: globals_1.jest.fn(),
+        };
+        service = new admin_service_1.AdminService(userRepository, workoutRepository, commonWorkoutRepository, exerciseRepository, commonWorkoutsService, usersService);
     });
     (0, globals_1.it)('lists users with pagination and search', async () => {
         const builder = {
@@ -259,6 +275,248 @@ const workout_entity_1 = require("../entities/workout.entity");
         });
         (0, globals_1.expect)(usersService.updateAvatar).toHaveBeenCalledWith(8, {
             filename: 'new.jpg',
+        });
+    });
+    (0, globals_1.it)('resets user password and invalidates refresh token', async () => {
+        userRepository.findOne.mockResolvedValue({
+            id: 9,
+            email: 'reset@example.com',
+        });
+        userRepository.update.mockResolvedValue({ affected: 1 });
+        await (0, globals_1.expect)(service.resetUserPassword(9, {
+            password: 'newPassword123',
+        })).resolves.toEqual({
+            success: true,
+            id: 9,
+        });
+        (0, globals_1.expect)(userRepository.update).toHaveBeenCalledWith(9, {
+            password: globals_1.expect.any(String),
+            refreshTokenHash: null,
+        });
+    });
+    (0, globals_1.it)('lists active workouts with owner details', async () => {
+        workoutRepository.find.mockResolvedValue([
+            {
+                id: 44,
+                userId: 12,
+                user: {
+                    id: 12,
+                    email: 'owner@example.com',
+                    name: 'Owner',
+                    avatarPath: null,
+                    role: user_entity_1.UserRole.USER,
+                    isActive: true,
+                },
+                name: 'Push',
+                status: workout_entity_1.WorkoutStatus.ACTIVE,
+                startedAt: new Date('2026-05-01T10:00:00.000Z'),
+                finishedAt: null,
+                template: null,
+                exercises: [],
+            },
+        ]);
+        workoutRepository.count.mockResolvedValue(1);
+        commonWorkoutRepository.find.mockResolvedValue([
+            {
+                id: 8,
+                name: 'Team Push',
+                status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
+                startedAt: new Date('2026-05-01T11:00:00.000Z'),
+                finishedAt: null,
+                template: null,
+                createdByUser: {
+                    id: 17,
+                    email: 'creator@example.com',
+                    name: 'Creator',
+                    avatarPath: null,
+                    role: user_entity_1.UserRole.USER,
+                    isActive: true,
+                },
+                participants: [
+                    {
+                        user: {
+                            id: 17,
+                            email: 'creator@example.com',
+                            name: 'Creator',
+                            avatarPath: null,
+                            role: user_entity_1.UserRole.USER,
+                            isActive: true,
+                        },
+                    },
+                ],
+                exercises: [
+                    {
+                        exercise: { id: 4, name: 'Bench Press' },
+                        participantSets: [{ confirmed: true }, { confirmed: false }],
+                    },
+                ],
+            },
+        ]);
+        commonWorkoutRepository.count.mockResolvedValue(1);
+        await (0, globals_1.expect)(service.listActiveWorkouts({
+            page: 1,
+            limit: 10,
+        })).resolves.toMatchObject({
+            workouts: [
+                {
+                    id: 8,
+                    source: 'common',
+                    status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
+                    participantCount: 1,
+                    totalSets: 2,
+                    confirmedSets: 1,
+                },
+                {
+                    id: 44,
+                    source: 'solo',
+                    status: workout_entity_1.WorkoutStatus.ACTIVE,
+                    user: {
+                        id: 12,
+                        email: 'owner@example.com',
+                    },
+                },
+            ],
+            total: 2,
+            page: 1,
+            limit: 10,
+        });
+    });
+    (0, globals_1.it)('finishes active workout as admin', async () => {
+        const activeWorkout = {
+            id: 55,
+            name: 'Pull',
+            status: workout_entity_1.WorkoutStatus.ACTIVE,
+            startedAt: new Date('2026-05-01T10:00:00.000Z'),
+            finishedAt: null,
+        };
+        workoutRepository.findOne
+            .mockResolvedValueOnce(activeWorkout)
+            .mockResolvedValueOnce({
+            ...activeWorkout,
+            status: workout_entity_1.WorkoutStatus.COMPLETED,
+            finishedAt: new Date('2026-05-01T11:00:00.000Z'),
+            user: null,
+            exercises: [],
+            template: null,
+        });
+        workoutRepository.save.mockResolvedValue({
+            ...activeWorkout,
+            status: workout_entity_1.WorkoutStatus.COMPLETED,
+        });
+        await (0, globals_1.expect)(service.finishActiveWorkout(55)).resolves.toMatchObject({
+            success: true,
+            workout: {
+                id: 55,
+                status: workout_entity_1.WorkoutStatus.COMPLETED,
+            },
+        });
+        (0, globals_1.expect)(workoutRepository.save).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            id: 55,
+            status: workout_entity_1.WorkoutStatus.COMPLETED,
+            finishedAt: globals_1.expect.any(Date),
+        }));
+    });
+    (0, globals_1.it)('finishes active common workout through common workout service', async () => {
+        commonWorkoutRepository.findOne.mockResolvedValue({
+            id: 66,
+            createdByUserId: 12,
+            status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
+        });
+        commonWorkoutsService.finish.mockResolvedValue({
+            id: 66,
+            status: common_workout_entity_1.CommonWorkoutStatus.COMPLETED,
+        });
+        await (0, globals_1.expect)(service.finishActiveCommonWorkout(66)).resolves.toEqual({
+            success: true,
+            workout: {
+                id: 66,
+                status: common_workout_entity_1.CommonWorkoutStatus.COMPLETED,
+            },
+        });
+        (0, globals_1.expect)(commonWorkoutsService.finish).toHaveBeenCalledWith(12, 66);
+    });
+    (0, globals_1.it)('returns exercise popularity and average set stats', async () => {
+        const builder = {
+            innerJoin: globals_1.jest.fn().mockReturnThis(),
+            leftJoin: globals_1.jest.fn().mockReturnThis(),
+            select: globals_1.jest.fn().mockReturnThis(),
+            addSelect: globals_1.jest.fn().mockReturnThis(),
+            groupBy: globals_1.jest.fn().mockReturnThis(),
+            addGroupBy: globals_1.jest.fn().mockReturnThis(),
+            orderBy: globals_1.jest.fn().mockReturnThis(),
+            addOrderBy: globals_1.jest.fn().mockReturnThis(),
+            limit: globals_1.jest.fn().mockReturnThis(),
+            getRawMany: globals_1.jest.fn().mockResolvedValue([
+                {
+                    exerciseId: '3',
+                    exerciseName: 'Squat',
+                    workoutsCount: '7',
+                    setsCount: '18',
+                    averageWeight: '102.3456',
+                    averageReps: '8.4444',
+                },
+            ]),
+        };
+        exerciseRepository.createQueryBuilder.mockReturnValue(builder);
+        await (0, globals_1.expect)(service.getExerciseStats({
+            limit: 5,
+        })).resolves.toEqual({
+            exercises: [
+                {
+                    exercise: {
+                        id: 3,
+                        name: 'Squat',
+                    },
+                    workoutsCount: 7,
+                    setsCount: 18,
+                    averageWeight: 102.35,
+                    averageReps: 8.44,
+                },
+            ],
+            limit: 5,
+        });
+        (0, globals_1.expect)(builder.limit).toHaveBeenCalledWith(5);
+    });
+    (0, globals_1.it)('lists exercises that contain profane words for moderation', async () => {
+        exerciseRepository.find.mockResolvedValue([
+            {
+                id: 1,
+                name: 'Normal Squat',
+                description: 'Clean',
+                isGlobal: true,
+                createdByUserId: null,
+                createdByUser: null,
+            },
+            {
+                id: 2,
+                name: 'Kurwa press',
+                description: 'Bad word in name',
+                isGlobal: false,
+                createdByUserId: 8,
+                createdByUser: {
+                    id: 8,
+                    email: 'creator@example.com',
+                    name: 'Creator',
+                    avatarPath: null,
+                    role: user_entity_1.UserRole.USER,
+                    isActive: true,
+                },
+            },
+        ]);
+        await (0, globals_1.expect)(service.listProfaneExercises()).resolves.toMatchObject({
+            exercises: [
+                {
+                    id: 2,
+                    matchedWords: ['kurwa'],
+                    matches: [
+                        {
+                            field: 'name',
+                            word: 'kurwa',
+                        },
+                    ],
+                },
+            ],
+            total: 1,
         });
     });
 });

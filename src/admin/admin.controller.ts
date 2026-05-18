@@ -32,6 +32,8 @@ import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
 import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
 import { AdminUpdateUserStatusDto } from './dto/admin-update-user-status.dto';
 import { AdminListUserWorkoutsQueryDto } from './dto/admin-list-user-workouts-query.dto';
+import { AdminResetUserPasswordDto } from './dto/admin-reset-user-password.dto';
+import { AdminExerciseStatsQueryDto } from './dto/admin-exercise-stats-query.dto';
 import { User } from '../entities/user.entity';
 
 type AuthenticatedRequest = Request & {
@@ -115,6 +117,17 @@ export class AdminController {
     return this.adminService.updateUserStatus(req.user.id, id, dto);
   }
 
+  @Patch('users/:id/password')
+  @ApiOperation({ summary: 'Reset user password as admin' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiBody({ type: AdminResetUserPasswordDto })
+  async resetUserPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AdminResetUserPasswordDto,
+  ) {
+    return this.adminService.resetUserPassword(id, dto);
+  }
+
   @Delete('users/:id')
   @ApiOperation({ summary: 'Soft delete user as admin' })
   @ApiParam({ name: 'id', type: Number })
@@ -129,6 +142,42 @@ export class AdminController {
   @ApiOperation({ summary: 'Get admin dashboard stats' })
   async getStats() {
     return this.adminService.getStats();
+  }
+
+  @Get('workouts/active')
+  @ApiOperation({ summary: 'List all active workouts for admin panel' })
+  async listActiveWorkouts(@Query() query: AdminListUserWorkoutsQueryDto) {
+    return this.adminService.listActiveWorkouts(query);
+  }
+
+  @Patch('workouts/:id/finish')
+  @ApiOperation({ summary: 'Finish active workout as admin' })
+  @ApiParam({ name: 'id', type: Number })
+  async finishActiveWorkout(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.finishActiveWorkout(id);
+  }
+
+  @Patch('common-workouts/:id/finish')
+  @ApiOperation({ summary: 'Finish active common workout as admin' })
+  @ApiParam({ name: 'id', type: Number })
+  async finishActiveCommonWorkout(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.finishActiveCommonWorkout(id);
+  }
+
+  @Get('exercises/stats')
+  @ApiOperation({
+    summary: 'Get most popular exercises and average performance',
+  })
+  async getExerciseStats(@Query() query: AdminExerciseStatsQueryDto) {
+    return this.adminService.getExerciseStats(query);
+  }
+
+  @Get('exercises/profanity')
+  @ApiOperation({
+    summary: 'List exercises containing profane words for moderation',
+  })
+  async listProfaneExercises() {
+    return this.adminService.listProfaneExercises();
   }
 
   @Get('users/:id/workouts')
