@@ -15,7 +15,6 @@ import {
 import { WorkoutExercise } from '../entities/workout-exercise.entity';
 import { WorkoutSet } from '../entities/workout-set.entity';
 import { Exercise } from '../entities/exercise.entity';
-import { CommonWorkoutsService } from '../common-workouts/common-workouts.service';
 import { UsersService } from '../users/users.service';
 import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
 import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
@@ -79,7 +78,6 @@ export class AdminService {
     private readonly commonWorkoutRepository: Repository<CommonWorkout>,
     @InjectRepository(Exercise)
     private readonly exerciseRepository: Repository<Exercise>,
-    private readonly commonWorkoutsService: CommonWorkoutsService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -402,14 +400,35 @@ export class AdminService {
       throw new NotFoundException('Active common workout not found');
     }
 
-    const workout = await this.commonWorkoutsService.finish(
-      commonWorkout.createdByUserId,
-      commonWorkout.id,
-    );
+    commonWorkout.status = CommonWorkoutStatus.COMPLETED;
+    commonWorkout.finishedAt = new Date();
+    await this.commonWorkoutRepository.save(commonWorkout);
+
+    const completedWorkout = await this.commonWorkoutRepository.findOne({
+      where: { id: commonWorkout.id },
+      relations: {
+        createdByUser: true,
+        template: true,
+        participants: {
+          user: true,
+        },
+        exercises: {
+          exercise: true,
+          participantSets: true,
+        },
+      },
+    });
 
     return {
       success: true,
-      workout,
+      workout: completedWorkout
+        ? this.mapCommonWorkoutSummary(completedWorkout)
+        : {
+            id: commonWorkout.id,
+            source: 'common',
+            status: commonWorkout.status,
+            finishedAt: commonWorkout.finishedAt,
+          },
     };
   }
 

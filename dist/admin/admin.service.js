@@ -23,15 +23,13 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
 const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
 const workout_set_entity_1 = require("../entities/workout-set.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
-const common_workouts_service_1 = require("../common-workouts/common-workouts.service");
 const users_service_1 = require("../users/users.service");
 let AdminService = class AdminService {
-    constructor(userRepository, workoutRepository, commonWorkoutRepository, exerciseRepository, commonWorkoutsService, usersService) {
+    constructor(userRepository, workoutRepository, commonWorkoutRepository, exerciseRepository, usersService) {
         this.userRepository = userRepository;
         this.workoutRepository = workoutRepository;
         this.commonWorkoutRepository = commonWorkoutRepository;
         this.exerciseRepository = exerciseRepository;
-        this.commonWorkoutsService = commonWorkoutsService;
         this.usersService = usersService;
         this.defaultPage = 1;
         this.defaultLimit = 20;
@@ -333,10 +331,33 @@ let AdminService = class AdminService {
         if (!commonWorkout) {
             throw new common_1.NotFoundException('Active common workout not found');
         }
-        const workout = await this.commonWorkoutsService.finish(commonWorkout.createdByUserId, commonWorkout.id);
+        commonWorkout.status = common_workout_entity_1.CommonWorkoutStatus.COMPLETED;
+        commonWorkout.finishedAt = new Date();
+        await this.commonWorkoutRepository.save(commonWorkout);
+        const completedWorkout = await this.commonWorkoutRepository.findOne({
+            where: { id: commonWorkout.id },
+            relations: {
+                createdByUser: true,
+                template: true,
+                participants: {
+                    user: true,
+                },
+                exercises: {
+                    exercise: true,
+                    participantSets: true,
+                },
+            },
+        });
         return {
             success: true,
-            workout,
+            workout: completedWorkout
+                ? this.mapCommonWorkoutSummary(completedWorkout)
+                : {
+                    id: commonWorkout.id,
+                    source: 'common',
+                    status: commonWorkout.status,
+                    finishedAt: commonWorkout.finishedAt,
+                },
         };
     }
     async getExerciseStats(query) {
@@ -614,7 +635,6 @@ exports.AdminService = AdminService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        common_workouts_service_1.CommonWorkoutsService,
         users_service_1.UsersService])
 ], AdminService);
 //# sourceMappingURL=admin.service.js.map

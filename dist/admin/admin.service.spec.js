@@ -13,7 +13,6 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
     let commonWorkoutRepository;
     let exerciseRepository;
     let usersService;
-    let commonWorkoutsService;
     (0, globals_1.beforeEach)(() => {
         userRepository = {
             createQueryBuilder: globals_1.jest.fn(),
@@ -32,6 +31,7 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             count: globals_1.jest.fn(),
             find: globals_1.jest.fn(),
             findOne: globals_1.jest.fn(),
+            save: globals_1.jest.fn(),
         };
         exerciseRepository = {
             count: globals_1.jest.fn(),
@@ -41,10 +41,7 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
         usersService = {
             updateAvatar: globals_1.jest.fn(),
         };
-        commonWorkoutsService = {
-            finish: globals_1.jest.fn(),
-        };
-        service = new admin_service_1.AdminService(userRepository, workoutRepository, commonWorkoutRepository, exerciseRepository, commonWorkoutsService, usersService);
+        service = new admin_service_1.AdminService(userRepository, workoutRepository, commonWorkoutRepository, exerciseRepository, usersService);
     });
     (0, globals_1.it)('lists users with pagination and search', async () => {
         const builder = {
@@ -416,24 +413,35 @@ const common_workout_entity_1 = require("../entities/common-workout.entity");
             finishedAt: globals_1.expect.any(Date),
         }));
     });
-    (0, globals_1.it)('finishes active common workout through common workout service', async () => {
+    (0, globals_1.it)('finishes active common workout as admin', async () => {
         commonWorkoutRepository.findOne.mockResolvedValue({
             id: 66,
             createdByUserId: 12,
             status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
+            startedAt: new Date('2026-05-01T10:00:00.000Z'),
+            finishedAt: null,
+            participants: [],
+            exercises: [],
+            template: null,
+            createdByUser: null,
         });
-        commonWorkoutsService.finish.mockResolvedValue({
+        commonWorkoutRepository.save.mockResolvedValue({
             id: 66,
             status: common_workout_entity_1.CommonWorkoutStatus.COMPLETED,
         });
-        await (0, globals_1.expect)(service.finishActiveCommonWorkout(66)).resolves.toEqual({
+        await (0, globals_1.expect)(service.finishActiveCommonWorkout(66)).resolves.toMatchObject({
             success: true,
             workout: {
                 id: 66,
+                source: 'common',
                 status: common_workout_entity_1.CommonWorkoutStatus.COMPLETED,
             },
         });
-        (0, globals_1.expect)(commonWorkoutsService.finish).toHaveBeenCalledWith(12, 66);
+        (0, globals_1.expect)(commonWorkoutRepository.save).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            id: 66,
+            status: common_workout_entity_1.CommonWorkoutStatus.COMPLETED,
+            finishedAt: globals_1.expect.any(Date),
+        }));
     });
     (0, globals_1.it)('returns exercise popularity and average set stats', async () => {
         const builder = {

@@ -205,85 +205,10 @@ export declare class AdminController {
     finishActiveCommonWorkout(id: number): Promise<{
         success: boolean;
         workout: {
-            participants: {
-                id: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-            }[];
-            blocks: {
-                id: number;
-                order: number;
-                status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
-                completedAt: any;
-                defaultExercise: any;
-                users: {
-                    sets?: {
-                        id: number;
-                        setNumber: number;
-                        previousWeight: number;
-                        previousReps: number;
-                        currentWeight: number;
-                        currentReps: number;
-                        durationSeconds: number;
-                        repMax: number;
-                        confirmed: boolean;
-                    }[];
-                    availableActions?: {
-                        changeExercise: boolean;
-                        addSet: boolean;
-                        updateOwnSets: boolean;
-                        removeOwnSets: boolean;
-                    };
-                    participantId: number;
-                    user: {
-                        id: number;
-                        email: string;
-                        name: string;
-                        avatarPath: string;
-                        avatarUrl: string;
-                    };
-                    workoutExerciseId: number;
-                    exercise: {
-                        id: number;
-                        name: string;
-                        description: string;
-                        muscleGroups: string[];
-                    };
-                    completed: boolean;
-                    completedAt: Date;
-                    setsCount: number;
-                    confirmedSets: number;
-                }[];
-            }[];
-            exercises: {
-                id: number;
-                workoutExerciseId: number;
-                userId: number;
-                order: number;
-                exerciseId: number;
-                exerciseName: string;
-                exerciseDescription: string;
-                exerciseMuscleGroups: string[];
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    durationSeconds: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
-            }[];
             id: number;
             name: string;
             status: import("../entities/common-workout.entity").CommonWorkoutStatus;
+            source: "common";
             mode: string;
             isSolo: boolean;
             participantCount: number;
@@ -291,7 +216,6 @@ export declare class AdminController {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
-            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -300,6 +224,29 @@ export declare class AdminController {
                 id: number;
                 name: string;
             };
+            createdByUser: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+                role: import("../entities/user.entity").UserRole;
+                isActive: boolean;
+            };
+            participants: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+                role: import("../entities/user.entity").UserRole;
+                isActive: boolean;
+            }[];
+        } | {
+            id: number;
+            source: string;
+            status: import("../entities/common-workout.entity").CommonWorkoutStatus.COMPLETED;
+            finishedAt: Date;
         };
     }>;
     getExerciseStats(query: AdminExerciseStatsQueryDto): Promise<{

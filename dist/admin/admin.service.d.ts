@@ -3,7 +3,6 @@ import { User, UserRole } from '../entities/user.entity';
 import { Workout, WorkoutStatus } from '../entities/workout.entity';
 import { CommonWorkout, CommonWorkoutStatus } from '../entities/common-workout.entity';
 import { Exercise } from '../entities/exercise.entity';
-import { CommonWorkoutsService } from '../common-workouts/common-workouts.service';
 import { UsersService } from '../users/users.service';
 import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
 import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
@@ -16,14 +15,13 @@ export declare class AdminService {
     private readonly workoutRepository;
     private readonly commonWorkoutRepository;
     private readonly exerciseRepository;
-    private readonly commonWorkoutsService;
     private readonly usersService;
     private readonly defaultPage;
     private readonly defaultLimit;
     private readonly maxLimit;
     private readonly warsawTimeZone;
     private readonly profanityWords;
-    constructor(userRepository: Repository<User>, workoutRepository: Repository<Workout>, commonWorkoutRepository: Repository<CommonWorkout>, exerciseRepository: Repository<Exercise>, commonWorkoutsService: CommonWorkoutsService, usersService: UsersService);
+    constructor(userRepository: Repository<User>, workoutRepository: Repository<Workout>, commonWorkoutRepository: Repository<CommonWorkout>, exerciseRepository: Repository<Exercise>, usersService: UsersService);
     listUsers(query: AdminListUsersQueryDto): Promise<{
         users: {
             id: number;
@@ -241,85 +239,10 @@ export declare class AdminService {
     finishActiveCommonWorkout(commonWorkoutId: number): Promise<{
         success: boolean;
         workout: {
-            participants: {
-                id: number;
-                user: {
-                    id: number;
-                    email: string;
-                    name: string;
-                    avatarPath: string;
-                    avatarUrl: string;
-                };
-            }[];
-            blocks: {
-                id: number;
-                order: number;
-                status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
-                completedAt: any;
-                defaultExercise: any;
-                users: {
-                    sets?: {
-                        id: number;
-                        setNumber: number;
-                        previousWeight: number;
-                        previousReps: number;
-                        currentWeight: number;
-                        currentReps: number;
-                        durationSeconds: number;
-                        repMax: number;
-                        confirmed: boolean;
-                    }[];
-                    availableActions?: {
-                        changeExercise: boolean;
-                        addSet: boolean;
-                        updateOwnSets: boolean;
-                        removeOwnSets: boolean;
-                    };
-                    participantId: number;
-                    user: {
-                        id: number;
-                        email: string;
-                        name: string;
-                        avatarPath: string;
-                        avatarUrl: string;
-                    };
-                    workoutExerciseId: number;
-                    exercise: {
-                        id: number;
-                        name: string;
-                        description: string;
-                        muscleGroups: string[];
-                    };
-                    completed: boolean;
-                    completedAt: Date;
-                    setsCount: number;
-                    confirmedSets: number;
-                }[];
-            }[];
-            exercises: {
-                id: number;
-                workoutExerciseId: number;
-                userId: number;
-                order: number;
-                exerciseId: number;
-                exerciseName: string;
-                exerciseDescription: string;
-                exerciseMuscleGroups: string[];
-                sets: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    durationSeconds: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
-            }[];
             id: number;
             name: string;
             status: CommonWorkoutStatus;
+            source: "common";
             mode: string;
             isSolo: boolean;
             participantCount: number;
@@ -327,7 +250,6 @@ export declare class AdminService {
             finishedAt: Date;
             durationSeconds: number;
             durationLabel: string;
-            blockCount: number;
             exerciseCount: number;
             totalSets: number;
             confirmedSets: number;
@@ -336,6 +258,29 @@ export declare class AdminService {
                 id: number;
                 name: string;
             };
+            createdByUser: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+                role: UserRole;
+                isActive: boolean;
+            };
+            participants: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+                role: UserRole;
+                isActive: boolean;
+            }[];
+        } | {
+            id: number;
+            source: string;
+            status: CommonWorkoutStatus.COMPLETED;
+            finishedAt: Date;
         };
     }>;
     getExerciseStats(query: AdminExerciseStatsQueryDto): Promise<{
