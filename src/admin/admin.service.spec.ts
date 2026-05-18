@@ -24,7 +24,6 @@ describe('AdminService', () => {
     count: jest.Mock;
     find: jest.Mock;
     findOne: jest.Mock;
-    save: jest.Mock;
   };
   let exerciseRepository: {
     count: jest.Mock;
@@ -33,6 +32,9 @@ describe('AdminService', () => {
   };
   let usersService: {
     updateAvatar: jest.Mock;
+  };
+  let commonWorkoutsService: {
+    finish: jest.Mock;
   };
 
   beforeEach(() => {
@@ -53,7 +55,6 @@ describe('AdminService', () => {
       count: jest.fn(),
       find: jest.fn(),
       findOne: jest.fn(),
-      save: jest.fn(),
     };
     exerciseRepository = {
       count: jest.fn(),
@@ -63,11 +64,16 @@ describe('AdminService', () => {
     usersService = {
       updateAvatar: jest.fn(),
     };
+    commonWorkoutsService = {
+      finish: jest.fn(),
+    };
+
     service = new AdminService(
       userRepository as never,
       workoutRepository as never,
       commonWorkoutRepository as never,
       exerciseRepository as never,
+      commonWorkoutsService as never,
       usersService as never,
     );
   });
@@ -503,39 +509,26 @@ describe('AdminService', () => {
     );
   });
 
-  it('finishes active common workout as admin', async () => {
+  it('finishes active common workout through common workout service', async () => {
     commonWorkoutRepository.findOne.mockResolvedValue({
       id: 66,
       createdByUserId: 12,
       status: CommonWorkoutStatus.ACTIVE,
-      startedAt: new Date('2026-05-01T10:00:00.000Z'),
-      finishedAt: null,
-      participants: [],
-      exercises: [],
-      template: null,
-      createdByUser: null,
     } as never);
-    commonWorkoutRepository.save.mockResolvedValue({
+    commonWorkoutsService.finish.mockResolvedValue({
       id: 66,
       status: CommonWorkoutStatus.COMPLETED,
     } as never);
 
-    await expect(service.finishActiveCommonWorkout(66)).resolves.toMatchObject({
+    await expect(service.finishActiveCommonWorkout(66)).resolves.toEqual({
       success: true,
       workout: {
         id: 66,
-        source: 'common',
         status: CommonWorkoutStatus.COMPLETED,
       },
     });
 
-    expect(commonWorkoutRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 66,
-        status: CommonWorkoutStatus.COMPLETED,
-        finishedAt: expect.any(Date),
-      }),
-    );
+    expect(commonWorkoutsService.finish).toHaveBeenCalledWith(12, 66);
   });
 
   it('returns exercise popularity and average set stats', async () => {

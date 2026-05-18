@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { CommonWorkoutsModule } from '../common-workouts/common-workouts.module';
 import { UsersModule } from '../users/users.module';
 import { CommonWorkout } from '../entities/common-workout.entity';
 import { User } from '../entities/user.entity';
@@ -15,6 +16,7 @@ import { AdminGuard } from './admin.guard';
 @Module({
   imports: [
     AuthModule,
+    CommonWorkoutsModule,
     UsersModule,
     TypeOrmModule.forFeature([
       User,

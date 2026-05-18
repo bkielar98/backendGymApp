@@ -10,6 +10,7 @@ exports.AdminModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const auth_module_1 = require("../auth/auth.module");
+const common_workouts_module_1 = require("../common-workouts/common-workouts.module");
 const users_module_1 = require("../users/users.module");
 const common_workout_entity_1 = require("../entities/common-workout.entity");
 const user_entity_1 = require("../entities/user.entity");
@@ -27,6 +28,7 @@ exports.AdminModule = AdminModule = __decorate([
     (0, common_1.Module)({
         imports: [
             auth_module_1.AuthModule,
+            common_workouts_module_1.CommonWorkoutsModule,
             users_module_1.UsersModule,
             typeorm_1.TypeOrmModule.forFeature([
                 user_entity_1.User,
