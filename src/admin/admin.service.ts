@@ -5,14 +5,25 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User, UserRole } from '../entities/user.entity';
 import { Workout, WorkoutStatus } from '../entities/workout.entity';
+import {
+  CommonWorkout,
+  CommonWorkoutStatus,
+} from '../entities/common-workout.entity';
+import { WorkoutExercise } from '../entities/workout-exercise.entity';
+import { WorkoutSet } from '../entities/workout-set.entity';
 import { Exercise } from '../entities/exercise.entity';
 import { UsersService } from '../users/users.service';
 import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
 import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
 import { AdminUpdateUserStatusDto } from './dto/admin-update-user-status.dto';
 import { AdminListUserWorkoutsQueryDto } from './dto/admin-list-user-workouts-query.dto';
+import { AdminResetUserPasswordDto } from './dto/admin-reset-user-password.dto';
+import { AdminExerciseStatsQueryDto } from './dto/admin-exercise-stats-query.dto';
+
+type AdminResponse = Record<string, unknown>;
 
 @Injectable()
 export class AdminService {
@@ -20,18 +31,59 @@ export class AdminService {
   private readonly defaultLimit = 20;
   private readonly maxLimit = 100;
   private readonly warsawTimeZone = 'Europe/Warsaw';
+  private readonly profanityWords = [
+    'chuj',
+    'chuja',
+    'chujem',
+    'chujowy',
+    'chujowa',
+    'chujowe',
+    'cipa',
+    'cipe',
+    'cipy',
+    'dupa',
+    'dupe',
+    'dupy',
+    'dziwka',
+    'dziwko',
+    'dziwki',
+    'huj',
+    'hujowy',
+    'jebac',
+    'jebany',
+    'jebana',
+    'jebane',
+    'kurwa',
+    'kurwo',
+    'kurwy',
+    'pierdolic',
+    'pierdolony',
+    'pierdolona',
+    'pierdolone',
+    'spierdalaj',
+    'suka',
+    'suko',
+    'sukinsyn',
+    'fuck',
+    'fucking',
+    'shit',
+    'bitch',
+    'asshole',
+  ];
 
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Workout)
     private readonly workoutRepository: Repository<Workout>,
+    @InjectRepository(CommonWorkout)
+    private readonly commonWorkoutRepository: Repository<CommonWorkout>,
     @InjectRepository(Exercise)
     private readonly exerciseRepository: Repository<Exercise>,
     private readonly usersService: UsersService,
   ) {}
 
-  async listUsers(query: AdminListUsersQueryDto) {
+  async listUsers(query: AdminListUsersQueryDto): Promise<AdminResponse> {
     const page = this.normalizePage(query.page);
     const limit = this.normalizeLimit(query.limit);
     const search = query.search?.trim().toLowerCase();
@@ -63,12 +115,15 @@ export class AdminService {
     };
   }
 
-  async getUserById(userId: number) {
+  async getUserById(userId: number): Promise<AdminResponse> {
     const user = await this.findUserOrThrow(userId);
     return this.mapAdminUser(user);
   }
 
-  async updateUserAvatar(userId: number, file: { filename: string }) {
+  async updateUserAvatar(
+    userId: number,
+    file: { filename: string },
+  ): Promise<AdminResponse> {
     await this.usersService.updateAvatar(userId, file);
     return this.getUserById(userId);
   }
@@ -77,7 +132,7 @@ export class AdminService {
     actingUserId: number,
     userId: number,
     dto: AdminUpdateUserRoleDto,
-  ) {
+  ): Promise<AdminResponse> {
     await this.findUserOrThrow(userId);
 
     if (actingUserId === userId && dto.role !== UserRole.ADMIN) {
@@ -95,7 +150,7 @@ export class AdminService {
     actingUserId: number,
     userId: number,
     dto: AdminUpdateUserStatusDto,
-  ) {
+  ): Promise<AdminResponse> {
     const user = await this.findUserOrThrow(userId);
 
     if (
@@ -114,7 +169,28 @@ export class AdminService {
     return this.getUserById(userId);
   }
 
-  async softDeleteUser(actingUserId: number, userId: number) {
+  async resetUserPassword(
+    userId: number,
+    dto: AdminResetUserPasswordDto,
+  ): Promise<AdminResponse> {
+    await this.findUserOrThrow(userId);
+    const password = await bcrypt.hash(dto.password, 10);
+
+    await this.userRepository.update(userId, {
+      password,
+      refreshTokenHash: null,
+    });
+
+    return {
+      success: true,
+      id: userId,
+    };
+  }
+
+  async softDeleteUser(
+    actingUserId: number,
+    userId: number,
+  ): Promise<AdminResponse> {
     const user = await this.findUserOrThrow(userId);
 
     if (actingUserId === userId && user.role === UserRole.ADMIN) {
@@ -133,7 +209,7 @@ export class AdminService {
     };
   }
 
-  async getStats() {
+  async getStats(): Promise<AdminResponse> {
     const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const monthRange = this.getCurrentWarsawMonthRange();
 
@@ -175,7 +251,10 @@ export class AdminService {
     };
   }
 
-  async listUserWorkouts(userId: number, query: AdminListUserWorkoutsQueryDto) {
+  async listUserWorkouts(
+    userId: number,
+    query: AdminListUserWorkoutsQueryDto,
+  ): Promise<AdminResponse> {
     await this.findUserOrThrow(userId);
     const page = this.normalizePage(query.page);
     const limit = this.normalizeLimit(query.limit);
@@ -205,7 +284,252 @@ export class AdminService {
     };
   }
 
-  private async findUserOrThrow(userId: number) {
+  async listActiveWorkouts(
+    query: AdminListUserWorkoutsQueryDto,
+  ): Promise<AdminResponse> {
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const offset = (page - 1) * limit;
+
+    const [soloWorkouts, soloTotal, commonWorkouts, commonTotal] =
+      await Promise.all([
+        this.workoutRepository.find({
+          where: {
+            status: WorkoutStatus.ACTIVE,
+          },
+          order: { startedAt: 'DESC' },
+          relations: {
+            user: true,
+            template: true,
+            exercises: {
+              exercise: true,
+              sets: true,
+            },
+          },
+        }),
+        this.workoutRepository.count({
+          where: {
+            status: WorkoutStatus.ACTIVE,
+          },
+        }),
+        this.commonWorkoutRepository.find({
+          where: {
+            status: CommonWorkoutStatus.ACTIVE,
+          },
+          order: { startedAt: 'DESC' },
+          relations: {
+            createdByUser: true,
+            template: true,
+            participants: {
+              user: true,
+            },
+            exercises: {
+              exercise: true,
+              participantSets: true,
+            },
+          },
+        }),
+        this.commonWorkoutRepository.count({
+          where: {
+            status: CommonWorkoutStatus.ACTIVE,
+          },
+        }),
+      ]);
+
+    const workouts: AdminResponse[] = [
+      ...soloWorkouts.map((workout) => ({
+        ...this.mapWorkoutSummary(workout),
+        source: 'solo',
+        user: this.mapWorkoutUser(workout.user),
+      })),
+      ...commonWorkouts.map((workout) => this.mapCommonWorkoutSummary(workout)),
+    ]
+      .sort(
+        (left, right) =>
+          this.getDateTimestamp(right['startedAt']) -
+          this.getDateTimestamp(left['startedAt']),
+      )
+      .slice(offset, offset + limit);
+
+    return {
+      workouts,
+      total: soloTotal + commonTotal,
+      page,
+      limit,
+    };
+  }
+
+  async finishActiveWorkout(workoutId: number): Promise<AdminResponse> {
+    const workout = await this.workoutRepository.findOne({
+      where: {
+        id: workoutId,
+        status: WorkoutStatus.ACTIVE,
+      },
+    });
+
+    if (!workout) {
+      throw new NotFoundException('Active workout not found');
+    }
+
+    workout.status = WorkoutStatus.COMPLETED;
+    workout.finishedAt = new Date();
+    await this.workoutRepository.save(workout);
+
+    const completedWorkout = await this.workoutRepository.findOne({
+      where: { id: workout.id },
+      relations: {
+        user: true,
+        template: true,
+        exercises: {
+          exercise: true,
+          sets: true,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      workout: completedWorkout
+        ? {
+            ...this.mapWorkoutSummary(completedWorkout),
+            source: 'solo',
+            user: this.mapWorkoutUser(completedWorkout.user),
+          }
+        : {
+            id: workout.id,
+            source: 'solo',
+            status: workout.status,
+            finishedAt: workout.finishedAt,
+          },
+    };
+  }
+
+  async finishActiveCommonWorkout(
+    commonWorkoutId: number,
+  ): Promise<AdminResponse> {
+    const commonWorkout = await this.commonWorkoutRepository.findOne({
+      where: {
+        id: commonWorkoutId,
+        status: CommonWorkoutStatus.ACTIVE,
+      },
+    });
+
+    if (!commonWorkout) {
+      throw new NotFoundException('Active common workout not found');
+    }
+
+    commonWorkout.status = CommonWorkoutStatus.COMPLETED;
+    commonWorkout.finishedAt = new Date();
+    await this.commonWorkoutRepository.save(commonWorkout);
+
+    const completedWorkout = await this.commonWorkoutRepository.findOne({
+      where: { id: commonWorkout.id },
+      relations: {
+        createdByUser: true,
+        template: true,
+        participants: {
+          user: true,
+        },
+        exercises: {
+          exercise: true,
+          participantSets: true,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      workout: completedWorkout
+        ? this.mapCommonWorkoutSummary(completedWorkout)
+        : {
+            id: commonWorkout.id,
+            source: 'common',
+            status: commonWorkout.status,
+            finishedAt: commonWorkout.finishedAt,
+          },
+    };
+  }
+
+  async getExerciseStats(
+    query: AdminExerciseStatsQueryDto,
+  ): Promise<AdminResponse> {
+    const limit = this.normalizeLimit(query.limit);
+    const rows = await this.exerciseRepository
+      .createQueryBuilder('exercise')
+      .innerJoin(
+        WorkoutExercise,
+        'workoutExercise',
+        'workoutExercise.exerciseId = exercise.id',
+      )
+      .innerJoin(
+        Workout,
+        'workout',
+        'workout.id = workoutExercise.workoutId AND workout.status = :status',
+        { status: WorkoutStatus.COMPLETED },
+      )
+      .leftJoin(
+        WorkoutSet,
+        'workoutSet',
+        'workoutSet.workoutExerciseId = workoutExercise.id AND workoutSet.confirmed = :confirmed',
+        { confirmed: true },
+      )
+      .select('exercise.id', 'exerciseId')
+      .addSelect('exercise.name', 'exerciseName')
+      .addSelect('COUNT(DISTINCT workoutExercise.id)', 'workoutsCount')
+      .addSelect('COUNT(workoutSet.id)', 'setsCount')
+      .addSelect('AVG(workoutSet.currentWeight)', 'averageWeight')
+      .addSelect('AVG(workoutSet.currentReps)', 'averageReps')
+      .groupBy('exercise.id')
+      .addGroupBy('exercise.name')
+      .orderBy('COUNT(DISTINCT workoutExercise.id)', 'DESC')
+      .addOrderBy('COUNT(workoutSet.id)', 'DESC')
+      .addOrderBy('exercise.name', 'ASC')
+      .limit(limit)
+      .getRawMany<{
+        exerciseId: string;
+        exerciseName: string;
+        workoutsCount: string;
+        setsCount: string;
+        averageWeight: string | null;
+        averageReps: string | null;
+      }>();
+
+    return {
+      exercises: rows.map((row) => ({
+        exercise: {
+          id: Number(row.exerciseId),
+          name: row.exerciseName,
+        },
+        workoutsCount: Number(row.workoutsCount),
+        setsCount: Number(row.setsCount),
+        averageWeight: this.roundNullable(row.averageWeight),
+        averageReps: this.roundNullable(row.averageReps),
+      })),
+      limit,
+    };
+  }
+
+  async listProfaneExercises(): Promise<AdminResponse> {
+    const exercises = await this.exerciseRepository.find({
+      relations: {
+        createdByUser: true,
+      },
+      order: {
+        name: 'ASC',
+      },
+    });
+
+    const flaggedExercises = exercises
+      .map((exercise) => this.mapProfaneExercise(exercise))
+      .filter((exercise): exercise is AdminResponse => Boolean(exercise));
+
+    return {
+      exercises: flaggedExercises,
+      total: flaggedExercises.length,
+    };
+  }
+
+  private async findUserOrThrow(userId: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -217,11 +541,11 @@ export class AdminService {
     return user;
   }
 
-  private normalizePage(page?: number) {
+  private normalizePage(page?: number): number {
     return typeof page === 'number' && page > 0 ? page : this.defaultPage;
   }
 
-  private normalizeLimit(limit?: number) {
+  private normalizeLimit(limit?: number): number {
     if (typeof limit !== 'number' || limit <= 0) {
       return this.defaultLimit;
     }
@@ -229,7 +553,7 @@ export class AdminService {
     return Math.min(limit, this.maxLimit);
   }
 
-  private mapAdminUser(user: User) {
+  private mapAdminUser(user: User): AdminResponse {
     return {
       id: user.id,
       email: user.email,
@@ -243,7 +567,7 @@ export class AdminService {
     };
   }
 
-  private mapWorkoutSummary(workout: Workout) {
+  private mapWorkoutSummary(workout: Workout): AdminResponse {
     const orderedExercises = [...(workout.exercises || [])].sort(
       (a, b) => a.order - b.order,
     );
@@ -285,14 +609,139 @@ export class AdminService {
     };
   }
 
-  private getDurationSeconds(startedAt: Date, finishedAt: Date | null) {
+  private mapWorkoutUser(user?: User | null): AdminResponse | null {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarPath: user.avatarPath ?? null,
+      avatarUrl: user.avatarPath ?? null,
+      role: user.role,
+      isActive: user.isActive,
+    };
+  }
+
+  private mapCommonWorkoutSummary(workout: CommonWorkout): AdminResponse {
+    const exercises = workout.exercises || [];
+    const sets = exercises.flatMap(
+      (exercise) => exercise.participantSets || [],
+    );
+    const participants = workout.participants || [];
+    const durationSeconds = this.getDurationSeconds(
+      workout.startedAt,
+      workout.finishedAt,
+    );
+
+    return {
+      id: workout.id,
+      name: workout.name,
+      status: workout.status,
+      source: 'common',
+      mode: 'common',
+      isSolo: false,
+      participantCount: participants.length,
+      startedAt: workout.startedAt,
+      finishedAt: workout.finishedAt,
+      durationSeconds,
+      durationLabel: this.getDurationLabel(durationSeconds),
+      exerciseCount: exercises.length,
+      totalSets: sets.length,
+      confirmedSets: sets.filter((set) => set.confirmed).length,
+      exerciseNames: Array.from(
+        new Set(
+          exercises
+            .map((exercise) => exercise.exercise?.name)
+            .filter((name): name is string => Boolean(name)),
+        ),
+      ),
+      template: workout.template
+        ? {
+            id: workout.template.id,
+            name: workout.template.name,
+          }
+        : null,
+      createdByUser: this.mapWorkoutUser(workout.createdByUser),
+      participants: participants.map((participant) =>
+        this.mapWorkoutUser(participant.user),
+      ),
+    };
+  }
+
+  private roundNullable(value: string | number | null): number | null {
+    if (value === null) {
+      return null;
+    }
+
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue)) {
+      return null;
+    }
+
+    return Math.round(numberValue * 100) / 100;
+  }
+
+  private getDateTimestamp(value: unknown): number {
+    if (value instanceof Date || typeof value === 'string') {
+      return new Date(value).getTime();
+    }
+
+    return 0;
+  }
+
+  private mapProfaneExercise(exercise: Exercise): AdminResponse | null {
+    const fields = [
+      { name: 'name', value: exercise.name },
+      { name: 'description', value: exercise.description ?? '' },
+    ];
+    const matches = fields.flatMap((field) =>
+      this.findProfanityMatches(field.value).map((word) => ({
+        field: field.name,
+        word,
+      })),
+    );
+
+    if (matches.length === 0) {
+      return null;
+    }
+
+    return {
+      id: exercise.id,
+      name: exercise.name,
+      description: exercise.description,
+      isGlobal: exercise.isGlobal,
+      createdByUserId: exercise.createdByUserId,
+      createdByUser: exercise.createdByUser
+        ? this.mapWorkoutUser(exercise.createdByUser)
+        : null,
+      matches,
+      matchedWords: Array.from(new Set(matches.map((match) => match.word))),
+    };
+  }
+
+  private findProfanityMatches(value: string): string[] {
+    const normalized = value.toLowerCase();
+
+    return this.profanityWords.filter((word) => {
+      const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(
+        `(^|[^\\p{L}\\p{N}])${escaped}([^\\p{L}\\p{N}]|$)`,
+        'iu',
+      ).test(normalized);
+    });
+  }
+
+  private getDurationSeconds(startedAt: Date, finishedAt: Date | null): number {
     const start = new Date(startedAt).getTime();
     const end = finishedAt ? new Date(finishedAt).getTime() : Date.now();
 
     return Math.max(0, Math.floor((end - start) / 1000));
   }
 
-  private getDurationLabel(durationSeconds: number) {
+  private getDurationLabel(durationSeconds: number): string {
     const hours = Math.floor(durationSeconds / 3600);
     const minutes = Math.floor((durationSeconds % 3600) / 60);
     const seconds = durationSeconds % 60;
@@ -308,7 +757,10 @@ export class AdminService {
     return `${seconds}s`;
   }
 
-  private getCurrentWarsawMonthRange(now = new Date()) {
+  private getCurrentWarsawMonthRange(now = new Date()): {
+    start: Date;
+    end: Date;
+  } {
     const currentParts = this.getTimeZoneParts(now, this.warsawTimeZone);
     const nextMonth =
       currentParts.month === 12
@@ -339,7 +791,7 @@ export class AdminService {
     hour = 0,
     minute = 0,
     second = 0,
-  ) {
+  ): Date {
     const utcGuess = new Date(
       Date.UTC(year, month - 1, day, hour, minute, second),
     );
@@ -350,7 +802,7 @@ export class AdminService {
     );
   }
 
-  private getTimeZoneOffsetMs(date: Date, timeZone: string) {
+  private getTimeZoneOffsetMs(date: Date, timeZone: string): number {
     const parts = this.getTimeZoneParts(date, timeZone);
     const asUtcTimestamp = Date.UTC(
       parts.year,
@@ -364,7 +816,17 @@ export class AdminService {
     return asUtcTimestamp - date.getTime();
   }
 
-  private getTimeZoneParts(date: Date, timeZone: string) {
+  private getTimeZoneParts(
+    date: Date,
+    timeZone: string,
+  ): {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+    second: number;
+  } {
     const formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone,
       year: 'numeric',

@@ -4,6 +4,8 @@ import { AdminListUsersQueryDto } from './dto/admin-list-users-query.dto';
 import { AdminUpdateUserRoleDto } from './dto/admin-update-user-role.dto';
 import { AdminUpdateUserStatusDto } from './dto/admin-update-user-status.dto';
 import { AdminListUserWorkoutsQueryDto } from './dto/admin-list-user-workouts-query.dto';
+import { AdminResetUserPasswordDto } from './dto/admin-reset-user-password.dto';
+import { AdminExerciseStatsQueryDto } from './dto/admin-exercise-stats-query.dto';
 import { User } from '../entities/user.entity';
 type AuthenticatedRequest = Request & {
     user: User;
@@ -12,103 +14,36 @@ export declare class AdminController {
     private readonly adminService;
     constructor(adminService: AdminService);
     listUsers(query: AdminListUsersQueryDto): Promise<{
-        users: {
-            id: number;
-            email: string;
-            name: string;
-            avatarPath: string;
-            avatarUrl: string;
-            role: import("../entities/user.entity").UserRole;
-            createdAt: Date;
-            lastLoginAt: Date;
-            isActive: boolean;
-        }[];
-        total: number;
-        page: number;
-        limit: number;
+        [x: string]: unknown;
     }>;
     getUser(id: number): Promise<{
-        id: number;
-        email: string;
-        name: string;
-        avatarPath: string;
-        avatarUrl: string;
-        role: import("../entities/user.entity").UserRole;
-        createdAt: Date;
-        lastLoginAt: Date;
-        isActive: boolean;
+        [x: string]: unknown;
     }>;
     updateUserAvatar(id: number, file: {
         filename: string;
     }): Promise<{
-        id: number;
-        email: string;
-        name: string;
-        avatarPath: string;
-        avatarUrl: string;
-        role: import("../entities/user.entity").UserRole;
-        createdAt: Date;
-        lastLoginAt: Date;
-        isActive: boolean;
+        [x: string]: unknown;
     }>;
     updateUserRole(req: AuthenticatedRequest, id: number, dto: AdminUpdateUserRoleDto): Promise<{
-        id: number;
-        email: string;
-        name: string;
-        avatarPath: string;
-        avatarUrl: string;
-        role: import("../entities/user.entity").UserRole;
-        createdAt: Date;
-        lastLoginAt: Date;
-        isActive: boolean;
+        [x: string]: unknown;
     }>;
     updateUserStatus(req: AuthenticatedRequest, id: number, dto: AdminUpdateUserStatusDto): Promise<{
-        id: number;
-        email: string;
-        name: string;
-        avatarPath: string;
-        avatarUrl: string;
-        role: import("../entities/user.entity").UserRole;
-        createdAt: Date;
-        lastLoginAt: Date;
-        isActive: boolean;
+        [x: string]: unknown;
     }>;
+    resetUserPassword(id: number, dto: AdminResetUserPasswordDto): Promise<Record<string, unknown>>;
     deleteUser(req: AuthenticatedRequest, id: number): Promise<{
-        success: boolean;
-        id: number;
-        isActive: boolean;
+        [x: string]: unknown;
     }>;
     getStats(): Promise<{
-        totalUsers: number;
-        activeUsersLast30Days: number;
-        totalExercises: number;
-        totalWorkouts: number;
-        newUsersThisMonth: number;
+        [x: string]: unknown;
     }>;
+    listActiveWorkouts(query: AdminListUserWorkoutsQueryDto): Promise<Record<string, unknown>>;
+    finishActiveWorkout(id: number): Promise<Record<string, unknown>>;
+    finishActiveCommonWorkout(id: number): Promise<Record<string, unknown>>;
+    getExerciseStats(query: AdminExerciseStatsQueryDto): Promise<Record<string, unknown>>;
+    listProfaneExercises(): Promise<Record<string, unknown>>;
     listUserWorkouts(id: number, query: AdminListUserWorkoutsQueryDto): Promise<{
-        workouts: {
-            id: number;
-            name: string;
-            status: import("../entities/workout.entity").WorkoutStatus;
-            mode: string;
-            isSolo: boolean;
-            participantCount: number;
-            startedAt: Date;
-            finishedAt: Date;
-            durationSeconds: number;
-            durationLabel: string;
-            exerciseCount: number;
-            totalSets: number;
-            confirmedSets: number;
-            exerciseNames: string[];
-            template: {
-                id: number;
-                name: string;
-            };
-        }[];
-        total: number;
-        page: number;
-        limit: number;
+        [x: string]: unknown;
     }>;
 }
 export {};
