@@ -25,8 +25,6 @@ const admin_list_users_query_dto_1 = require("./dto/admin-list-users-query.dto")
 const admin_update_user_role_dto_1 = require("./dto/admin-update-user-role.dto");
 const admin_update_user_status_dto_1 = require("./dto/admin-update-user-status.dto");
 const admin_list_user_workouts_query_dto_1 = require("./dto/admin-list-user-workouts-query.dto");
-const admin_reset_user_password_dto_1 = require("./dto/admin-reset-user-password.dto");
-const admin_exercise_stats_query_dto_1 = require("./dto/admin-exercise-stats-query.dto");
 const avatarStorage = (0, multer_1.diskStorage)({
     destination: './uploads/avatars',
     filename: (_, file, callback) => {
@@ -53,29 +51,11 @@ let AdminController = class AdminController {
     async updateUserStatus(req, id, dto) {
         return this.adminService.updateUserStatus(req.user.id, id, dto);
     }
-    async resetUserPassword(id, dto) {
-        return this.adminService.resetUserPassword(id, dto);
-    }
     async deleteUser(req, id) {
         return this.adminService.softDeleteUser(req.user.id, id);
     }
     async getStats() {
         return this.adminService.getStats();
-    }
-    async listActiveWorkouts(query) {
-        return this.adminService.listActiveWorkouts(query);
-    }
-    async finishActiveWorkout(id) {
-        return this.adminService.finishActiveWorkout(id);
-    }
-    async finishActiveCommonWorkout(id) {
-        return this.adminService.finishActiveCommonWorkout(id);
-    }
-    async getExerciseStats(query) {
-        return this.adminService.getExerciseStats(query);
-    }
-    async listProfaneExercises() {
-        return this.adminService.listProfaneExercises();
     }
     async listUserWorkouts(id, query) {
         return this.adminService.listUserWorkouts(id, query);
@@ -148,17 +128,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "updateUserStatus", null);
 __decorate([
-    (0, common_1.Patch)('users/:id/password'),
-    (0, swagger_1.ApiOperation)({ summary: 'Reset user password as admin' }),
-    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
-    (0, swagger_1.ApiBody)({ type: admin_reset_user_password_dto_1.AdminResetUserPasswordDto }),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, admin_reset_user_password_dto_1.AdminResetUserPasswordDto]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "resetUserPassword", null);
-__decorate([
     (0, common_1.Delete)('users/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Soft delete user as admin' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
@@ -175,51 +144,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "getStats", null);
-__decorate([
-    (0, common_1.Get)('workouts/active'),
-    (0, swagger_1.ApiOperation)({ summary: 'List all active workouts for admin panel' }),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [admin_list_user_workouts_query_dto_1.AdminListUserWorkoutsQueryDto]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "listActiveWorkouts", null);
-__decorate([
-    (0, common_1.Patch)('workouts/:id/finish'),
-    (0, swagger_1.ApiOperation)({ summary: 'Finish active workout as admin' }),
-    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "finishActiveWorkout", null);
-__decorate([
-    (0, common_1.Patch)('common-workouts/:id/finish'),
-    (0, swagger_1.ApiOperation)({ summary: 'Finish active common workout as admin' }),
-    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "finishActiveCommonWorkout", null);
-__decorate([
-    (0, common_1.Get)('exercises/stats'),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Get most popular exercises and average performance',
-    }),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [admin_exercise_stats_query_dto_1.AdminExerciseStatsQueryDto]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "getExerciseStats", null);
-__decorate([
-    (0, common_1.Get)('exercises/profanity'),
-    (0, swagger_1.ApiOperation)({
-        summary: 'List exercises containing profane words for moderation',
-    }),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "listProfaneExercises", null);
 __decorate([
     (0, common_1.Get)('users/:id/workouts'),
     (0, swagger_1.ApiOperation)({ summary: 'List user workouts for admin panel' }),

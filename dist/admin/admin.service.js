@@ -16,66 +16,20 @@ exports.AdminService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const bcrypt = require("bcrypt");
 const user_entity_1 = require("../entities/user.entity");
 const workout_entity_1 = require("../entities/workout.entity");
-const common_workout_entity_1 = require("../entities/common-workout.entity");
-const workout_exercise_entity_1 = require("../entities/workout-exercise.entity");
-const workout_set_entity_1 = require("../entities/workout-set.entity");
 const exercise_entity_1 = require("../entities/exercise.entity");
-const common_workouts_service_1 = require("../common-workouts/common-workouts.service");
 const users_service_1 = require("../users/users.service");
 let AdminService = class AdminService {
-    constructor(userRepository, workoutRepository, commonWorkoutRepository, exerciseRepository, commonWorkoutsService, usersService) {
+    constructor(userRepository, workoutRepository, exerciseRepository, usersService) {
         this.userRepository = userRepository;
         this.workoutRepository = workoutRepository;
-        this.commonWorkoutRepository = commonWorkoutRepository;
         this.exerciseRepository = exerciseRepository;
-        this.commonWorkoutsService = commonWorkoutsService;
         this.usersService = usersService;
         this.defaultPage = 1;
         this.defaultLimit = 20;
         this.maxLimit = 100;
         this.warsawTimeZone = 'Europe/Warsaw';
-        this.profanityWords = [
-            'chuj',
-            'chuja',
-            'chujem',
-            'chujowy',
-            'chujowa',
-            'chujowe',
-            'cipa',
-            'cipe',
-            'cipy',
-            'dupa',
-            'dupe',
-            'dupy',
-            'dziwka',
-            'dziwko',
-            'dziwki',
-            'huj',
-            'hujowy',
-            'jebac',
-            'jebany',
-            'jebana',
-            'jebane',
-            'kurwa',
-            'kurwo',
-            'kurwy',
-            'pierdolic',
-            'pierdolony',
-            'pierdolona',
-            'pierdolone',
-            'spierdalaj',
-            'suka',
-            'suko',
-            'sukinsyn',
-            'fuck',
-            'fucking',
-            'shit',
-            'bitch',
-            'asshole',
-        ];
     }
     async listUsers(query) {
         const page = this.normalizePage(query.page);
@@ -130,18 +84,6 @@ let AdminService = class AdminService {
             ...(dto.isActive ? {} : { refreshTokenHash: null }),
         });
         return this.getUserById(userId);
-    }
-    async resetUserPassword(userId, dto) {
-        await this.findUserOrThrow(userId);
-        const password = await bcrypt.hash(dto.password, 10);
-        await this.userRepository.update(userId, {
-            password,
-            refreshTokenHash: null,
-        });
-        return {
-            success: true,
-            id: userId,
-        };
     }
     async softDeleteUser(actingUserId, userId) {
         const user = await this.findUserOrThrow(userId);
@@ -218,178 +160,6 @@ let AdminService = class AdminService {
             limit,
         };
     }
-    async listActiveWorkouts(query) {
-        const page = this.normalizePage(query.page);
-        const limit = this.normalizeLimit(query.limit);
-        const offset = (page - 1) * limit;
-        const [soloWorkouts, soloTotal, commonWorkouts, commonTotal] = await Promise.all([
-            this.workoutRepository.find({
-                where: {
-                    status: workout_entity_1.WorkoutStatus.ACTIVE,
-                },
-                order: { startedAt: 'DESC' },
-                relations: {
-                    user: true,
-                    template: true,
-                    exercises: {
-                        exercise: true,
-                        sets: true,
-                    },
-                },
-            }),
-            this.workoutRepository.count({
-                where: {
-                    status: workout_entity_1.WorkoutStatus.ACTIVE,
-                },
-            }),
-            this.commonWorkoutRepository.find({
-                where: {
-                    status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
-                },
-                order: { startedAt: 'DESC' },
-                relations: {
-                    createdByUser: true,
-                    template: true,
-                    participants: {
-                        user: true,
-                    },
-                    exercises: {
-                        exercise: true,
-                        participantSets: true,
-                    },
-                },
-            }),
-            this.commonWorkoutRepository.count({
-                where: {
-                    status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
-                },
-            }),
-        ]);
-        const workouts = [
-            ...soloWorkouts.map((workout) => ({
-                ...this.mapWorkoutSummary(workout),
-                source: 'solo',
-                user: this.mapWorkoutUser(workout.user),
-            })),
-            ...commonWorkouts.map((workout) => this.mapCommonWorkoutSummary(workout)),
-        ]
-            .sort((left, right) => new Date(right.startedAt).getTime() -
-            new Date(left.startedAt).getTime())
-            .slice(offset, offset + limit);
-        return {
-            workouts,
-            total: soloTotal + commonTotal,
-            page,
-            limit,
-        };
-    }
-    async finishActiveWorkout(workoutId) {
-        const workout = await this.workoutRepository.findOne({
-            where: {
-                id: workoutId,
-                status: workout_entity_1.WorkoutStatus.ACTIVE,
-            },
-        });
-        if (!workout) {
-            throw new common_1.NotFoundException('Active workout not found');
-        }
-        workout.status = workout_entity_1.WorkoutStatus.COMPLETED;
-        workout.finishedAt = new Date();
-        await this.workoutRepository.save(workout);
-        const completedWorkout = await this.workoutRepository.findOne({
-            where: { id: workout.id },
-            relations: {
-                user: true,
-                template: true,
-                exercises: {
-                    exercise: true,
-                    sets: true,
-                },
-            },
-        });
-        return {
-            success: true,
-            workout: completedWorkout
-                ? {
-                    ...this.mapWorkoutSummary(completedWorkout),
-                    source: 'solo',
-                    user: this.mapWorkoutUser(completedWorkout.user),
-                }
-                : {
-                    id: workout.id,
-                    source: 'solo',
-                    status: workout.status,
-                    finishedAt: workout.finishedAt,
-                },
-        };
-    }
-    async finishActiveCommonWorkout(commonWorkoutId) {
-        const commonWorkout = await this.commonWorkoutRepository.findOne({
-            where: {
-                id: commonWorkoutId,
-                status: common_workout_entity_1.CommonWorkoutStatus.ACTIVE,
-            },
-        });
-        if (!commonWorkout) {
-            throw new common_1.NotFoundException('Active common workout not found');
-        }
-        const workout = await this.commonWorkoutsService.finish(commonWorkout.createdByUserId, commonWorkout.id);
-        return {
-            success: true,
-            workout,
-        };
-    }
-    async getExerciseStats(query) {
-        const limit = this.normalizeLimit(query.limit);
-        const rows = await this.exerciseRepository
-            .createQueryBuilder('exercise')
-            .innerJoin(workout_exercise_entity_1.WorkoutExercise, 'workoutExercise', 'workoutExercise.exerciseId = exercise.id')
-            .innerJoin(workout_entity_1.Workout, 'workout', 'workout.id = workoutExercise.workoutId AND workout.status = :status', { status: workout_entity_1.WorkoutStatus.COMPLETED })
-            .leftJoin(workout_set_entity_1.WorkoutSet, 'workoutSet', 'workoutSet.workoutExerciseId = workoutExercise.id AND workoutSet.confirmed = :confirmed', { confirmed: true })
-            .select('exercise.id', 'exerciseId')
-            .addSelect('exercise.name', 'exerciseName')
-            .addSelect('COUNT(DISTINCT workoutExercise.id)', 'workoutsCount')
-            .addSelect('COUNT(workoutSet.id)', 'setsCount')
-            .addSelect('AVG(workoutSet.currentWeight)', 'averageWeight')
-            .addSelect('AVG(workoutSet.currentReps)', 'averageReps')
-            .groupBy('exercise.id')
-            .addGroupBy('exercise.name')
-            .orderBy('COUNT(DISTINCT workoutExercise.id)', 'DESC')
-            .addOrderBy('COUNT(workoutSet.id)', 'DESC')
-            .addOrderBy('exercise.name', 'ASC')
-            .limit(limit)
-            .getRawMany();
-        return {
-            exercises: rows.map((row) => ({
-                exercise: {
-                    id: Number(row.exerciseId),
-                    name: row.exerciseName,
-                },
-                workoutsCount: Number(row.workoutsCount),
-                setsCount: Number(row.setsCount),
-                averageWeight: this.roundNullable(row.averageWeight),
-                averageReps: this.roundNullable(row.averageReps),
-            })),
-            limit,
-        };
-    }
-    async listProfaneExercises() {
-        const exercises = await this.exerciseRepository.find({
-            relations: {
-                createdByUser: true,
-            },
-            order: {
-                name: 'ASC',
-            },
-        });
-        const flaggedExercises = exercises
-            .map((exercise) => this.mapProfaneExercise(exercise))
-            .filter((exercise) => Boolean(exercise));
-        return {
-            exercises: flaggedExercises,
-            total: flaggedExercises.length,
-        };
-    }
     async findUserOrThrow(userId) {
         const user = await this.userRepository.findOne({
             where: { id: userId },
@@ -448,95 +218,6 @@ let AdminService = class AdminService {
                 }
                 : null,
         };
-    }
-    mapWorkoutUser(user) {
-        if (!user) {
-            return null;
-        }
-        return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            avatarPath: user.avatarPath ?? null,
-            avatarUrl: user.avatarPath ?? null,
-            role: user.role,
-            isActive: user.isActive,
-        };
-    }
-    mapCommonWorkoutSummary(workout) {
-        const exercises = workout.exercises || [];
-        const sets = exercises.flatMap((exercise) => exercise.participantSets || []);
-        const participants = workout.participants || [];
-        const durationSeconds = this.getDurationSeconds(workout.startedAt, workout.finishedAt);
-        return {
-            id: workout.id,
-            name: workout.name,
-            status: workout.status,
-            source: 'common',
-            mode: 'common',
-            isSolo: false,
-            participantCount: participants.length,
-            startedAt: workout.startedAt,
-            finishedAt: workout.finishedAt,
-            durationSeconds,
-            durationLabel: this.getDurationLabel(durationSeconds),
-            exerciseCount: exercises.length,
-            totalSets: sets.length,
-            confirmedSets: sets.filter((set) => set.confirmed).length,
-            exerciseNames: Array.from(new Set(exercises
-                .map((exercise) => exercise.exercise?.name)
-                .filter((name) => Boolean(name)))),
-            template: workout.template
-                ? {
-                    id: workout.template.id,
-                    name: workout.template.name,
-                }
-                : null,
-            createdByUser: this.mapWorkoutUser(workout.createdByUser),
-            participants: participants.map((participant) => this.mapWorkoutUser(participant.user)),
-        };
-    }
-    roundNullable(value) {
-        if (value === null) {
-            return null;
-        }
-        const numberValue = Number(value);
-        if (!Number.isFinite(numberValue)) {
-            return null;
-        }
-        return Math.round(numberValue * 100) / 100;
-    }
-    mapProfaneExercise(exercise) {
-        const fields = [
-            { name: 'name', value: exercise.name },
-            { name: 'description', value: exercise.description ?? '' },
-        ];
-        const matches = fields.flatMap((field) => this.findProfanityMatches(field.value).map((word) => ({
-            field: field.name,
-            word,
-        })));
-        if (matches.length === 0) {
-            return null;
-        }
-        return {
-            id: exercise.id,
-            name: exercise.name,
-            description: exercise.description,
-            isGlobal: exercise.isGlobal,
-            createdByUserId: exercise.createdByUserId,
-            createdByUser: exercise.createdByUser
-                ? this.mapWorkoutUser(exercise.createdByUser)
-                : null,
-            matches,
-            matchedWords: Array.from(new Set(matches.map((match) => match.word))),
-        };
-    }
-    findProfanityMatches(value) {
-        const normalized = value.toLowerCase();
-        return this.profanityWords.filter((word) => {
-            const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            return new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}([^\\p{L}\\p{N}]|$)`, 'iu').test(normalized);
-        });
     }
     getDurationSeconds(startedAt, finishedAt) {
         const start = new Date(startedAt).getTime();
@@ -608,13 +289,10 @@ exports.AdminService = AdminService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(workout_entity_1.Workout)),
-    __param(2, (0, typeorm_1.InjectRepository)(common_workout_entity_1.CommonWorkout)),
-    __param(3, (0, typeorm_1.InjectRepository)(exercise_entity_1.Exercise)),
+    __param(2, (0, typeorm_1.InjectRepository)(exercise_entity_1.Exercise)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository,
-        common_workouts_service_1.CommonWorkoutsService,
         users_service_1.UsersService])
 ], AdminService);
 //# sourceMappingURL=admin.service.js.map
