@@ -219,6 +219,7 @@ export class CommonWorkoutsService {
     const rows = await baseQuery
       .clone()
       .select('workout.id', 'id')
+      .addSelect('workout.startedAt', 'startedAt')
       .distinct(true)
       .orderBy('workout.startedAt', 'DESC')
       .addOrderBy('workout.id', 'DESC')
@@ -349,6 +350,7 @@ export class CommonWorkoutsService {
     const rows = await baseQuery
       .clone()
       .select('workout.id', 'id')
+      .addSelect('workout.startedAt', 'startedAt')
       .distinct(true)
       .orderBy('workout.startedAt', 'DESC')
       .addOrderBy('workout.id', 'DESC')

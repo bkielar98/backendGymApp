@@ -887,6 +887,7 @@ describe('CommonWorkoutsService', () => {
       andWhere: jest.fn().mockReturnThis(),
       clone: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
       distinct: jest.fn().mockReturnThis(),
       getCount: jest.fn().mockResolvedValue(1 as never),
       orderBy: jest.fn().mockReturnThis(),

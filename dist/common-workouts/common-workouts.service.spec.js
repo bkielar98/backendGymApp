@@ -774,6 +774,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
             andWhere: globals_1.jest.fn().mockReturnThis(),
             clone: globals_1.jest.fn().mockReturnThis(),
             select: globals_1.jest.fn().mockReturnThis(),
+            addSelect: globals_1.jest.fn().mockReturnThis(),
             distinct: globals_1.jest.fn().mockReturnThis(),
             getCount: globals_1.jest.fn().mockResolvedValue(1),
             orderBy: globals_1.jest.fn().mockReturnThis(),
