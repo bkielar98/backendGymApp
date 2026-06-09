@@ -11,9 +11,14 @@ import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { User, UserRole } from '../entities/user.entity';
 import { WorkoutExercise } from '../entities/workout-exercise.entity';
 import { WorkoutStatus } from '../entities/workout.entity';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 
 @Injectable()
 export class ExercisesService {
+  private readonly defaultPage = 1;
+  private readonly defaultLimit = 20;
+  private readonly maxLimit = 100;
+
   constructor(
     @InjectRepository(Exercise)
     private exerciseRepository: Repository<Exercise>,
@@ -31,25 +36,52 @@ export class ExercisesService {
     return this.exerciseRepository.save(exercise);
   }
 
-  async findAll(user: User): Promise<Exercise[]> {
-    if (user.role === UserRole.ADMIN) {
-      return this.exerciseRepository.find({
-        order: {
-          name: 'ASC',
-        },
-      });
+  async findAll(user: User, query: PaginatedTextSearchQueryDto = {}) {
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const search = this.normalizeSearch(query.text_search);
+    const builder = this.exerciseRepository.createQueryBuilder('exercise');
+
+    if (user.role !== UserRole.ADMIN) {
+      builder.where(
+        new Brackets((qb) => {
+          qb.where('exercise.isGlobal = :isGlobal', { isGlobal: true }).orWhere(
+            'exercise.createdByUserId = :userId',
+            { userId: user.id },
+          );
+        }),
+      );
     }
 
-    return this.exerciseRepository
-      .createQueryBuilder('exercise')
-      .where('exercise.isGlobal = :isGlobal', { isGlobal: true })
-      .orWhere(
+    if (search) {
+      builder.andWhere(
         new Brackets((qb) => {
-          qb.where('exercise.createdByUserId = :userId', { userId: user.id });
+          qb.where('LOWER(exercise.name) LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('LOWER(COALESCE(exercise.description, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('LOWER(exercise."muscleGroups") LIKE :search', {
+              search: `%${search}%`,
+            });
         }),
-      )
+      );
+    }
+
+    const [exercises, total] = await builder
       .orderBy('exercise.name', 'ASC')
-      .getMany();
+      .addOrderBy('exercise.id', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      exercises,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findCustom(user: User): Promise<Exercise[]> {
@@ -87,9 +119,15 @@ export class ExercisesService {
     return exercise;
   }
 
-  async findHistory(user: User, id: number) {
+  async findHistory(
+    user: User,
+    id: number,
+    query: PaginatedTextSearchQueryDto = {},
+  ) {
     const exercise = await this.findOne(user, id);
-    const workoutExercises = await this.workoutExerciseRepository.find({
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const [workoutExercises, total] = await this.workoutExerciseRepository.findAndCount({
       where: {
         exerciseId: exercise.id,
         workout: {
@@ -111,6 +149,8 @@ export class ExercisesService {
           setNumber: 'ASC',
         },
       },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     const groupedByDate = new Map<
@@ -157,9 +197,18 @@ export class ExercisesService {
       groupedByDate.set(dateKey, entry);
     }
 
-    return Array.from(groupedByDate.values()).sort((a, b) =>
-      b.date.localeCompare(a.date),
-    );
+    return {
+      exercise: {
+        id: exercise.id,
+        name: exercise.name,
+      },
+      history: Array.from(groupedByDate.values()).sort((a, b) =>
+        b.date.localeCompare(a.date),
+      ),
+      total,
+      page,
+      limit,
+    };
   }
 
   async update(
@@ -217,5 +266,22 @@ export class ExercisesService {
 
   private toDateKey(date: Date) {
     return new Date(date).toISOString().slice(0, 10);
+  }
+
+  private normalizePage(page?: number): number {
+    return typeof page === 'number' && page > 0 ? page : this.defaultPage;
+  }
+
+  private normalizeLimit(limit?: number): number {
+    if (typeof limit !== 'number' || limit <= 0) {
+      return this.defaultLimit;
+    }
+
+    return Math.min(limit, this.maxLimit);
+  }
+
+  private normalizeSearch(search?: string): string | null {
+    const normalized = search?.trim().toLowerCase();
+    return normalized ? normalized : null;
   }
 }

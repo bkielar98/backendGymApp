@@ -32,6 +32,9 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         this.exerciseRepository = exerciseRepository;
         this.friendshipRepository = friendshipRepository;
         this.userRepository = userRepository;
+        this.defaultPage = 1;
+        this.defaultLimit = 20;
+        this.maxLimit = 100;
     }
     async create(userId, createDto) {
         this.validateTemplateExercises(createDto.exercises);
@@ -72,15 +75,25 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         await this.syncMembers(saved, userId, createDto.memberUserIds ?? []);
         return this.findOne(userId, saved.id);
     }
-    async findAll(userId) {
-        const templates = await this.getTemplatesAccessibleToUser(userId);
-        return templates.map((template) => this.mapTemplate(template, userId));
+    async findAll(userId, query = {}) {
+        const result = await this.getTemplatesAccessibleToUser(userId, query);
+        return {
+            templates: result.templates.map((template) => this.mapTemplate(template, userId)),
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        };
     }
-    async findSharedWithMe(userId) {
-        const templates = await this.getTemplatesAccessibleToUser(userId);
-        return templates
-            .filter((template) => template.userId !== userId)
-            .map((template) => this.mapTemplate(template, userId));
+    async findSharedWithMe(userId, query = {}) {
+        const result = await this.getTemplatesAccessibleToUser(userId, query, {
+            sharedWithMeOnly: true,
+        });
+        return {
+            templates: result.templates.map((template) => this.mapTemplate(template, userId)),
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        };
     }
     async findSharedByCode(userId, shareCode) {
         const template = await this.templateRepository.findOne({
@@ -338,21 +351,81 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
         }))
             .getOne();
     }
-    async getTemplatesAccessibleToUser(userId) {
-        return this.templateRepository
+    async getTemplatesAccessibleToUser(userId, query = {}, options = {}) {
+        const page = this.normalizePage(query.page);
+        const limit = this.normalizeLimit(query.limit);
+        const search = this.normalizeSearch(query.text_search);
+        const baseQuery = this.templateRepository
+            .createQueryBuilder('template')
+            .leftJoin('template.exercises', 'exerciseEntry')
+            .leftJoin('exerciseEntry.exercise', 'exercise')
+            .leftJoin('template.members', 'member')
+            .where(new typeorm_2.Brackets((qb) => {
+            qb.where('template.userId = :userId', { userId }).orWhere('member.userId = :userId', { userId });
+        }));
+        if (options.sharedWithMeOnly) {
+            baseQuery.andWhere('template.userId != :userId', { userId });
+        }
+        if (search) {
+            baseQuery.andWhere(new typeorm_2.Brackets((qb) => {
+                qb.where('LOWER(template.name) LIKE :search', {
+                    search: `%${search}%`,
+                })
+                    .orWhere('LOWER(COALESCE(template.description, \'\')) LIKE :search', {
+                    search: `%${search}%`,
+                })
+                    .orWhere('LOWER(COALESCE(template.labels, \'\')) LIKE :search', {
+                    search: `%${search}%`,
+                })
+                    .orWhere('LOWER(COALESCE(CAST(template.tasks AS text), \'\')) LIKE :search', { search: `%${search}%` })
+                    .orWhere('LOWER(COALESCE(exercise.name, \'\')) LIKE :search', {
+                    search: `%${search}%`,
+                });
+            }));
+        }
+        const total = await baseQuery
+            .clone()
+            .select('template.id')
+            .distinct(true)
+            .getCount();
+        const rows = await baseQuery
+            .clone()
+            .select('template.id', 'id')
+            .distinct(true)
+            .orderBy('template.id', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getRawMany();
+        const ids = rows.map((row) => Number(row.id));
+        if (ids.length === 0) {
+            return {
+                templates: [],
+                total,
+                page,
+                limit,
+            };
+        }
+        const templates = await this.templateRepository
             .createQueryBuilder('template')
             .leftJoinAndSelect('template.user', 'user')
             .leftJoinAndSelect('template.exercises', 'exerciseEntry')
             .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
             .leftJoinAndSelect('template.members', 'member')
             .leftJoinAndSelect('member.user', 'memberUser')
-            .where(new typeorm_2.Brackets((qb) => {
-            qb.where('template.userId = :userId', { userId }).orWhere('member.userId = :userId', { userId });
-        }))
+            .where('template.id IN (:...ids)', { ids })
             .orderBy('template.id', 'DESC')
             .addOrderBy('exerciseEntry.order', 'ASC')
             .addOrderBy('member.id', 'ASC')
             .getMany();
+        const templateById = new Map(templates.map((template) => [template.id, template]));
+        return {
+            templates: ids
+                .map((id) => templateById.get(id))
+                .filter((template) => Boolean(template)),
+            total,
+            page,
+            limit,
+        };
     }
     getTemplateExerciseForTemplate(template, templateExerciseId) {
         const templateExercise = (template.exercises || []).find((item) => item.id === templateExerciseId);
@@ -456,6 +529,19 @@ let WorkoutTemplatesService = class WorkoutTemplatesService {
             return null;
         }
         return new Date(value);
+    }
+    normalizePage(page) {
+        return typeof page === 'number' && page > 0 ? page : this.defaultPage;
+    }
+    normalizeLimit(limit) {
+        if (typeof limit !== 'number' || limit <= 0) {
+            return this.defaultLimit;
+        }
+        return Math.min(limit, this.maxLimit);
+    }
+    normalizeSearch(search) {
+        const normalized = search?.trim().toLowerCase();
+        return normalized ? normalized : null;
     }
     async syncMembers(template, ownerUserId, memberUserIds) {
         const nextMemberUserIds = [...new Set(memberUserIds)].filter((memberUserId) => memberUserId !== ownerUserId);

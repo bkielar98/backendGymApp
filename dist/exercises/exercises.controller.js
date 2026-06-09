@@ -19,6 +19,7 @@ const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const create_exercise_dto_1 = require("./dto/create-exercise.dto");
 const update_exercise_dto_1 = require("./dto/update-exercise.dto");
 const exercises_service_1 = require("./exercises.service");
+const paginated_text_search_query_dto_1 = require("../common/dto/paginated-text-search-query.dto");
 let ExercisesController = class ExercisesController {
     constructor(exercisesService) {
         this.exercisesService = exercisesService;
@@ -26,14 +27,14 @@ let ExercisesController = class ExercisesController {
     async create(req, createExerciseDto) {
         return this.exercisesService.create(req.user, createExerciseDto);
     }
-    async findAll(req) {
-        return this.exercisesService.findAll(req.user);
+    async findAll(req, query = {}) {
+        return this.exercisesService.findAll(req.user, query);
     }
     async findCustom(req) {
         return this.exercisesService.findCustom(req.user);
     }
-    async findHistory(req, id) {
-        return this.exercisesService.findHistory(req.user, +id);
+    async findHistory(req, id, query = {}) {
+        return this.exercisesService.findHistory(req.user, +id, query);
     }
     async findOne(req, id) {
         return this.exercisesService.findOne(req.user, +id);
@@ -61,8 +62,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'List all exercises' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercises retrieved' }),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "findAll", null);
 __decorate([
@@ -81,8 +83,9 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Exercise history retrieved' }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], ExercisesController.prototype, "findHistory", null);
 __decorate([

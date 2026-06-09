@@ -21,6 +21,7 @@ const workout_entity_1 = require("../entities/workout.entity");
         };
         workoutExerciseRepository = {
             find: globals_1.jest.fn(),
+            findAndCount: globals_1.jest.fn(),
         };
         service = new exercises_service_1.ExercisesService(exerciseRepository, workoutExerciseRepository);
     });
@@ -83,87 +84,96 @@ const workout_entity_1 = require("../entities/workout.entity");
             isGlobal: true,
             createdByUserId: null,
         });
-        workoutExerciseRepository.find.mockResolvedValue([
-            {
-                id: 30,
-                exerciseId: 1,
-                workout: {
-                    id: 6,
-                    userId: 15,
-                    status: workout_entity_1.WorkoutStatus.COMPLETED,
-                    startedAt: new Date('2026-03-23T09:00:00.000Z'),
-                    finishedAt: new Date('2026-03-23T10:00:00.000Z'),
+        workoutExerciseRepository.findAndCount.mockResolvedValue([[
+                {
+                    id: 30,
+                    exerciseId: 1,
+                    workout: {
+                        id: 6,
+                        userId: 15,
+                        status: workout_entity_1.WorkoutStatus.COMPLETED,
+                        startedAt: new Date('2026-03-23T09:00:00.000Z'),
+                        finishedAt: new Date('2026-03-23T10:00:00.000Z'),
+                    },
+                    sets: [
+                        {
+                            id: 300,
+                            setNumber: 1,
+                            previousWeight: 75,
+                            previousReps: 8,
+                            currentWeight: 80,
+                            currentReps: 8,
+                            repMax: 101.33,
+                            confirmed: true,
+                        },
+                    ],
                 },
-                sets: [
-                    {
-                        id: 300,
-                        setNumber: 1,
-                        previousWeight: 75,
-                        previousReps: 8,
-                        currentWeight: 80,
-                        currentReps: 8,
-                        repMax: 101.33,
-                        confirmed: true,
+                {
+                    id: 29,
+                    exerciseId: 1,
+                    workout: {
+                        id: 5,
+                        userId: 15,
+                        status: workout_entity_1.WorkoutStatus.COMPLETED,
+                        startedAt: new Date('2026-03-17T09:00:00.000Z'),
+                        finishedAt: new Date('2026-03-17T10:00:00.000Z'),
                     },
-                ],
-            },
-            {
-                id: 29,
-                exerciseId: 1,
-                workout: {
-                    id: 5,
-                    userId: 15,
-                    status: workout_entity_1.WorkoutStatus.COMPLETED,
-                    startedAt: new Date('2026-03-17T09:00:00.000Z'),
-                    finishedAt: new Date('2026-03-17T10:00:00.000Z'),
+                    sets: [
+                        {
+                            id: 290,
+                            setNumber: 1,
+                            previousWeight: 72.5,
+                            previousReps: 8,
+                            currentWeight: 77.5,
+                            currentReps: 8,
+                            repMax: 98.17,
+                            confirmed: true,
+                        },
+                    ],
                 },
-                sets: [
-                    {
-                        id: 290,
-                        setNumber: 1,
-                        previousWeight: 72.5,
-                        previousReps: 8,
-                        currentWeight: 77.5,
-                        currentReps: 8,
-                        repMax: 98.17,
-                        confirmed: true,
-                    },
-                ],
+            ], 2]);
+        await (0, globals_1.expect)(service.findHistory({ id: 15, role: user_entity_1.UserRole.USER }, 1)).resolves.toEqual({
+            exercise: {
+                id: 1,
+                name: 'Bench Press',
             },
-        ]);
-        await (0, globals_1.expect)(service.findHistory({ id: 15, role: user_entity_1.UserRole.USER }, 1)).resolves.toEqual([
-            {
-                date: '2026-03-23',
-                sets: [
-                    {
-                        id: 300,
-                        setNumber: 1,
-                        previousWeight: 75,
-                        previousReps: 8,
-                        currentWeight: 80,
-                        currentReps: 8,
-                        repMax: 101.33,
-                        confirmed: true,
-                    },
-                ],
-            },
-            {
-                date: '2026-03-17',
-                sets: [
-                    {
-                        id: 290,
-                        setNumber: 1,
-                        previousWeight: 72.5,
-                        previousReps: 8,
-                        currentWeight: 77.5,
-                        currentReps: 8,
-                        repMax: 98.17,
-                        confirmed: true,
-                    },
-                ],
-            },
-        ]);
-        (0, globals_1.expect)(workoutExerciseRepository.find).toHaveBeenCalledWith(globals_1.expect.objectContaining({
+            history: [
+                {
+                    date: '2026-03-23',
+                    sets: [
+                        {
+                            id: 300,
+                            setNumber: 1,
+                            previousWeight: 75,
+                            previousReps: 8,
+                            currentWeight: 80,
+                            currentReps: 8,
+                            repMax: 101.33,
+                            confirmed: true,
+                        },
+                    ],
+                },
+                {
+                    date: '2026-03-17',
+                    sets: [
+                        {
+                            id: 290,
+                            setNumber: 1,
+                            previousWeight: 72.5,
+                            previousReps: 8,
+                            currentWeight: 77.5,
+                            currentReps: 8,
+                            repMax: 98.17,
+                            confirmed: true,
+                        },
+                    ],
+                },
+            ],
+            total: 2,
+            page: 1,
+            limit: 20,
+        });
+        (0, globals_1.expect)(workoutExerciseRepository.findAndCount).toHaveBeenCalledWith(globals_1.expect.objectContaining({
             relations: {
                 workout: true,
                 sets: true,

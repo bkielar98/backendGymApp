@@ -24,6 +24,9 @@ let ExercisesService = class ExercisesService {
     constructor(exerciseRepository, workoutExerciseRepository) {
         this.exerciseRepository = exerciseRepository;
         this.workoutExerciseRepository = workoutExerciseRepository;
+        this.defaultPage = 1;
+        this.defaultLimit = 20;
+        this.maxLimit = 100;
     }
     async create(user, createExerciseDto) {
         const exercise = this.exerciseRepository.create({
@@ -33,22 +36,41 @@ let ExercisesService = class ExercisesService {
         });
         return this.exerciseRepository.save(exercise);
     }
-    async findAll(user) {
-        if (user.role === user_entity_1.UserRole.ADMIN) {
-            return this.exerciseRepository.find({
-                order: {
-                    name: 'ASC',
-                },
-            });
+    async findAll(user, query = {}) {
+        const page = this.normalizePage(query.page);
+        const limit = this.normalizeLimit(query.limit);
+        const search = this.normalizeSearch(query.text_search);
+        const builder = this.exerciseRepository.createQueryBuilder('exercise');
+        if (user.role !== user_entity_1.UserRole.ADMIN) {
+            builder.where(new typeorm_2.Brackets((qb) => {
+                qb.where('exercise.isGlobal = :isGlobal', { isGlobal: true }).orWhere('exercise.createdByUserId = :userId', { userId: user.id });
+            }));
         }
-        return this.exerciseRepository
-            .createQueryBuilder('exercise')
-            .where('exercise.isGlobal = :isGlobal', { isGlobal: true })
-            .orWhere(new typeorm_2.Brackets((qb) => {
-            qb.where('exercise.createdByUserId = :userId', { userId: user.id });
-        }))
+        if (search) {
+            builder.andWhere(new typeorm_2.Brackets((qb) => {
+                qb.where('LOWER(exercise.name) LIKE :search', {
+                    search: `%${search}%`,
+                })
+                    .orWhere('LOWER(COALESCE(exercise.description, \'\')) LIKE :search', {
+                    search: `%${search}%`,
+                })
+                    .orWhere('LOWER(exercise."muscleGroups") LIKE :search', {
+                    search: `%${search}%`,
+                });
+            }));
+        }
+        const [exercises, total] = await builder
             .orderBy('exercise.name', 'ASC')
-            .getMany();
+            .addOrderBy('exercise.id', 'ASC')
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getManyAndCount();
+        return {
+            exercises,
+            total,
+            page,
+            limit,
+        };
     }
     async findCustom(user) {
         if (user.role === user_entity_1.UserRole.ADMIN) {
@@ -79,9 +101,11 @@ let ExercisesService = class ExercisesService {
         this.ensureUserCanAccessExercise(user, exercise);
         return exercise;
     }
-    async findHistory(user, id) {
+    async findHistory(user, id, query = {}) {
         const exercise = await this.findOne(user, id);
-        const workoutExercises = await this.workoutExerciseRepository.find({
+        const page = this.normalizePage(query.page);
+        const limit = this.normalizeLimit(query.limit);
+        const [workoutExercises, total] = await this.workoutExerciseRepository.findAndCount({
             where: {
                 exerciseId: exercise.id,
                 workout: {
@@ -103,6 +127,8 @@ let ExercisesService = class ExercisesService {
                     setNumber: 'ASC',
                 },
             },
+            skip: (page - 1) * limit,
+            take: limit,
         });
         const groupedByDate = new Map();
         for (const workoutExercise of workoutExercises) {
@@ -126,7 +152,16 @@ let ExercisesService = class ExercisesService {
             })));
             groupedByDate.set(dateKey, entry);
         }
-        return Array.from(groupedByDate.values()).sort((a, b) => b.date.localeCompare(a.date));
+        return {
+            exercise: {
+                id: exercise.id,
+                name: exercise.name,
+            },
+            history: Array.from(groupedByDate.values()).sort((a, b) => b.date.localeCompare(a.date)),
+            total,
+            page,
+            limit,
+        };
     }
     async update(user, id, updateExerciseDto) {
         const exercise = await this.findOne(user, id);
@@ -168,6 +203,19 @@ let ExercisesService = class ExercisesService {
     }
     toDateKey(date) {
         return new Date(date).toISOString().slice(0, 10);
+    }
+    normalizePage(page) {
+        return typeof page === 'number' && page > 0 ? page : this.defaultPage;
+    }
+    normalizeLimit(limit) {
+        if (typeof limit !== 'number' || limit <= 0) {
+            return this.defaultLimit;
+        }
+        return Math.min(limit, this.maxLimit);
+    }
+    normalizeSearch(search) {
+        const normalized = search?.trim().toLowerCase();
+        return normalized ? normalized : null;
     }
 };
 exports.ExercisesService = ExercisesService;

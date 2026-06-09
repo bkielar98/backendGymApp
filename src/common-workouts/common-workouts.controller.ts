@@ -29,6 +29,7 @@ import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-work
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 
 @ApiTags('workouts')
 @ApiBearerAuth()
@@ -54,8 +55,11 @@ export class CommonWorkoutsController {
     description:
       'Zwraca lekka liste workoutow usera z WorkoutBlocks i per-user cwiczeniami, bez pelnych serii.',
   })
-  async findAll(@Request() req) {
-    return this.commonWorkoutsService.listForUser(req.user.id);
+  async findAll(
+    @Request() req,
+    @Query() query: PaginatedTextSearchQueryDto = {},
+  ) {
+    return this.commonWorkoutsService.listForUser(req.user.id, query);
   }
 
   @Get('active')
@@ -109,10 +113,12 @@ export class CommonWorkoutsController {
   async getExerciseHistory(
     @Request() req,
     @Param('exerciseId', ParseIntPipe) exerciseId: number,
+    @Query() query: PaginatedTextSearchQueryDto = {},
   ) {
     return this.commonWorkoutsService.getExerciseHistoryForUser(
       req.user.id,
       exerciseId,
+      query,
     );
   }
 
@@ -121,8 +127,11 @@ export class CommonWorkoutsController {
     summary: 'Get workout history',
     description: 'Zwraca lekka liste zakonczonych workoutow usera.',
   })
-  async findHistory(@Request() req) {
-    return this.commonWorkoutsService.getHistoryForUser(req.user.id);
+  async findHistory(
+    @Request() req,
+    @Query() query: PaginatedTextSearchQueryDto = {},
+  ) {
+    return this.commonWorkoutsService.getHistoryForUser(req.user.id, query);
   }
 
   @Get('history/:historyId/summary')

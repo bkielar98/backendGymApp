@@ -25,6 +25,7 @@ const share_workout_template_dto_1 = require("./dto/share-workout-template.dto")
 const update_workout_template_dto_1 = require("./dto/update-workout-template.dto");
 const update_workout_template_members_dto_1 = require("./dto/update-workout-template-members.dto");
 const workout_templates_service_1 = require("./workout-templates.service");
+const paginated_text_search_query_dto_1 = require("../common/dto/paginated-text-search-query.dto");
 let WorkoutTemplatesController = class WorkoutTemplatesController {
     constructor(workoutTemplatesService) {
         this.workoutTemplatesService = workoutTemplatesService;
@@ -32,11 +33,11 @@ let WorkoutTemplatesController = class WorkoutTemplatesController {
     async create(req, createDto) {
         return this.workoutTemplatesService.create(req.user.id, createDto);
     }
-    async findAll(req) {
-        return this.workoutTemplatesService.findAll(req.user.id);
+    async findAll(req, query = {}) {
+        return this.workoutTemplatesService.findAll(req.user.id, query);
     }
-    async findSharedWithMe(req) {
-        return this.workoutTemplatesService.findSharedWithMe(req.user.id);
+    async findSharedWithMe(req, query = {}) {
+        return this.workoutTemplatesService.findSharedWithMe(req.user.id, query);
     }
     async findSharedByCode(req, shareCode) {
         return this.workoutTemplatesService.findSharedByCode(req.user.id, shareCode);
@@ -87,15 +88,17 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('shared/with-me'),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], WorkoutTemplatesController.prototype, "findSharedWithMe", null);
 __decorate([

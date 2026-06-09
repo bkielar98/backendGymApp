@@ -7,6 +7,7 @@ import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-work
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 export declare class CommonWorkoutsController {
     private readonly commonWorkoutsService;
     constructor(commonWorkoutsService: CommonWorkoutsService);
@@ -107,42 +108,10 @@ export declare class CommonWorkoutsController {
             name: string;
         };
     }>;
-    findAll(req: any): Promise<{
-        participants: {
-            id: number;
-            user: {
+    findAll(req: any, query?: PaginatedTextSearchQueryDto): Promise<{
+        workouts: {
+            participants: {
                 id: number;
-                email: string;
-                name: string;
-                avatarPath: string;
-                avatarUrl: string;
-            };
-        }[];
-        blocks: {
-            id: number;
-            order: number;
-            status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
-            completedAt: any;
-            defaultExercise: any;
-            users: {
-                sets?: {
-                    id: number;
-                    setNumber: number;
-                    previousWeight: number;
-                    previousReps: number;
-                    currentWeight: number;
-                    currentReps: number;
-                    durationSeconds: number;
-                    repMax: number;
-                    confirmed: boolean;
-                }[];
-                availableActions?: {
-                    changeExercise: boolean;
-                    addSet: boolean;
-                    updateOwnSets: boolean;
-                    removeOwnSets: boolean;
-                };
-                participantId: number;
                 user: {
                     id: number;
                     email: string;
@@ -150,51 +119,88 @@ export declare class CommonWorkoutsController {
                     avatarPath: string;
                     avatarUrl: string;
                 };
+            }[];
+            blocks: {
+                id: number;
+                order: number;
+                status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
+                completedAt: any;
+                defaultExercise: any;
+                users: {
+                    sets?: {
+                        id: number;
+                        setNumber: number;
+                        previousWeight: number;
+                        previousReps: number;
+                        currentWeight: number;
+                        currentReps: number;
+                        durationSeconds: number;
+                        repMax: number;
+                        confirmed: boolean;
+                    }[];
+                    availableActions?: {
+                        changeExercise: boolean;
+                        addSet: boolean;
+                        updateOwnSets: boolean;
+                        removeOwnSets: boolean;
+                    };
+                    participantId: number;
+                    user: {
+                        id: number;
+                        email: string;
+                        name: string;
+                        avatarPath: string;
+                        avatarUrl: string;
+                    };
+                    workoutExerciseId: number;
+                    exercise: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        muscleGroups: string[];
+                    };
+                    completed: boolean;
+                    completedAt: Date;
+                    setsCount: number;
+                    confirmedSets: number;
+                }[];
+            }[];
+            exercises: {
+                id: number;
                 workoutExerciseId: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                    description: string;
-                    muscleGroups: string[];
-                };
-                completed: boolean;
-                completedAt: Date;
+                userId: number;
+                order: number;
+                exerciseId: number;
+                exerciseName: string;
+                exerciseDescription: string;
+                exerciseMuscleGroups: string[];
                 setsCount: number;
                 confirmedSets: number;
             }[];
-        }[];
-        exercises: {
-            id: number;
-            workoutExerciseId: number;
-            userId: number;
-            order: number;
-            exerciseId: number;
-            exerciseName: string;
-            exerciseDescription: string;
-            exerciseMuscleGroups: string[];
-            setsCount: number;
-            confirmedSets: number;
-        }[];
-        id: number;
-        name: string;
-        status: import("../entities/common-workout.entity").CommonWorkoutStatus;
-        mode: string;
-        isSolo: boolean;
-        participantCount: number;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        blockCount: number;
-        exerciseCount: number;
-        totalSets: number;
-        confirmedSets: number;
-        exerciseNames: string[];
-        template: {
             id: number;
             name: string;
-        };
-    }[]>;
+            status: import("../entities/common-workout.entity").CommonWorkoutStatus;
+            mode: string;
+            isSolo: boolean;
+            participantCount: number;
+            startedAt: Date;
+            finishedAt: Date;
+            durationSeconds: number;
+            durationLabel: string;
+            blockCount: number;
+            exerciseCount: number;
+            totalSets: number;
+            confirmedSets: number;
+            exerciseNames: string[];
+            template: {
+                id: number;
+                name: string;
+            };
+        }[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
     getActive(req: any): Promise<{
         participants: {
             id: number;
@@ -324,7 +330,7 @@ export declare class CommonWorkoutsController {
             workoutsCount: number;
         };
     }>;
-    getExerciseHistory(req: any, exerciseId: number): Promise<{
+    getExerciseHistory(req: any, exerciseId: number, query?: PaginatedTextSearchQueryDto): Promise<{
         exercise: {
             id: number;
             name: string;
@@ -344,27 +350,35 @@ export declare class CommonWorkoutsController {
                 label: string;
             }[];
         }[];
+        total: number;
+        page: number;
+        limit: number;
     }>;
-    findHistory(req: any): Promise<{
-        id: number;
-        name: string;
-        status: import("../entities/workout.entity").WorkoutStatus;
-        mode: string;
-        isSolo: boolean;
-        participantCount: number;
-        startedAt: Date;
-        finishedAt: Date;
-        durationSeconds: number;
-        durationLabel: string;
-        exerciseCount: number;
-        totalSets: number;
-        confirmedSets: number;
-        exerciseNames: string[];
-        template: {
+    findHistory(req: any, query?: PaginatedTextSearchQueryDto): Promise<{
+        workouts: {
             id: number;
             name: string;
-        };
-    }[]>;
+            status: import("../entities/workout.entity").WorkoutStatus;
+            mode: string;
+            isSolo: boolean;
+            participantCount: number;
+            startedAt: Date;
+            finishedAt: Date;
+            durationSeconds: number;
+            durationLabel: string;
+            exerciseCount: number;
+            totalSets: number;
+            confirmedSets: number;
+            exerciseNames: string[];
+            template: {
+                id: number;
+                name: string;
+            };
+        }[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
     findHistorySummary(req: any, historyId: number): Promise<{
         participants: {
             exercises: {

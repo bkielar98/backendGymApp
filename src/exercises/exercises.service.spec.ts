@@ -18,6 +18,7 @@ describe('ExercisesService', () => {
   };
   let workoutExerciseRepository: {
     find: any;
+    findAndCount: any;
   };
 
   beforeEach(() => {
@@ -32,6 +33,7 @@ describe('ExercisesService', () => {
     };
     workoutExerciseRepository = {
       find: jest.fn(),
+      findAndCount: jest.fn(),
     };
 
     service = new ExercisesService(
@@ -121,7 +123,7 @@ describe('ExercisesService', () => {
       isGlobal: true,
       createdByUserId: null,
     });
-    workoutExerciseRepository.find.mockResolvedValue([
+    workoutExerciseRepository.findAndCount.mockResolvedValue([[
       {
         id: 30,
         exerciseId: 1,
@@ -168,43 +170,52 @@ describe('ExercisesService', () => {
           },
         ],
       },
-    ]);
+    ], 2]);
 
     await expect(
       service.findHistory({ id: 15, role: UserRole.USER } as any, 1),
-    ).resolves.toEqual([
-      {
-        date: '2026-03-23',
-        sets: [
-          {
-            id: 300,
-            setNumber: 1,
-            previousWeight: 75,
-            previousReps: 8,
-            currentWeight: 80,
-            currentReps: 8,
-            repMax: 101.33,
-            confirmed: true,
-          },
-        ],
+    ).resolves.toEqual({
+      exercise: {
+        id: 1,
+        name: 'Bench Press',
       },
-      {
-        date: '2026-03-17',
-        sets: [
-          {
-            id: 290,
-            setNumber: 1,
-            previousWeight: 72.5,
-            previousReps: 8,
-            currentWeight: 77.5,
-            currentReps: 8,
-            repMax: 98.17,
-            confirmed: true,
-          },
-        ],
-      },
-    ]);
-    expect(workoutExerciseRepository.find).toHaveBeenCalledWith(
+      history: [
+        {
+          date: '2026-03-23',
+          sets: [
+            {
+              id: 300,
+              setNumber: 1,
+              previousWeight: 75,
+              previousReps: 8,
+              currentWeight: 80,
+              currentReps: 8,
+              repMax: 101.33,
+              confirmed: true,
+            },
+          ],
+        },
+        {
+          date: '2026-03-17',
+          sets: [
+            {
+              id: 290,
+              setNumber: 1,
+              previousWeight: 72.5,
+              previousReps: 8,
+              currentWeight: 77.5,
+              currentReps: 8,
+              repMax: 98.17,
+              confirmed: true,
+            },
+          ],
+        },
+      ],
+      total: 2,
+      page: 1,
+      limit: 20,
+    });
+    expect(workoutExerciseRepository.findAndCount).toHaveBeenCalledWith(
       expect.objectContaining({
         relations: {
           workout: true,

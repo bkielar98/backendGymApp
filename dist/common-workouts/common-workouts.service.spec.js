@@ -39,6 +39,7 @@ const common_workouts_service_1 = require("./common-workouts.service");
             find: globals_1.jest.fn(),
             findOne: globals_1.jest.fn(),
             delete: globals_1.jest.fn(),
+            createQueryBuilder: globals_1.jest.fn(),
         };
         workoutExerciseRepository = {
             create: globals_1.jest.fn(),
@@ -767,6 +768,21 @@ const common_workouts_service_1 = require("./common-workouts.service");
                 },
             ],
         };
+        const historyQueryBuilder = {
+            leftJoin: globals_1.jest.fn().mockReturnThis(),
+            where: globals_1.jest.fn().mockReturnThis(),
+            andWhere: globals_1.jest.fn().mockReturnThis(),
+            clone: globals_1.jest.fn().mockReturnThis(),
+            select: globals_1.jest.fn().mockReturnThis(),
+            distinct: globals_1.jest.fn().mockReturnThis(),
+            getCount: globals_1.jest.fn().mockResolvedValue(1),
+            orderBy: globals_1.jest.fn().mockReturnThis(),
+            addOrderBy: globals_1.jest.fn().mockReturnThis(),
+            skip: globals_1.jest.fn().mockReturnThis(),
+            take: globals_1.jest.fn().mockReturnThis(),
+            getRawMany: globals_1.jest.fn().mockResolvedValue([{ id: 55 }]),
+        };
+        workoutRepository.createQueryBuilder.mockReturnValue(historyQueryBuilder);
         workoutRepository.find.mockResolvedValue([historyWorkout]);
         workoutRepository.findOne.mockResolvedValue(historyWorkout);
         workoutRepository.save.mockResolvedValue({
@@ -774,13 +790,18 @@ const common_workouts_service_1 = require("./common-workouts.service");
             name: 'Edited',
         });
         workoutRepository.delete.mockResolvedValue({ affected: 1 });
-        await (0, globals_1.expect)(service.getHistoryForUser(15)).resolves.toMatchObject([
-            {
-                id: 55,
-                exerciseCount: 1,
-                totalSets: 1,
-            },
-        ]);
+        await (0, globals_1.expect)(service.getHistoryForUser(15)).resolves.toMatchObject({
+            workouts: [
+                {
+                    id: 55,
+                    exerciseCount: 1,
+                    totalSets: 1,
+                },
+            ],
+            total: 1,
+            page: 1,
+            limit: 20,
+        });
         await (0, globals_1.expect)(service.getHistoricalByIdForUser(15, 55)).resolves.toMatchObject({
             id: 55,
             exercises: [
@@ -804,10 +825,10 @@ const common_workouts_service_1 = require("./common-workouts.service");
             message: 'Workout removed',
         });
         (0, globals_1.expect)(workoutRepository.find).toHaveBeenCalledWith(globals_1.expect.objectContaining({
-            where: {
+            where: globals_1.expect.objectContaining({
                 userId: 15,
                 status: 'completed',
-            },
+            }),
         }));
         (0, globals_1.expect)(workoutRepository.delete).toHaveBeenCalledWith({
             id: 55,

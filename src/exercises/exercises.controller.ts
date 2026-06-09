@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ExercisesService } from './exercises.service';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 
 @ApiTags('exercises')
 @ApiBearerAuth()
@@ -38,8 +40,11 @@ export class ExercisesController {
   @Get()
   @ApiOperation({ summary: 'List all exercises' })
   @ApiResponse({ status: 200, description: 'Exercises retrieved' })
-  async findAll(@Request() req) {
-    return this.exercisesService.findAll(req.user);
+  async findAll(
+    @Request() req,
+    @Query() query: PaginatedTextSearchQueryDto = {},
+  ) {
+    return this.exercisesService.findAll(req.user, query);
   }
 
   @Get('custom')
@@ -53,8 +58,12 @@ export class ExercisesController {
   @ApiOperation({ summary: 'Get exercise history by ID' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Exercise history retrieved' })
-  async findHistory(@Request() req, @Param('id') id: string) {
-    return this.exercisesService.findHistory(req.user, +id);
+  async findHistory(
+    @Request() req,
+    @Param('id') id: string,
+    @Query() query: PaginatedTextSearchQueryDto = {},
+  ) {
+    return this.exercisesService.findHistory(req.user, +id, query);
   }
 
   @Get(':id')

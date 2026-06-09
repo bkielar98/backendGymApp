@@ -7,6 +7,7 @@ import { ShareWorkoutTemplateDto } from './dto/share-workout-template.dto';
 import { UpdateWorkoutTemplateDto } from './dto/update-workout-template.dto';
 import { UpdateWorkoutTemplateMembersDto } from './dto/update-workout-template-members.dto';
 import { WorkoutTemplatesService } from './workout-templates.service';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 export declare class WorkoutTemplatesController {
     private readonly workoutTemplatesService;
     constructor(workoutTemplatesService: WorkoutTemplatesService);
@@ -46,78 +47,88 @@ export declare class WorkoutTemplatesController {
             };
         }[];
     }>;
-    findAll(req: any): Promise<{
-        id: number;
-        name: string;
-        description: string;
-        labels: string[];
-        startDate: Date;
-        endDate: Date;
-        tasks: string[];
-        isShared: boolean;
-        shareCode: string;
-        access: string;
-        owner: {
+    findAll(req: any, query?: PaginatedTextSearchQueryDto): Promise<{
+        templates: {
             id: number;
             name: string;
-            email: string;
-            avatarPath: string;
-        };
-        members: {
-            id: number;
-            name: string;
-            email: string;
-            avatarPath: string;
-        }[];
-        exercises: {
-            id: number;
-            exerciseId: number;
-            order: number;
-            setsCount: number;
-            exercise: {
+            description: string;
+            labels: string[];
+            startDate: Date;
+            endDate: Date;
+            tasks: string[];
+            isShared: boolean;
+            shareCode: string;
+            access: string;
+            owner: {
                 id: number;
                 name: string;
-                description: string;
-                muscleGroups: string[];
+                email: string;
+                avatarPath: string;
             };
-        }[];
-    }[]>;
-    findSharedWithMe(req: any): Promise<{
-        id: number;
-        name: string;
-        description: string;
-        labels: string[];
-        startDate: Date;
-        endDate: Date;
-        tasks: string[];
-        isShared: boolean;
-        shareCode: string;
-        access: string;
-        owner: {
-            id: number;
-            name: string;
-            email: string;
-            avatarPath: string;
-        };
-        members: {
-            id: number;
-            name: string;
-            email: string;
-            avatarPath: string;
-        }[];
-        exercises: {
-            id: number;
-            exerciseId: number;
-            order: number;
-            setsCount: number;
-            exercise: {
+            members: {
                 id: number;
                 name: string;
-                description: string;
-                muscleGroups: string[];
-            };
+                email: string;
+                avatarPath: string;
+            }[];
+            exercises: {
+                id: number;
+                exerciseId: number;
+                order: number;
+                setsCount: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+            }[];
         }[];
-    }[]>;
+        total: number;
+        page: number;
+        limit: number;
+    }>;
+    findSharedWithMe(req: any, query?: PaginatedTextSearchQueryDto): Promise<{
+        templates: {
+            id: number;
+            name: string;
+            description: string;
+            labels: string[];
+            startDate: Date;
+            endDate: Date;
+            tasks: string[];
+            isShared: boolean;
+            shareCode: string;
+            access: string;
+            owner: {
+                id: number;
+                name: string;
+                email: string;
+                avatarPath: string;
+            };
+            members: {
+                id: number;
+                name: string;
+                email: string;
+                avatarPath: string;
+            }[];
+            exercises: {
+                id: number;
+                exerciseId: number;
+                order: number;
+                setsCount: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+            }[];
+        }[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
     findSharedByCode(req: any, shareCode: string): Promise<{
         id: number;
         name: string;

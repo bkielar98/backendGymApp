@@ -87,7 +87,7 @@ describe('CommonWorkoutsController', () => {
       workoutsCount: 8,
     });
 
-    expect(service.getHistoryForUser).toHaveBeenCalledWith(14);
+    expect(service.getHistoryForUser).toHaveBeenCalledWith(14, {});
     expect(service.getHistoricalByIdForUser).toHaveBeenCalledWith(14, 11);
     expect(service.getHistoricalSummaryForUser).toHaveBeenCalledWith(14, 11);
     expect(service.updateHistoricalWorkout).toHaveBeenCalledWith(14, 11, {
@@ -97,7 +97,7 @@ describe('CommonWorkoutsController', () => {
     expect(service.getSummaryForUser).toHaveBeenCalledWith(14, 12);
     expect(service.getIndexForUser).toHaveBeenCalledWith(14, 12);
     expect(service.removeActiveWorkout).toHaveBeenCalledWith(14, 12);
-    expect(service.getExerciseHistoryForUser).toHaveBeenCalledWith(14, 7);
+    expect(service.getExerciseHistoryForUser).toHaveBeenCalledWith(14, 7, {});
     expect(service.getDashboardStatsForUser).toHaveBeenCalledWith(14, {
       dateFrom: '2026-04-01',
       dateTo: '2026-04-30',

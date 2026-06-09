@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { ShareWorkoutTemplateDto } from './dto/share-workout-template.dto';
 import { UpdateWorkoutTemplateDto } from './dto/update-workout-template.dto';
 import { UpdateWorkoutTemplateMembersDto } from './dto/update-workout-template-members.dto';
 import { WorkoutTemplatesService } from './workout-templates.service';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 
 @ApiTags('workout-templates')
 @ApiBearerAuth()
@@ -37,13 +39,19 @@ export class WorkoutTemplatesController {
   }
 
   @Get()
-  async findAll(@Request() req) {
-    return this.workoutTemplatesService.findAll(req.user.id);
+  async findAll(
+    @Request() req,
+    @Query() query: PaginatedTextSearchQueryDto = {},
+  ) {
+    return this.workoutTemplatesService.findAll(req.user.id, query);
   }
 
   @Get('shared/with-me')
-  async findSharedWithMe(@Request() req) {
-    return this.workoutTemplatesService.findSharedWithMe(req.user.id);
+  async findSharedWithMe(
+    @Request() req,
+    @Query() query: PaginatedTextSearchQueryDto = {},
+  ) {
+    return this.workoutTemplatesService.findSharedWithMe(req.user.id, query);
   }
 
   @Get('shared/:shareCode')

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, Repository } from 'typeorm';
+import { Between, Brackets, In, Repository } from 'typeorm';
 import {
   CommonWorkout,
   CommonWorkoutStatus,
@@ -33,6 +33,7 @@ import { ChangeCommonWorkoutExercisePositionDto } from './dto/change-common-work
 import { ChangeCommonWorkoutExerciseDto } from './dto/change-common-workout-exercise.dto';
 import { UpdateCommonWorkoutSetDto } from './dto/update-common-workout-set.dto';
 import { GetWorkoutDashboardStatsDto } from './dto/get-workout-dashboard-stats.dto';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 import { calculateBrzyckiRepMax } from '../common/utils/rep-max.util';
 import {
   MAX_COMMON_WORKOUT_EXERCISES,
@@ -45,6 +46,9 @@ import {
 @Injectable()
 export class CommonWorkoutsService {
   private readonly logger = new Logger(CommonWorkoutsService.name);
+  private readonly defaultPage = 1;
+  private readonly defaultLimit = 20;
+  private readonly maxLimit = 100;
 
   constructor(
     @InjectRepository(CommonWorkout)
@@ -176,44 +180,96 @@ export class CommonWorkoutsService {
     return this.getByIdForUser(userId, participant.commonWorkoutId);
   }
 
-  async listForUser(userId: number) {
-    const workouts = await this.commonWorkoutRepository.find({
-      where: {
-        participants: {
-          userId,
-        },
-      },
-      relations: {
-        template: true,
-        participants: {
-          user: true,
-        },
-        blocks: {
-          defaultExercise: true,
-        },
-        exercises: {
-          participant: {
-            user: true,
-          },
-          exercise: true,
-          participantSets: true,
-        },
-      },
-      order: {
-        startedAt: 'DESC',
-        blocks: {
-          order: 'ASC',
-        },
-        exercises: {
-          order: 'ASC',
-          participantSets: {
-            setNumber: 'ASC',
-          },
-        },
-      },
-    });
+  async listForUser(
+    userId: number,
+    query: PaginatedTextSearchQueryDto = {},
+  ) {
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const search = this.normalizeSearch(query.text_search);
+    const baseQuery = this.commonWorkoutRepository
+      .createQueryBuilder('workout')
+      .leftJoin('workout.participants', 'participant')
+      .leftJoin('workout.template', 'template')
+      .leftJoin('workout.exercises', 'workoutExercise')
+      .leftJoin('workoutExercise.exercise', 'exercise')
+      .where('participant.userId = :userId', { userId });
 
-    return workouts.map((workout) => this.mapWorkoutIndex(workout));
+    if (search) {
+      baseQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(workout.name) LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('LOWER(COALESCE(template.name, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('LOWER(COALESCE(exercise.name, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    const total = await baseQuery
+      .clone()
+      .select('workout.id')
+      .distinct(true)
+      .getCount();
+    const rows = await baseQuery
+      .clone()
+      .select('workout.id', 'id')
+      .distinct(true)
+      .orderBy('workout.startedAt', 'DESC')
+      .addOrderBy('workout.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawMany<{ id: number | string }>();
+    const ids = rows.map((row) => Number(row.id));
+    const workouts = ids.length
+      ? await this.commonWorkoutRepository.find({
+          where: { id: In(ids) },
+          relations: {
+            template: true,
+            participants: {
+              user: true,
+            },
+            blocks: {
+              defaultExercise: true,
+            },
+            exercises: {
+              participant: {
+                user: true,
+              },
+              exercise: true,
+              participantSets: true,
+            },
+          },
+          order: {
+            startedAt: 'DESC',
+            blocks: {
+              order: 'ASC',
+            },
+            exercises: {
+              order: 'ASC',
+              participantSets: {
+                setNumber: 'ASC',
+              },
+            },
+          },
+        })
+      : [];
+    const workoutById = new Map(workouts.map((workout) => [workout.id, workout]));
+
+    return {
+      workouts: ids
+        .map((id) => workoutById.get(id))
+        .filter((workout): workout is CommonWorkout => Boolean(workout))
+        .map((workout) => this.mapWorkoutIndex(workout)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async finishActive(userId: number) {
@@ -252,23 +308,78 @@ export class CommonWorkoutsService {
     return this.mapWorkoutIndex(commonWorkout);
   }
 
-  async getHistoryForUser(userId: number) {
-    const workouts = await this.workoutRepository.find({
-      where: {
-        userId,
+  async getHistoryForUser(
+    userId: number,
+    query: PaginatedTextSearchQueryDto = {},
+  ) {
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const search = this.normalizeSearch(query.text_search);
+    const baseQuery = this.workoutRepository
+      .createQueryBuilder('workout')
+      .leftJoin('workout.template', 'template')
+      .leftJoin('workout.exercises', 'workoutExercise')
+      .leftJoin('workoutExercise.exercise', 'exercise')
+      .where('workout.userId = :userId', { userId })
+      .andWhere('workout.status = :status', {
         status: WorkoutStatus.COMPLETED,
-      },
-      order: { startedAt: 'DESC' },
-      relations: {
-        template: true,
-        exercises: {
-          exercise: true,
-          sets: true,
-        },
-      },
-    });
+      });
 
-    return workouts.map((workout) => this.mapHistoricalWorkoutSummary(workout));
+    if (search) {
+      baseQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(workout.name) LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('LOWER(COALESCE(template.name, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('LOWER(COALESCE(exercise.name, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    const total = await baseQuery
+      .clone()
+      .select('workout.id')
+      .distinct(true)
+      .getCount();
+    const rows = await baseQuery
+      .clone()
+      .select('workout.id', 'id')
+      .distinct(true)
+      .orderBy('workout.startedAt', 'DESC')
+      .addOrderBy('workout.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawMany<{ id: number | string }>();
+    const ids = rows.map((row) => Number(row.id));
+    const workouts = ids.length
+      ? await this.workoutRepository.find({
+          where: { id: In(ids), userId, status: WorkoutStatus.COMPLETED },
+          order: { startedAt: 'DESC' },
+          relations: {
+            template: true,
+            exercises: {
+              exercise: true,
+              sets: true,
+            },
+          },
+        })
+      : [];
+    const workoutById = new Map(workouts.map((workout) => [workout.id, workout]));
+
+    return {
+      workouts: ids
+        .map((id) => workoutById.get(id))
+        .filter((workout): workout is Workout => Boolean(workout))
+        .map((workout) => this.mapHistoricalWorkoutSummary(workout)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async getHistoricalByIdForUser(userId: number, workoutId: number) {
@@ -365,29 +476,57 @@ export class CommonWorkoutsService {
     };
   }
 
-  async getExerciseHistoryForUser(userId: number, exerciseId: number) {
-    const workoutExercises = await this.workoutExerciseRepository.find({
-      where: {
-        exerciseId,
-        workout: {
-          userId,
-          status: WorkoutStatus.COMPLETED,
-        },
-      },
-      relations: {
-        workout: true,
-        exercise: true,
-        sets: true,
-      },
-      order: {
-        workout: {
-          startedAt: 'DESC',
-        },
-        sets: {
-          setNumber: 'ASC',
-        },
-      },
-    });
+  async getExerciseHistoryForUser(
+    userId: number,
+    exerciseId: number,
+    query: PaginatedTextSearchQueryDto = {},
+  ) {
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const search = this.normalizeSearch(query.text_search);
+    const baseQuery = this.workoutExerciseRepository
+      .createQueryBuilder('workoutExercise')
+      .innerJoin('workoutExercise.workout', 'workout')
+      .where('workoutExercise.exerciseId = :exerciseId', { exerciseId })
+      .andWhere('workout.userId = :userId', { userId })
+      .andWhere('workout.status = :status', {
+        status: WorkoutStatus.COMPLETED,
+      });
+
+    if (search) {
+      baseQuery.andWhere('LOWER(workout.name) LIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    const total = await baseQuery.getCount();
+    const rows = await baseQuery
+      .clone()
+      .select('workoutExercise.id', 'id')
+      .orderBy('workout.startedAt', 'DESC')
+      .addOrderBy('workoutExercise.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawMany<{ id: number | string }>();
+    const ids = rows.map((row) => Number(row.id));
+    const workoutExercises = ids.length
+      ? await this.workoutExerciseRepository.find({
+          where: { id: In(ids) },
+          relations: {
+            workout: true,
+            exercise: true,
+            sets: true,
+          },
+          order: {
+            workout: {
+              startedAt: 'DESC',
+            },
+            sets: {
+              setNumber: 'ASC',
+            },
+          },
+        })
+      : [];
 
     if (workoutExercises.length === 0) {
       const exercise = await this.exerciseRepository.findOne({
@@ -404,37 +543,55 @@ export class CommonWorkoutsService {
           name: exercise.name,
         },
         history: [],
+        total,
+        page,
+        limit,
       };
     }
 
     const exercise = workoutExercises[0].exercise;
+    const workoutExerciseById = new Map(
+      workoutExercises.map((workoutExercise) => [
+        workoutExercise.id,
+        workoutExercise,
+      ]),
+    );
 
     return {
       exercise: {
         id: exercise.id,
         name: exercise.name,
       },
-      history: workoutExercises.map((workoutExercise) => ({
-        workoutId: workoutExercise.workoutId,
-        workoutName: workoutExercise.workout?.name ?? 'Workout',
-        exerciseName: workoutExercise.exercise?.name ?? exercise.name,
-        date: this.toDateOnly(
-          workoutExercise.workout?.finishedAt ??
-            workoutExercise.workout?.startedAt ??
-            new Date(),
-        ),
-        sets: [...(workoutExercise.sets || [])]
-          .sort((a, b) => a.setNumber - b.setNumber)
-          .map((set) => ({
-            id: set.id,
-            setNumber: set.setNumber,
-            weight: set.currentWeight,
-            reps: set.currentReps,
-            repMax: set.repMax,
-            confirmed: set.confirmed,
-            label: this.formatSetLabel(set.currentWeight, set.currentReps),
-          })),
-      })),
+      history: ids
+        .map((id) => workoutExerciseById.get(id))
+        .filter(
+          (workoutExercise): workoutExercise is WorkoutExercise =>
+            Boolean(workoutExercise),
+        )
+        .map((workoutExercise) => ({
+          workoutId: workoutExercise.workoutId,
+          workoutName: workoutExercise.workout?.name ?? 'Workout',
+          exerciseName: workoutExercise.exercise?.name ?? exercise.name,
+          date: this.toDateOnly(
+            workoutExercise.workout?.finishedAt ??
+              workoutExercise.workout?.startedAt ??
+              new Date(),
+          ),
+          sets: [...(workoutExercise.sets || [])]
+            .sort((a, b) => a.setNumber - b.setNumber)
+            .map((set) => ({
+              id: set.id,
+              setNumber: set.setNumber,
+              weight: set.currentWeight,
+              reps: set.currentReps,
+              repMax: set.repMax,
+              confirmed: set.confirmed,
+              label: this.formatSetLabel(set.currentWeight, set.currentReps),
+            })),
+        })),
+      total,
+      page,
+      limit,
     };
   }
 
@@ -2664,6 +2821,23 @@ export class CommonWorkoutsService {
 
   private toDateOnly(date: Date) {
     return new Date(date).toISOString().slice(0, 10);
+  }
+
+  private normalizePage(page?: number): number {
+    return typeof page === 'number' && page > 0 ? page : this.defaultPage;
+  }
+
+  private normalizeLimit(limit?: number): number {
+    if (typeof limit !== 'number' || limit <= 0) {
+      return this.defaultLimit;
+    }
+
+    return Math.min(limit, this.maxLimit);
+  }
+
+  private normalizeSearch(search?: string): string | null {
+    const normalized = search?.trim().toLowerCase();
+    return normalized ? normalized : null;
   }
 
   private getDateRange(dateFrom: string, dateTo: string) {

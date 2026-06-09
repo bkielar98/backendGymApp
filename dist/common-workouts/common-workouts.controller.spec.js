@@ -76,7 +76,7 @@ const common_workouts_controller_1 = require("./common-workouts.controller");
         await (0, globals_1.expect)(controller.getDashboardStats({ user: { id: 14 } }, { dateFrom: '2026-04-01', dateTo: '2026-04-30' })).resolves.toEqual({
             workoutsCount: 8,
         });
-        (0, globals_1.expect)(service.getHistoryForUser).toHaveBeenCalledWith(14);
+        (0, globals_1.expect)(service.getHistoryForUser).toHaveBeenCalledWith(14, {});
         (0, globals_1.expect)(service.getHistoricalByIdForUser).toHaveBeenCalledWith(14, 11);
         (0, globals_1.expect)(service.getHistoricalSummaryForUser).toHaveBeenCalledWith(14, 11);
         (0, globals_1.expect)(service.updateHistoricalWorkout).toHaveBeenCalledWith(14, 11, {
@@ -86,7 +86,7 @@ const common_workouts_controller_1 = require("./common-workouts.controller");
         (0, globals_1.expect)(service.getSummaryForUser).toHaveBeenCalledWith(14, 12);
         (0, globals_1.expect)(service.getIndexForUser).toHaveBeenCalledWith(14, 12);
         (0, globals_1.expect)(service.removeActiveWorkout).toHaveBeenCalledWith(14, 12);
-        (0, globals_1.expect)(service.getExerciseHistoryForUser).toHaveBeenCalledWith(14, 7);
+        (0, globals_1.expect)(service.getExerciseHistoryForUser).toHaveBeenCalledWith(14, 7, {});
         (0, globals_1.expect)(service.getDashboardStatsForUser).toHaveBeenCalledWith(14, {
             dateFrom: '2026-04-01',
             dateTo: '2026-04-30',

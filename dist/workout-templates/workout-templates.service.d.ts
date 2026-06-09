@@ -8,6 +8,7 @@ import { User } from '../entities/user.entity';
 import { CreateWorkoutTemplateDto } from './dto/create-workout-template.dto';
 import { UpdateWorkoutTemplateDto } from './dto/update-workout-template.dto';
 import { AddWorkoutTemplateExerciseDto } from './dto/add-workout-template-exercise.dto';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 export declare class WorkoutTemplatesService {
     private readonly templateRepository;
     private readonly templateExerciseRepository;
@@ -15,6 +16,9 @@ export declare class WorkoutTemplatesService {
     private readonly exerciseRepository;
     private readonly friendshipRepository;
     private readonly userRepository;
+    private readonly defaultPage;
+    private readonly defaultLimit;
+    private readonly maxLimit;
     constructor(templateRepository: Repository<WorkoutTemplate>, templateExerciseRepository: Repository<WorkoutTemplateExercise>, templateMemberRepository: Repository<WorkoutTemplateMember>, exerciseRepository: Repository<Exercise>, friendshipRepository: Repository<Friendship>, userRepository: Repository<User>);
     create(userId: number, createDto: CreateWorkoutTemplateDto): Promise<{
         id: number;
@@ -52,78 +56,88 @@ export declare class WorkoutTemplatesService {
             };
         }[];
     }>;
-    findAll(userId: number): Promise<{
-        id: number;
-        name: string;
-        description: string;
-        labels: string[];
-        startDate: Date;
-        endDate: Date;
-        tasks: string[];
-        isShared: boolean;
-        shareCode: string;
-        access: string;
-        owner: {
+    findAll(userId: number, query?: PaginatedTextSearchQueryDto): Promise<{
+        templates: {
             id: number;
             name: string;
-            email: string;
-            avatarPath: string;
-        };
-        members: {
-            id: number;
-            name: string;
-            email: string;
-            avatarPath: string;
-        }[];
-        exercises: {
-            id: number;
-            exerciseId: number;
-            order: number;
-            setsCount: number;
-            exercise: {
+            description: string;
+            labels: string[];
+            startDate: Date;
+            endDate: Date;
+            tasks: string[];
+            isShared: boolean;
+            shareCode: string;
+            access: string;
+            owner: {
                 id: number;
                 name: string;
-                description: string;
-                muscleGroups: string[];
+                email: string;
+                avatarPath: string;
             };
-        }[];
-    }[]>;
-    findSharedWithMe(userId: number): Promise<{
-        id: number;
-        name: string;
-        description: string;
-        labels: string[];
-        startDate: Date;
-        endDate: Date;
-        tasks: string[];
-        isShared: boolean;
-        shareCode: string;
-        access: string;
-        owner: {
-            id: number;
-            name: string;
-            email: string;
-            avatarPath: string;
-        };
-        members: {
-            id: number;
-            name: string;
-            email: string;
-            avatarPath: string;
-        }[];
-        exercises: {
-            id: number;
-            exerciseId: number;
-            order: number;
-            setsCount: number;
-            exercise: {
+            members: {
                 id: number;
                 name: string;
-                description: string;
-                muscleGroups: string[];
-            };
+                email: string;
+                avatarPath: string;
+            }[];
+            exercises: {
+                id: number;
+                exerciseId: number;
+                order: number;
+                setsCount: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+            }[];
         }[];
-    }[]>;
+        total: number;
+        page: number;
+        limit: number;
+    }>;
+    findSharedWithMe(userId: number, query?: PaginatedTextSearchQueryDto): Promise<{
+        templates: {
+            id: number;
+            name: string;
+            description: string;
+            labels: string[];
+            startDate: Date;
+            endDate: Date;
+            tasks: string[];
+            isShared: boolean;
+            shareCode: string;
+            access: string;
+            owner: {
+                id: number;
+                name: string;
+                email: string;
+                avatarPath: string;
+            };
+            members: {
+                id: number;
+                name: string;
+                email: string;
+                avatarPath: string;
+            }[];
+            exercises: {
+                id: number;
+                exerciseId: number;
+                order: number;
+                setsCount: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+            }[];
+        }[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
     findSharedByCode(userId: number, shareCode: string): Promise<{
         id: number;
         name: string;
@@ -500,5 +514,8 @@ export declare class WorkoutTemplatesService {
     private normalizeLabels;
     private normalizeTasks;
     private normalizeDate;
+    private normalizePage;
+    private normalizeLimit;
+    private normalizeSearch;
     private syncMembers;
 }

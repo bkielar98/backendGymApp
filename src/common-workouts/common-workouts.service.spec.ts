@@ -28,6 +28,7 @@ describe('CommonWorkoutsService', () => {
     find: jest.Mock;
     findOne: jest.Mock;
     delete: jest.Mock;
+    createQueryBuilder: jest.Mock;
   };
   let workoutExerciseRepository: {
     create: jest.Mock;
@@ -74,6 +75,7 @@ describe('CommonWorkoutsService', () => {
       find: jest.fn(),
       findOne: jest.fn(),
       delete: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
     workoutExerciseRepository = {
       create: jest.fn(),
@@ -879,6 +881,23 @@ describe('CommonWorkoutsService', () => {
       ],
     };
 
+    const historyQueryBuilder = {
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      clone: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      distinct: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(1 as never),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([{ id: 55 }] as never),
+    };
+    workoutRepository.createQueryBuilder.mockReturnValue(
+      historyQueryBuilder as never,
+    );
     workoutRepository.find.mockResolvedValue([historyWorkout] as never);
     workoutRepository.findOne.mockResolvedValue(historyWorkout as never);
     workoutRepository.save.mockResolvedValue({
@@ -887,13 +906,18 @@ describe('CommonWorkoutsService', () => {
     } as never);
     workoutRepository.delete.mockResolvedValue({ affected: 1 } as never);
 
-    await expect(service.getHistoryForUser(15)).resolves.toMatchObject([
-      {
-        id: 55,
-        exerciseCount: 1,
-        totalSets: 1,
-      },
-    ]);
+    await expect(service.getHistoryForUser(15)).resolves.toMatchObject({
+      workouts: [
+        {
+          id: 55,
+          exerciseCount: 1,
+          totalSets: 1,
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
     await expect(
       service.getHistoricalByIdForUser(15, 55),
     ).resolves.toMatchObject({
@@ -923,10 +947,10 @@ describe('CommonWorkoutsService', () => {
 
     expect(workoutRepository.find).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
+        where: expect.objectContaining({
           userId: 15,
           status: 'completed',
-        },
+        }),
       }),
     );
     expect(workoutRepository.delete).toHaveBeenCalledWith({

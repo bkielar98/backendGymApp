@@ -25,6 +25,7 @@ const change_common_workout_exercise_position_dto_1 = require("./dto/change-comm
 const change_common_workout_exercise_dto_1 = require("./dto/change-common-workout-exercise.dto");
 const update_common_workout_set_dto_1 = require("./dto/update-common-workout-set.dto");
 const get_workout_dashboard_stats_dto_1 = require("./dto/get-workout-dashboard-stats.dto");
+const paginated_text_search_query_dto_1 = require("../common/dto/paginated-text-search-query.dto");
 let CommonWorkoutsController = class CommonWorkoutsController {
     constructor(commonWorkoutsService) {
         this.commonWorkoutsService = commonWorkoutsService;
@@ -32,8 +33,8 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async start(req, dto) {
         return this.commonWorkoutsService.start(req.user.id, dto);
     }
-    async findAll(req) {
-        return this.commonWorkoutsService.listForUser(req.user.id);
+    async findAll(req, query = {}) {
+        return this.commonWorkoutsService.listForUser(req.user.id, query);
     }
     async getActive(req) {
         return this.commonWorkoutsService.getActive(req.user.id);
@@ -41,11 +42,11 @@ let CommonWorkoutsController = class CommonWorkoutsController {
     async getDashboardStats(req, dto) {
         return this.commonWorkoutsService.getDashboardStatsForUser(req.user.id, dto);
     }
-    async getExerciseHistory(req, exerciseId) {
-        return this.commonWorkoutsService.getExerciseHistoryForUser(req.user.id, exerciseId);
+    async getExerciseHistory(req, exerciseId, query = {}) {
+        return this.commonWorkoutsService.getExerciseHistoryForUser(req.user.id, exerciseId, query);
     }
-    async findHistory(req) {
-        return this.commonWorkoutsService.getHistoryForUser(req.user.id);
+    async findHistory(req, query = {}) {
+        return this.commonWorkoutsService.getHistoryForUser(req.user.id, query);
     }
     async findHistorySummary(req, historyId) {
         return this.commonWorkoutsService.getHistoricalSummaryForUser(req.user.id, historyId);
@@ -129,8 +130,9 @@ __decorate([
         description: 'Zwraca lekka liste workoutow usera z WorkoutBlocks i per-user cwiczeniami, bez pelnych serii.',
     }),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "findAll", null);
 __decorate([
@@ -181,8 +183,9 @@ __decorate([
     }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('exerciseId', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:paramtypes", [Object, Number, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "getExerciseHistory", null);
 __decorate([
@@ -192,8 +195,9 @@ __decorate([
         description: 'Zwraca lekka liste zakonczonych workoutow usera.',
     }),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, paginated_text_search_query_dto_1.PaginatedTextSearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], CommonWorkoutsController.prototype, "findHistory", null);
 __decorate([

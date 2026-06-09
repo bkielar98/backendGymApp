@@ -16,9 +16,14 @@ import {
   MAX_TEMPLATE_MEMBERS,
   MAX_TOTAL_SETS,
 } from '../common/constants/workout.constants';
+import { PaginatedTextSearchQueryDto } from '../common/dto/paginated-text-search-query.dto';
 
 @Injectable()
 export class WorkoutTemplatesService {
+  private readonly defaultPage = 1;
+  private readonly defaultLimit = 20;
+  private readonly maxLimit = 100;
+
   constructor(
     @InjectRepository(WorkoutTemplate)
     private readonly templateRepository: Repository<WorkoutTemplate>,
@@ -79,18 +84,35 @@ export class WorkoutTemplatesService {
     return this.findOne(userId, saved.id);
   }
 
-  async findAll(userId: number) {
-    const templates = await this.getTemplatesAccessibleToUser(userId);
+  async findAll(userId: number, query: PaginatedTextSearchQueryDto = {}) {
+    const result = await this.getTemplatesAccessibleToUser(userId, query);
 
-    return templates.map((template) => this.mapTemplate(template, userId));
+    return {
+      templates: result.templates.map((template) =>
+        this.mapTemplate(template, userId),
+      ),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    };
   }
 
-  async findSharedWithMe(userId: number) {
-    const templates = await this.getTemplatesAccessibleToUser(userId);
+  async findSharedWithMe(
+    userId: number,
+    query: PaginatedTextSearchQueryDto = {},
+  ) {
+    const result = await this.getTemplatesAccessibleToUser(userId, query, {
+      sharedWithMeOnly: true,
+    });
 
-    return templates
-      .filter((template) => template.userId !== userId)
-      .map((template) => this.mapTemplate(template, userId));
+    return {
+      templates: result.templates.map((template) =>
+        this.mapTemplate(template, userId),
+      ),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    };
   }
 
   async findSharedByCode(userId: number, shareCode: string) {
@@ -465,14 +487,19 @@ export class WorkoutTemplatesService {
       .getOne();
   }
 
-  private async getTemplatesAccessibleToUser(userId: number) {
-    return this.templateRepository
+  private async getTemplatesAccessibleToUser(
+    userId: number,
+    query: PaginatedTextSearchQueryDto = {},
+    options: { sharedWithMeOnly?: boolean } = {},
+  ) {
+    const page = this.normalizePage(query.page);
+    const limit = this.normalizeLimit(query.limit);
+    const search = this.normalizeSearch(query.text_search);
+    const baseQuery = this.templateRepository
       .createQueryBuilder('template')
-      .leftJoinAndSelect('template.user', 'user')
-      .leftJoinAndSelect('template.exercises', 'exerciseEntry')
-      .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
-      .leftJoinAndSelect('template.members', 'member')
-      .leftJoinAndSelect('member.user', 'memberUser')
+      .leftJoin('template.exercises', 'exerciseEntry')
+      .leftJoin('exerciseEntry.exercise', 'exercise')
+      .leftJoin('template.members', 'member')
       .where(
         new Brackets((qb) => {
           qb.where('template.userId = :userId', { userId }).orWhere(
@@ -480,11 +507,83 @@ export class WorkoutTemplatesService {
             { userId },
           );
         }),
-      )
+      );
+
+    if (options.sharedWithMeOnly) {
+      baseQuery.andWhere('template.userId != :userId', { userId });
+    }
+
+    if (search) {
+      baseQuery.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(template.name) LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('LOWER(COALESCE(template.description, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('LOWER(COALESCE(template.labels, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere(
+              'LOWER(COALESCE(CAST(template.tasks AS text), \'\')) LIKE :search',
+              { search: `%${search}%` },
+            )
+            .orWhere('LOWER(COALESCE(exercise.name, \'\')) LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    const total = await baseQuery
+      .clone()
+      .select('template.id')
+      .distinct(true)
+      .getCount();
+    const rows = await baseQuery
+      .clone()
+      .select('template.id', 'id')
+      .distinct(true)
+      .orderBy('template.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawMany<{ id: number | string }>();
+    const ids = rows.map((row) => Number(row.id));
+
+    if (ids.length === 0) {
+      return {
+        templates: [],
+        total,
+        page,
+        limit,
+      };
+    }
+
+    const templates = await this.templateRepository
+      .createQueryBuilder('template')
+      .leftJoinAndSelect('template.user', 'user')
+      .leftJoinAndSelect('template.exercises', 'exerciseEntry')
+      .leftJoinAndSelect('exerciseEntry.exercise', 'exercise')
+      .leftJoinAndSelect('template.members', 'member')
+      .leftJoinAndSelect('member.user', 'memberUser')
+      .where('template.id IN (:...ids)', { ids })
       .orderBy('template.id', 'DESC')
       .addOrderBy('exerciseEntry.order', 'ASC')
       .addOrderBy('member.id', 'ASC')
       .getMany();
+    const templateById = new Map(
+      templates.map((template) => [template.id, template]),
+    );
+
+    return {
+      templates: ids
+        .map((id) => templateById.get(id))
+        .filter((template): template is WorkoutTemplate => Boolean(template)),
+      total,
+      page,
+      limit,
+    };
   }
 
   private getTemplateExerciseForTemplate(
@@ -626,6 +725,23 @@ export class WorkoutTemplatesService {
     }
 
     return new Date(value);
+  }
+
+  private normalizePage(page?: number): number {
+    return typeof page === 'number' && page > 0 ? page : this.defaultPage;
+  }
+
+  private normalizeLimit(limit?: number): number {
+    if (typeof limit !== 'number' || limit <= 0) {
+      return this.defaultLimit;
+    }
+
+    return Math.min(limit, this.maxLimit);
+  }
+
+  private normalizeSearch(search?: string): string | null {
+    const normalized = search?.trim().toLowerCase();
+    return normalized ? normalized : null;
   }
 
   private async syncMembers(
