@@ -53,7 +53,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)('float', { nullable: true }),
+    (0, typeorm_1.Column)("float", { nullable: true }),
     __metadata("design:type", Number)
 ], User.prototype, "weight", void 0);
 __decorate([
@@ -66,7 +66,7 @@ __decorate([
 ], User.prototype, "avatarPath", void 0);
 __decorate([
     (0, typeorm_1.Column)({
-        type: 'enum',
+        type: "enum",
         enum: UserRole,
         default: UserRole.USER,
     }),
@@ -77,9 +77,17 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    (0, typeorm_1.Column)({ type: "timestamp", nullable: true }),
     __metadata("design:type", Date)
 ], User.prototype, "lastLoginAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "hideActiveWorkout", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "hideWorkoutHistory", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => workout_template_entity_1.WorkoutTemplate, (template) => template.user),
     __metadata("design:type", Array)

@@ -17,19 +17,31 @@ class UpdateUserProfileDto {
 }
 exports.UpdateUserProfileDto = UpdateUserProfileDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Updated Name', required: false }),
+    (0, swagger_1.ApiProperty)({ example: "Updated Name", required: false }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Transform)(({ value }) => (typeof value === 'string' ? value.trim() : value)),
+    (0, class_transformer_1.Transform)(({ value }) => (typeof value === "string" ? value.trim() : value)),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], UpdateUserProfileDto.prototype, "name", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'male', required: false }),
+    (0, swagger_1.ApiProperty)({ example: "male", required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsIn)(['male', 'female']),
+    (0, class_validator_1.IsIn)(["male", "female"]),
     __metadata("design:type", String)
 ], UpdateUserProfileDto.prototype, "gender", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: false, required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateUserProfileDto.prototype, "hideActiveWorkout", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: false, required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateUserProfileDto.prototype, "hideWorkoutHistory", void 0);
 //# sourceMappingURL=update-user-profile.dto.js.map

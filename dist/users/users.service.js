@@ -22,8 +22,8 @@ const path_1 = require("path");
 const user_entity_1 = require("../entities/user.entity");
 const user_weight_entry_entity_1 = require("../entities/user-weight-entry.entity");
 const user_body_measurement_entry_entity_1 = require("../entities/user-body-measurement-entry.entity");
-const UPLOADS_ROOT = (0, path_1.join)(process.cwd(), 'uploads');
-const AVATARS_ROOT = (0, path_1.join)(UPLOADS_ROOT, 'avatars');
+const UPLOADS_ROOT = (0, path_1.join)(process.cwd(), "uploads");
+const AVATARS_ROOT = (0, path_1.join)(UPLOADS_ROOT, "avatars");
 let UsersService = class UsersService {
     constructor(userRepository, weightEntryRepository, bodyMeasurementEntryRepository) {
         this.userRepository = userRepository;
@@ -33,7 +33,7 @@ let UsersService = class UsersService {
     async findOne(id) {
         const user = await this.userRepository.findOne({ where: { id } });
         if (!user) {
-            throw new common_1.NotFoundException('User not found');
+            throw new common_1.NotFoundException("User not found");
         }
         return user;
     }
@@ -44,13 +44,15 @@ let UsersService = class UsersService {
     async getUserCard(id) {
         const user = await this.userRepository.findOne({
             where: { id },
-            relations: ['weightEntries', 'bodyMeasurementEntries'],
+            relations: ["weightEntries", "bodyMeasurementEntries"],
         });
         if (!user) {
-            throw new common_1.NotFoundException('User not found');
+            throw new common_1.NotFoundException("User not found");
         }
         const weightEntries = [...(user.weightEntries ?? [])].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
-        const bodyMeasurementEntries = [...(user.bodyMeasurementEntries ?? [])].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
+        const bodyMeasurementEntries = [
+            ...(user.bodyMeasurementEntries ?? []),
+        ].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
         return {
             id: user.id,
             email: user.email,
@@ -59,7 +61,11 @@ let UsersService = class UsersService {
             role: user.role,
             avatarPath: user.avatarPath,
             avatarUrl: user.avatarPath ?? null,
-            currentWeight: weightEntries.length > 0 ? weightEntries[weightEntries.length - 1].weight : user.weight,
+            hideActiveWorkout: user.hideActiveWorkout,
+            hideWorkoutHistory: user.hideWorkoutHistory,
+            currentWeight: weightEntries.length > 0
+                ? weightEntries[weightEntries.length - 1].weight
+                : user.weight,
             weightHistory: weightEntries,
             weightChart: weightEntries.map((entry) => ({
                 date: entry.recordedOn,
@@ -76,16 +82,16 @@ let UsersService = class UsersService {
     async updateEmail(id, updateEmailDto) {
         const user = await this.findOne(id);
         if (!(await bcrypt.compare(updateEmailDto.currentPassword, user.password))) {
-            throw new common_1.UnauthorizedException('Current password is invalid');
+            throw new common_1.UnauthorizedException("Current password is invalid");
         }
         if (user.email === updateEmailDto.newEmail) {
-            throw new common_1.BadRequestException('New email must be different');
+            throw new common_1.BadRequestException("New email must be different");
         }
         const existingUser = await this.userRepository.findOne({
             where: { email: updateEmailDto.newEmail },
         });
         if (existingUser) {
-            throw new common_1.ConflictException('Email is already in use');
+            throw new common_1.ConflictException("Email is already in use");
         }
         await this.userRepository.update(id, {
             email: updateEmailDto.newEmail,
@@ -95,10 +101,10 @@ let UsersService = class UsersService {
     async updatePassword(id, updatePasswordDto) {
         const user = await this.findOne(id);
         if (!(await bcrypt.compare(updatePasswordDto.currentPassword, user.password))) {
-            throw new common_1.UnauthorizedException('Current password is invalid');
+            throw new common_1.UnauthorizedException("Current password is invalid");
         }
         if (await bcrypt.compare(updatePasswordDto.newPassword, user.password)) {
-            throw new common_1.BadRequestException('New password must be different');
+            throw new common_1.BadRequestException("New password must be different");
         }
         const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 10);
         await this.userRepository.update(id, {
@@ -107,14 +113,14 @@ let UsersService = class UsersService {
     }
     async updateAvatar(id, file) {
         if (!file) {
-            throw new common_1.BadRequestException('Avatar file is required');
+            throw new common_1.BadRequestException("Avatar file is required");
         }
         const user = await this.findOne(id);
         if (!(0, fs_1.existsSync)(UPLOADS_ROOT)) {
             (0, fs_1.mkdirSync)(UPLOADS_ROOT, { recursive: true });
         }
         if (user.avatarPath) {
-            const currentAvatarPath = (0, path_1.join)(process.cwd(), user.avatarPath.replace(/^\//, ''));
+            const currentAvatarPath = (0, path_1.join)(process.cwd(), user.avatarPath.replace(/^\//, ""));
             if ((0, fs_1.existsSync)(currentAvatarPath)) {
                 (0, fs_1.unlinkSync)(currentAvatarPath);
             }
@@ -126,8 +132,8 @@ let UsersService = class UsersService {
     }
     async purgeAllAvatars() {
         const usersWithAvatars = await this.userRepository
-            .createQueryBuilder('user')
-            .where('user.avatarPath IS NOT NULL')
+            .createQueryBuilder("user")
+            .where("user.avatarPath IS NOT NULL")
             .getCount();
         let deletedFiles = 0;
         if ((0, fs_1.existsSync)(AVATARS_ROOT)) {
@@ -144,11 +150,11 @@ let UsersService = class UsersService {
             .createQueryBuilder()
             .update(user_entity_1.User)
             .set({ avatarPath: null })
-            .where('avatarPath IS NOT NULL')
+            .where("avatarPath IS NOT NULL")
             .execute();
         return {
             success: true,
-            message: 'All avatar files have been deleted from server storage',
+            message: "All avatar files have been deleted from server storage",
             deletedFiles,
             clearedUsers: updateResult.affected ?? 0,
             usersWithAvatarsBeforePurge: usersWithAvatars,
@@ -160,23 +166,23 @@ let UsersService = class UsersService {
             .createQueryBuilder()
             .update(user_entity_1.User)
             .set({ avatarPath: null })
-            .where('avatarPath IS NOT NULL')
+            .where("avatarPath IS NOT NULL")
             .execute();
         if (hadDirectory) {
             (0, fs_1.rmSync)(AVATARS_ROOT, { recursive: true, force: true });
         }
         return {
             success: true,
-            message: 'Avatar directory has been deleted from server storage',
+            message: "Avatar directory has been deleted from server storage",
             removedDirectory: hadDirectory,
-            path: '/uploads/avatars',
+            path: "/uploads/avatars",
         };
     }
     async listWeightEntries(id) {
         await this.findOne(id);
         return this.weightEntryRepository.find({
             where: { user: { id } },
-            order: { recordedOn: 'DESC', id: 'DESC' },
+            order: { recordedOn: "DESC", id: "DESC" },
         });
     }
     async createWeightEntry(id, dto) {
@@ -204,7 +210,7 @@ let UsersService = class UsersService {
         await this.syncLatestUserWeight(id);
         return {
             success: true,
-            message: 'Weight entry removed',
+            message: "Weight entry removed",
             id: entry.id,
             recordedOn: entry.recordedOn,
         };
@@ -213,7 +219,7 @@ let UsersService = class UsersService {
         await this.findOne(id);
         return this.bodyMeasurementEntryRepository.find({
             where: { user: { id } },
-            order: { recordedOn: 'DESC', id: 'DESC' },
+            order: { recordedOn: "DESC", id: "DESC" },
         });
     }
     async createBodyMeasurementEntry(id, dto) {
@@ -234,7 +240,7 @@ let UsersService = class UsersService {
         await this.bodyMeasurementEntryRepository.remove(entry);
         return {
             success: true,
-            message: 'Body measurement entry removed',
+            message: "Body measurement entry removed",
             id: entry.id,
             recordedOn: entry.recordedOn,
         };
@@ -244,7 +250,7 @@ let UsersService = class UsersService {
         await this.userRepository.delete(id);
         return {
             success: true,
-            message: 'User removed',
+            message: "User removed",
             id: user.id,
             email: user.email,
         };
@@ -258,32 +264,34 @@ let UsersService = class UsersService {
             role: user.role,
             avatarPath: user.avatarPath ?? null,
             avatarUrl: user.avatarPath ?? null,
+            hideActiveWorkout: user.hideActiveWorkout,
+            hideWorkoutHistory: user.hideWorkoutHistory,
         };
     }
     async findWeightEntry(userId, entryId) {
         const entry = await this.weightEntryRepository.findOne({
             where: { id: entryId, user: { id: userId } },
-            relations: ['user'],
+            relations: ["user"],
         });
         if (!entry) {
-            throw new common_1.NotFoundException('Weight entry not found');
+            throw new common_1.NotFoundException("Weight entry not found");
         }
         return entry;
     }
     async findBodyMeasurementEntry(userId, entryId) {
         const entry = await this.bodyMeasurementEntryRepository.findOne({
             where: { id: entryId, user: { id: userId } },
-            relations: ['user'],
+            relations: ["user"],
         });
         if (!entry) {
-            throw new common_1.NotFoundException('Body measurement entry not found');
+            throw new common_1.NotFoundException("Body measurement entry not found");
         }
         return entry;
     }
     async syncLatestUserWeight(userId) {
         const latestWeight = await this.weightEntryRepository.findOne({
             where: { user: { id: userId } },
-            order: { recordedOn: 'DESC', id: 'DESC' },
+            order: { recordedOn: "DESC", id: "DESC" },
         });
         await this.userRepository.update(userId, {
             weight: latestWeight?.weight ?? null,
@@ -291,25 +299,25 @@ let UsersService = class UsersService {
     }
     buildMeasurementChart(entries) {
         const metricKeys = [
-            'neck',
-            'shoulders',
-            'chest',
-            'leftBiceps',
-            'rightBiceps',
-            'leftForearm',
-            'rightForearm',
-            'upperAbs',
-            'waist',
-            'lowerAbs',
-            'hips',
-            'leftThigh',
-            'rightThigh',
-            'leftCalf',
-            'rightCalf',
+            "neck",
+            "shoulders",
+            "chest",
+            "leftBiceps",
+            "rightBiceps",
+            "leftForearm",
+            "rightForearm",
+            "upperAbs",
+            "waist",
+            "lowerAbs",
+            "hips",
+            "leftThigh",
+            "rightThigh",
+            "leftCalf",
+            "rightCalf",
         ];
         return metricKeys.reduce((chart, key) => {
             chart[key] = entries
-                .filter((entry) => typeof entry[key] === 'number')
+                .filter((entry) => typeof entry[key] === "number")
                 .map((entry) => ({
                 date: entry.recordedOn,
                 value: entry[key],

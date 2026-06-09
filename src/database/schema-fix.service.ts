@@ -1,5 +1,5 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+import { DataSource } from "typeorm";
 
 @Injectable()
 export class SchemaFixService implements OnApplicationBootstrap {
@@ -29,6 +29,12 @@ export class SchemaFixService implements OnApplicationBootstrap {
     );
     await this.dataSource.query(
       'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "lastLoginAt" TIMESTAMP NULL',
+    );
+    await this.dataSource.query(
+      'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "hideActiveWorkout" boolean NOT NULL DEFAULT false',
+    );
+    await this.dataSource.query(
+      'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "hideWorkoutHistory" boolean NOT NULL DEFAULT false',
     );
 
     await this.dataSource.query(`
@@ -70,21 +76,21 @@ export class SchemaFixService implements OnApplicationBootstrap {
     `);
 
     const nullableMeasurementColumns = [
-      'neck',
-      'shoulders',
-      'chest',
-      'leftBiceps',
-      'rightBiceps',
-      'leftForearm',
-      'rightForearm',
-      'upperAbs',
-      'waist',
-      'lowerAbs',
-      'hips',
-      'leftThigh',
-      'rightThigh',
-      'leftCalf',
-      'rightCalf',
+      "neck",
+      "shoulders",
+      "chest",
+      "leftBiceps",
+      "rightBiceps",
+      "leftForearm",
+      "rightForearm",
+      "upperAbs",
+      "waist",
+      "lowerAbs",
+      "hips",
+      "leftThigh",
+      "rightThigh",
+      "leftCalf",
+      "rightCalf",
     ];
 
     for (const column of nullableMeasurementColumns) {
@@ -93,7 +99,7 @@ export class SchemaFixService implements OnApplicationBootstrap {
       );
     }
 
-    this.logger.log('User card schema verified');
+    this.logger.log("User card schema verified");
   }
 
   private async ensureFriendshipSchema() {
@@ -127,7 +133,7 @@ export class SchemaFixService implements OnApplicationBootstrap {
       CREATE INDEX IF NOT EXISTS "IDX_friendship_receiver" ON "friendship" ("receiverUserId")
     `);
 
-    this.logger.log('Friendship schema verified');
+    this.logger.log("Friendship schema verified");
   }
 
   private async ensureCommonWorkoutSchema() {
@@ -219,7 +225,7 @@ export class SchemaFixService implements OnApplicationBootstrap {
 
     await this.migrateCommonWorkoutExercisesToParticipantScopedEntries();
 
-    this.logger.log('Common workout schema verified');
+    this.logger.log("Common workout schema verified");
   }
 
   private async migrateCommonWorkoutExercisesToParticipantScopedEntries() {
@@ -245,7 +251,9 @@ export class SchemaFixService implements OnApplicationBootstrap {
     >();
 
     for (const legacyExercise of legacyExercises) {
-      let participants = participantsByWorkoutId.get(legacyExercise.commonWorkoutId);
+      let participants = participantsByWorkoutId.get(
+        legacyExercise.commonWorkoutId,
+      );
       if (!participants) {
         participants = await this.dataSource.query(
           `
@@ -256,12 +264,16 @@ export class SchemaFixService implements OnApplicationBootstrap {
           `,
           [legacyExercise.commonWorkoutId],
         );
-        participantsByWorkoutId.set(legacyExercise.commonWorkoutId, participants);
+        participantsByWorkoutId.set(
+          legacyExercise.commonWorkoutId,
+          participants,
+        );
       }
 
       for (const participant of participants) {
-        const existingEntry: Array<{ id: number }> = await this.dataSource.query(
-          `
+        const existingEntry: Array<{ id: number }> =
+          await this.dataSource.query(
+            `
             SELECT "id"
             FROM "common_workout_exercise"
             WHERE "commonWorkoutId" = $1
@@ -270,24 +282,6 @@ export class SchemaFixService implements OnApplicationBootstrap {
               AND "order" = $4
             LIMIT 1
           `,
-          [
-            legacyExercise.commonWorkoutId,
-            participant.id,
-            legacyExercise.exerciseId,
-            legacyExercise.order,
-          ],
-        );
-
-        let targetExerciseId = existingEntry[0]?.id;
-
-        if (!targetExerciseId) {
-          const insertedRows: Array<{ id: number }> = await this.dataSource.query(
-            `
-              INSERT INTO "common_workout_exercise"
-                ("commonWorkoutId", "participantId", "exerciseId", "order")
-              VALUES ($1, $2, $3, $4)
-              RETURNING "id"
-            `,
             [
               legacyExercise.commonWorkoutId,
               participant.id,
@@ -295,6 +289,25 @@ export class SchemaFixService implements OnApplicationBootstrap {
               legacyExercise.order,
             ],
           );
+
+        let targetExerciseId = existingEntry[0]?.id;
+
+        if (!targetExerciseId) {
+          const insertedRows: Array<{ id: number }> =
+            await this.dataSource.query(
+              `
+              INSERT INTO "common_workout_exercise"
+                ("commonWorkoutId", "participantId", "exerciseId", "order")
+              VALUES ($1, $2, $3, $4)
+              RETURNING "id"
+            `,
+              [
+                legacyExercise.commonWorkoutId,
+                participant.id,
+                legacyExercise.exerciseId,
+                legacyExercise.order,
+              ],
+            );
           targetExerciseId = insertedRows[0].id;
         }
 
@@ -309,9 +322,10 @@ export class SchemaFixService implements OnApplicationBootstrap {
         );
       }
 
-      await this.dataSource.query('DELETE FROM "common_workout_exercise" WHERE "id" = $1', [
-        legacyExercise.id,
-      ]);
+      await this.dataSource.query(
+        'DELETE FROM "common_workout_exercise" WHERE "id" = $1',
+        [legacyExercise.id],
+      );
     }
 
     this.logger.log(
@@ -343,6 +357,6 @@ export class SchemaFixService implements OnApplicationBootstrap {
       ON "user_exercise_personal_best" ("userId", "exerciseId")
     `);
 
-    this.logger.log('Workout analytics schema verified');
+    this.logger.log("Workout analytics schema verified");
   }
 }

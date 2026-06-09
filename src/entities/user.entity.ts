@@ -4,18 +4,18 @@ import {
   Column,
   PrimaryGeneratedColumn,
   OneToMany,
-} from 'typeorm';
-import { Exclude } from 'class-transformer';
-import { WorkoutTemplate } from './workout-template.entity';
-import { MuscleStatus } from './muscle-status.entity';
-import { Workout } from './workout.entity';
-import { UserWeightEntry } from './user-weight-entry.entity';
-import { UserBodyMeasurementEntry } from './user-body-measurement-entry.entity';
-import { WorkoutTemplateMember } from './workout-template-member.entity';
+} from "typeorm";
+import { Exclude } from "class-transformer";
+import { WorkoutTemplate } from "./workout-template.entity";
+import { MuscleStatus } from "./muscle-status.entity";
+import { Workout } from "./workout.entity";
+import { UserWeightEntry } from "./user-weight-entry.entity";
+import { UserBodyMeasurementEntry } from "./user-body-measurement-entry.entity";
+import { WorkoutTemplateMember } from "./workout-template-member.entity";
 
 export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
+  ADMIN = "admin",
+  USER = "user",
 }
 
 @Entity()
@@ -40,7 +40,7 @@ export class User {
   @Column()
   name: string;
 
-  @Column('float', { nullable: true })
+  @Column("float", { nullable: true })
   weight: number | null;
 
   @Column({ nullable: true })
@@ -50,7 +50,7 @@ export class User {
   avatarPath: string | null;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: UserRole,
     default: UserRole.USER,
   })
@@ -59,8 +59,14 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastLoginAt: Date | null;
+
+  @Column({ default: false })
+  hideActiveWorkout: boolean;
+
+  @Column({ default: false })
+  hideWorkoutHistory: boolean;
 
   @OneToMany(() => WorkoutTemplate, (template) => template.user)
   workoutTemplates: WorkoutTemplate[];

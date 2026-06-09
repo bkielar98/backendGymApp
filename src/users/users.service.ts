@@ -4,25 +4,25 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { existsSync, mkdirSync, readdirSync, rmSync, unlinkSync } from 'fs';
-import { join } from 'path';
-import { User } from '../entities/user.entity';
-import { UserWeightEntry } from '../entities/user-weight-entry.entity';
-import { UserBodyMeasurementEntry } from '../entities/user-body-measurement-entry.entity';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { UpdateEmailDto } from './dto/update-email.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
-import { CreateWeightEntryDto } from './dto/create-weight-entry.dto';
-import { UpdateWeightEntryDto } from './dto/update-weight-entry.dto';
-import { CreateBodyMeasurementEntryDto } from './dto/create-body-measurement-entry.dto';
-import { UpdateBodyMeasurementEntryDto } from './dto/update-body-measurement-entry.dto';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import * as bcrypt from "bcrypt";
+import { existsSync, mkdirSync, readdirSync, rmSync, unlinkSync } from "fs";
+import { join } from "path";
+import { User } from "../entities/user.entity";
+import { UserWeightEntry } from "../entities/user-weight-entry.entity";
+import { UserBodyMeasurementEntry } from "../entities/user-body-measurement-entry.entity";
+import { UpdateUserProfileDto } from "./dto/update-user-profile.dto";
+import { UpdateEmailDto } from "./dto/update-email.dto";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
+import { CreateWeightEntryDto } from "./dto/create-weight-entry.dto";
+import { UpdateWeightEntryDto } from "./dto/update-weight-entry.dto";
+import { CreateBodyMeasurementEntryDto } from "./dto/create-body-measurement-entry.dto";
+import { UpdateBodyMeasurementEntryDto } from "./dto/update-body-measurement-entry.dto";
 
-const UPLOADS_ROOT = join(process.cwd(), 'uploads');
-const AVATARS_ROOT = join(UPLOADS_ROOT, 'avatars');
+const UPLOADS_ROOT = join(process.cwd(), "uploads");
+const AVATARS_ROOT = join(UPLOADS_ROOT, "avatars");
 
 @Injectable()
 export class UsersService {
@@ -39,7 +39,7 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     return user;
@@ -54,19 +54,19 @@ export class UsersService {
   async getUserCard(id: number) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['weightEntries', 'bodyMeasurementEntries'],
+      relations: ["weightEntries", "bodyMeasurementEntries"],
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     const weightEntries = [...(user.weightEntries ?? [])].sort((a, b) =>
       a.recordedOn.localeCompare(b.recordedOn),
     );
-    const bodyMeasurementEntries = [...(user.bodyMeasurementEntries ?? [])].sort(
-      (a, b) => a.recordedOn.localeCompare(b.recordedOn),
-    );
+    const bodyMeasurementEntries = [
+      ...(user.bodyMeasurementEntries ?? []),
+    ].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
 
     return {
       id: user.id,
@@ -76,8 +76,12 @@ export class UsersService {
       role: user.role,
       avatarPath: user.avatarPath,
       avatarUrl: user.avatarPath ?? null,
+      hideActiveWorkout: user.hideActiveWorkout,
+      hideWorkoutHistory: user.hideWorkoutHistory,
       currentWeight:
-        weightEntries.length > 0 ? weightEntries[weightEntries.length - 1].weight : user.weight,
+        weightEntries.length > 0
+          ? weightEntries[weightEntries.length - 1].weight
+          : user.weight,
       weightHistory: weightEntries,
       weightChart: weightEntries.map((entry) => ({
         date: entry.recordedOn,
@@ -88,7 +92,10 @@ export class UsersService {
     };
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateUserProfileDto): Promise<User> {
+  async updateProfile(
+    id: number,
+    updateUserDto: UpdateUserProfileDto,
+  ): Promise<User> {
     await this.userRepository.update(id, updateUserDto);
     return this.findOne(id);
   }
@@ -96,12 +103,14 @@ export class UsersService {
   async updateEmail(id: number, updateEmailDto: UpdateEmailDto): Promise<User> {
     const user = await this.findOne(id);
 
-    if (!(await bcrypt.compare(updateEmailDto.currentPassword, user.password))) {
-      throw new UnauthorizedException('Current password is invalid');
+    if (
+      !(await bcrypt.compare(updateEmailDto.currentPassword, user.password))
+    ) {
+      throw new UnauthorizedException("Current password is invalid");
     }
 
     if (user.email === updateEmailDto.newEmail) {
-      throw new BadRequestException('New email must be different');
+      throw new BadRequestException("New email must be different");
     }
 
     const existingUser = await this.userRepository.findOne({
@@ -109,7 +118,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email is already in use');
+      throw new ConflictException("Email is already in use");
     }
 
     await this.userRepository.update(id, {
@@ -119,15 +128,20 @@ export class UsersService {
     return this.findOne(id);
   }
 
-  async updatePassword(id: number, updatePasswordDto: UpdatePasswordDto): Promise<void> {
+  async updatePassword(
+    id: number,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<void> {
     const user = await this.findOne(id);
 
-    if (!(await bcrypt.compare(updatePasswordDto.currentPassword, user.password))) {
-      throw new UnauthorizedException('Current password is invalid');
+    if (
+      !(await bcrypt.compare(updatePasswordDto.currentPassword, user.password))
+    ) {
+      throw new UnauthorizedException("Current password is invalid");
     }
 
     if (await bcrypt.compare(updatePasswordDto.newPassword, user.password)) {
-      throw new BadRequestException('New password must be different');
+      throw new BadRequestException("New password must be different");
     }
 
     const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 10);
@@ -138,7 +152,7 @@ export class UsersService {
 
   async updateAvatar(id: number, file: { filename: string }) {
     if (!file) {
-      throw new BadRequestException('Avatar file is required');
+      throw new BadRequestException("Avatar file is required");
     }
 
     const user = await this.findOne(id);
@@ -148,7 +162,10 @@ export class UsersService {
     }
 
     if (user.avatarPath) {
-      const currentAvatarPath = join(process.cwd(), user.avatarPath.replace(/^\//, ''));
+      const currentAvatarPath = join(
+        process.cwd(),
+        user.avatarPath.replace(/^\//, ""),
+      );
 
       if (existsSync(currentAvatarPath)) {
         unlinkSync(currentAvatarPath);
@@ -164,8 +181,8 @@ export class UsersService {
 
   async purgeAllAvatars() {
     const usersWithAvatars = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.avatarPath IS NOT NULL')
+      .createQueryBuilder("user")
+      .where("user.avatarPath IS NOT NULL")
       .getCount();
 
     let deletedFiles = 0;
@@ -187,12 +204,12 @@ export class UsersService {
       .createQueryBuilder()
       .update(User)
       .set({ avatarPath: null })
-      .where('avatarPath IS NOT NULL')
+      .where("avatarPath IS NOT NULL")
       .execute();
 
     return {
       success: true,
-      message: 'All avatar files have been deleted from server storage',
+      message: "All avatar files have been deleted from server storage",
       deletedFiles,
       clearedUsers: updateResult.affected ?? 0,
       usersWithAvatarsBeforePurge: usersWithAvatars,
@@ -206,7 +223,7 @@ export class UsersService {
       .createQueryBuilder()
       .update(User)
       .set({ avatarPath: null })
-      .where('avatarPath IS NOT NULL')
+      .where("avatarPath IS NOT NULL")
       .execute();
 
     if (hadDirectory) {
@@ -215,9 +232,9 @@ export class UsersService {
 
     return {
       success: true,
-      message: 'Avatar directory has been deleted from server storage',
+      message: "Avatar directory has been deleted from server storage",
       removedDirectory: hadDirectory,
-      path: '/uploads/avatars',
+      path: "/uploads/avatars",
     };
   }
 
@@ -226,7 +243,7 @@ export class UsersService {
 
     return this.weightEntryRepository.find({
       where: { user: { id } },
-      order: { recordedOn: 'DESC', id: 'DESC' },
+      order: { recordedOn: "DESC", id: "DESC" },
     });
   }
 
@@ -245,7 +262,11 @@ export class UsersService {
     return savedEntry;
   }
 
-  async updateWeightEntry(id: number, entryId: number, dto: UpdateWeightEntryDto) {
+  async updateWeightEntry(
+    id: number,
+    entryId: number,
+    dto: UpdateWeightEntryDto,
+  ) {
     const entry = await this.findWeightEntry(id, entryId);
 
     Object.assign(entry, dto);
@@ -263,7 +284,7 @@ export class UsersService {
 
     return {
       success: true,
-      message: 'Weight entry removed',
+      message: "Weight entry removed",
       id: entry.id,
       recordedOn: entry.recordedOn,
     };
@@ -274,11 +295,14 @@ export class UsersService {
 
     return this.bodyMeasurementEntryRepository.find({
       where: { user: { id } },
-      order: { recordedOn: 'DESC', id: 'DESC' },
+      order: { recordedOn: "DESC", id: "DESC" },
     });
   }
 
-  async createBodyMeasurementEntry(id: number, dto: CreateBodyMeasurementEntryDto) {
+  async createBodyMeasurementEntry(
+    id: number,
+    dto: CreateBodyMeasurementEntryDto,
+  ) {
     const user = await this.findOne(id);
     const item = this.bodyMeasurementEntryRepository.create({
       ...dto,
@@ -305,7 +329,7 @@ export class UsersService {
 
     return {
       success: true,
-      message: 'Body measurement entry removed',
+      message: "Body measurement entry removed",
       id: entry.id,
       recordedOn: entry.recordedOn,
     };
@@ -317,7 +341,7 @@ export class UsersService {
 
     return {
       success: true,
-      message: 'User removed',
+      message: "User removed",
       id: user.id,
       email: user.email,
     };
@@ -332,17 +356,22 @@ export class UsersService {
       role: user.role,
       avatarPath: user.avatarPath ?? null,
       avatarUrl: user.avatarPath ?? null,
+      hideActiveWorkout: user.hideActiveWorkout,
+      hideWorkoutHistory: user.hideWorkoutHistory,
     };
   }
 
-  private async findWeightEntry(userId: number, entryId: number): Promise<UserWeightEntry> {
+  private async findWeightEntry(
+    userId: number,
+    entryId: number,
+  ): Promise<UserWeightEntry> {
     const entry = await this.weightEntryRepository.findOne({
       where: { id: entryId, user: { id: userId } },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     if (!entry) {
-      throw new NotFoundException('Weight entry not found');
+      throw new NotFoundException("Weight entry not found");
     }
 
     return entry;
@@ -354,11 +383,11 @@ export class UsersService {
   ): Promise<UserBodyMeasurementEntry> {
     const entry = await this.bodyMeasurementEntryRepository.findOne({
       where: { id: entryId, user: { id: userId } },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     if (!entry) {
-      throw new NotFoundException('Body measurement entry not found');
+      throw new NotFoundException("Body measurement entry not found");
     }
 
     return entry;
@@ -367,7 +396,7 @@ export class UsersService {
   private async syncLatestUserWeight(userId: number) {
     const latestWeight = await this.weightEntryRepository.findOne({
       where: { user: { id: userId } },
-      order: { recordedOn: 'DESC', id: 'DESC' },
+      order: { recordedOn: "DESC", id: "DESC" },
     });
 
     await this.userRepository.update(userId, {
@@ -377,27 +406,27 @@ export class UsersService {
 
   private buildMeasurementChart(entries: UserBodyMeasurementEntry[]) {
     const metricKeys: Array<keyof UserBodyMeasurementEntry> = [
-      'neck',
-      'shoulders',
-      'chest',
-      'leftBiceps',
-      'rightBiceps',
-      'leftForearm',
-      'rightForearm',
-      'upperAbs',
-      'waist',
-      'lowerAbs',
-      'hips',
-      'leftThigh',
-      'rightThigh',
-      'leftCalf',
-      'rightCalf',
+      "neck",
+      "shoulders",
+      "chest",
+      "leftBiceps",
+      "rightBiceps",
+      "leftForearm",
+      "rightForearm",
+      "upperAbs",
+      "waist",
+      "lowerAbs",
+      "hips",
+      "leftThigh",
+      "rightThigh",
+      "leftCalf",
+      "rightCalf",
     ];
 
     return metricKeys.reduce(
       (chart, key) => {
         chart[key] = entries
-          .filter((entry) => typeof entry[key] === 'number')
+          .filter((entry) => typeof entry[key] === "number")
           .map((entry) => ({
             date: entry.recordedOn,
             value: entry[key] as number,

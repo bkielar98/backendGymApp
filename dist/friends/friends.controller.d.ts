@@ -1,5 +1,5 @@
-import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
-import { FriendsService } from './friends.service';
+import { CreateFriendRequestDto } from "./dto/create-friend-request.dto";
+import { FriendsService } from "./friends.service";
 export declare class FriendsController {
     private readonly friendsService;
     constructor(friendsService: FriendsService);
@@ -14,6 +14,7 @@ export declare class FriendsController {
         };
         friendsSince: Date;
         createdAt: Date;
+        activeWorkout: unknown;
     }[]>;
     findIncoming(req: any): Promise<{
         id: number;
@@ -148,6 +149,93 @@ export declare class FriendsController {
         limit: number;
     }>;
     getFriendWorkout(req: any, friendUserId: number, workoutId: number): Promise<{
+        participants: {
+            id: number;
+            user: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+            };
+        }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
+        exercises: {
+            id: number;
+            workoutExerciseId: number;
+            userId: number;
+            order: number;
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            setsCount: number;
+            confirmedSets: number;
+        }[];
+        id: number;
+        name: string;
+        status: import("../entities/common-workout.entity").CommonWorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        blockCount: number;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
+    } | {
         exercises: {
             id: number;
             order: number;
@@ -192,6 +280,52 @@ export declare class FriendsController {
             id: number;
             name: string;
         };
+    }>;
+    getFriendWorkoutBlock(req: any, friendUserId: number, workoutId: number, blockId: number): Promise<{
+        id: number;
+        order: number;
+        status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
+        completedAt: any;
+        defaultExercise: any;
+        users: {
+            sets?: {
+                id: number;
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                durationSeconds: number;
+                repMax: number;
+                confirmed: boolean;
+            }[];
+            availableActions?: {
+                changeExercise: boolean;
+                addSet: boolean;
+                updateOwnSets: boolean;
+                removeOwnSets: boolean;
+            };
+            participantId: number;
+            user: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+            };
+            workoutExerciseId: number;
+            exercise: {
+                id: number;
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+            completed: boolean;
+            completedAt: Date;
+            setsCount: number;
+            confirmedSets: number;
+        }[];
+        workoutId: number;
     }>;
     createRequest(req: any, dto: CreateFriendRequestDto): Promise<{
         id: number;

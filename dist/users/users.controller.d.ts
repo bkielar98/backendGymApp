@@ -18,6 +18,8 @@ export declare class UsersController {
         role: UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
         currentWeight: number;
         weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
         weightChart: {
@@ -38,6 +40,8 @@ export declare class UsersController {
         role: UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
         currentWeight: number;
         weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
         weightChart: {
@@ -58,6 +62,8 @@ export declare class UsersController {
         role: UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
         currentWeight: number;
         weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
         weightChart: {
@@ -78,6 +84,8 @@ export declare class UsersController {
         role: UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
         currentWeight: number;
         weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
         weightChart: {
@@ -104,6 +112,8 @@ export declare class UsersController {
         role: UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
         currentWeight: number;
         weightHistory: import("../entities/user-weight-entry.entity").UserWeightEntry[];
         weightChart: {

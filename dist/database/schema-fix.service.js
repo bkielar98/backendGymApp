@@ -30,6 +30,8 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "refreshTokenHash" character varying');
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "isActive" boolean NOT NULL DEFAULT true');
         await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "lastLoginAt" TIMESTAMP NULL');
+        await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "hideActiveWorkout" boolean NOT NULL DEFAULT false');
+        await this.dataSource.query('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "hideWorkoutHistory" boolean NOT NULL DEFAULT false');
         await this.dataSource.query(`
       CREATE TABLE IF NOT EXISTS "user_weight_entry" (
         "id" SERIAL PRIMARY KEY,
@@ -67,26 +69,26 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
       )
     `);
         const nullableMeasurementColumns = [
-            'neck',
-            'shoulders',
-            'chest',
-            'leftBiceps',
-            'rightBiceps',
-            'leftForearm',
-            'rightForearm',
-            'upperAbs',
-            'waist',
-            'lowerAbs',
-            'hips',
-            'leftThigh',
-            'rightThigh',
-            'leftCalf',
-            'rightCalf',
+            "neck",
+            "shoulders",
+            "chest",
+            "leftBiceps",
+            "rightBiceps",
+            "leftForearm",
+            "rightForearm",
+            "upperAbs",
+            "waist",
+            "lowerAbs",
+            "hips",
+            "leftThigh",
+            "rightThigh",
+            "leftCalf",
+            "rightCalf",
         ];
         for (const column of nullableMeasurementColumns) {
             await this.dataSource.query(`ALTER TABLE "user_body_measurement_entry" ALTER COLUMN "${column}" DROP NOT NULL`);
         }
-        this.logger.log('User card schema verified');
+        this.logger.log("User card schema verified");
     }
     async ensureFriendshipSchema() {
         await this.dataSource.query(`
@@ -116,7 +118,7 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
         await this.dataSource.query(`
       CREATE INDEX IF NOT EXISTS "IDX_friendship_receiver" ON "friendship" ("receiverUserId")
     `);
-        this.logger.log('Friendship schema verified');
+        this.logger.log("Friendship schema verified");
     }
     async ensureCommonWorkoutSchema() {
         await this.dataSource.query(`
@@ -198,7 +200,7 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
       )
     `);
         await this.migrateCommonWorkoutExercisesToParticipantScopedEntries();
-        this.logger.log('Common workout schema verified');
+        this.logger.log("Common workout schema verified");
     }
     async migrateCommonWorkoutExercisesToParticipantScopedEntries() {
         const legacyExercises = await this.dataSource.query(`
@@ -259,9 +261,7 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
               AND "participantId" = $3
           `, [targetExerciseId, legacyExercise.id, participant.id]);
             }
-            await this.dataSource.query('DELETE FROM "common_workout_exercise" WHERE "id" = $1', [
-                legacyExercise.id,
-            ]);
+            await this.dataSource.query('DELETE FROM "common_workout_exercise" WHERE "id" = $1', [legacyExercise.id]);
         }
         this.logger.log(`Common workout exercise migration verified for ${legacyExercises.length} legacy entries`);
     }
@@ -287,7 +287,7 @@ let SchemaFixService = SchemaFixService_1 = class SchemaFixService {
       CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_exercise_personal_best_user_exercise"
       ON "user_exercise_personal_best" ("userId", "exerciseId")
     `);
-        this.logger.log('Workout analytics schema verified');
+        this.logger.log("Workout analytics schema verified");
     }
 };
 exports.SchemaFixService = SchemaFixService;

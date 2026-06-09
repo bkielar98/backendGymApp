@@ -1,17 +1,22 @@
-import { Repository } from 'typeorm';
-import { Friendship, FriendshipStatus } from '../entities/friendship.entity';
-import { User } from '../entities/user.entity';
-import { UserBodyMeasurementEntry } from '../entities/user-body-measurement-entry.entity';
-import { UserWeightEntry } from '../entities/user-weight-entry.entity';
-import { Workout, WorkoutStatus } from '../entities/workout.entity';
-import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
+import { Repository } from "typeorm";
+import { Friendship, FriendshipStatus } from "../entities/friendship.entity";
+import { User } from "../entities/user.entity";
+import { UserBodyMeasurementEntry } from "../entities/user-body-measurement-entry.entity";
+import { UserWeightEntry } from "../entities/user-weight-entry.entity";
+import { Workout, WorkoutStatus } from "../entities/workout.entity";
+import { CommonWorkoutStatus } from "../entities/common-workout.entity";
+import { CommonWorkoutParticipant } from "../entities/common-workout-participant.entity";
+import { CommonWorkoutsService } from "../common-workouts/common-workouts.service";
+import { CreateFriendRequestDto } from "./dto/create-friend-request.dto";
 export declare class FriendsService {
     private friendshipRepository;
     private userRepository;
     private weightEntryRepository;
     private bodyMeasurementEntryRepository;
     private workoutRepository;
-    constructor(friendshipRepository: Repository<Friendship>, userRepository: Repository<User>, weightEntryRepository: Repository<UserWeightEntry>, bodyMeasurementEntryRepository: Repository<UserBodyMeasurementEntry>, workoutRepository: Repository<Workout>);
+    private commonWorkoutParticipantRepository;
+    private commonWorkoutsService;
+    constructor(friendshipRepository: Repository<Friendship>, userRepository: Repository<User>, weightEntryRepository: Repository<UserWeightEntry>, bodyMeasurementEntryRepository: Repository<UserBodyMeasurementEntry>, workoutRepository: Repository<Workout>, commonWorkoutParticipantRepository: Repository<CommonWorkoutParticipant>, commonWorkoutsService: CommonWorkoutsService);
     listFriends(userId: number): Promise<{
         friendshipId: number;
         user: {
@@ -23,6 +28,7 @@ export declare class FriendsService {
         };
         friendsSince: Date;
         createdAt: Date;
+        activeWorkout: unknown;
     }[]>;
     listIncomingRequests(userId: number): Promise<{
         id: number;
@@ -169,6 +175,93 @@ export declare class FriendsService {
         limit: number;
     }>;
     getFriendWorkout(userId: number, friendUserId: number, workoutId: number): Promise<{
+        participants: {
+            id: number;
+            user: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+            };
+        }[];
+        blocks: {
+            id: number;
+            order: number;
+            status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
+            completedAt: any;
+            defaultExercise: any;
+            users: {
+                sets?: {
+                    id: number;
+                    setNumber: number;
+                    previousWeight: number;
+                    previousReps: number;
+                    currentWeight: number;
+                    currentReps: number;
+                    durationSeconds: number;
+                    repMax: number;
+                    confirmed: boolean;
+                }[];
+                availableActions?: {
+                    changeExercise: boolean;
+                    addSet: boolean;
+                    updateOwnSets: boolean;
+                    removeOwnSets: boolean;
+                };
+                participantId: number;
+                user: {
+                    id: number;
+                    email: string;
+                    name: string;
+                    avatarPath: string;
+                    avatarUrl: string;
+                };
+                workoutExerciseId: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                    description: string;
+                    muscleGroups: string[];
+                };
+                completed: boolean;
+                completedAt: Date;
+                setsCount: number;
+                confirmedSets: number;
+            }[];
+        }[];
+        exercises: {
+            id: number;
+            workoutExerciseId: number;
+            userId: number;
+            order: number;
+            exerciseId: number;
+            exerciseName: string;
+            exerciseDescription: string;
+            exerciseMuscleGroups: string[];
+            setsCount: number;
+            confirmedSets: number;
+        }[];
+        id: number;
+        name: string;
+        status: CommonWorkoutStatus;
+        mode: string;
+        isSolo: boolean;
+        participantCount: number;
+        startedAt: Date;
+        finishedAt: Date;
+        durationSeconds: number;
+        durationLabel: string;
+        blockCount: number;
+        exerciseCount: number;
+        totalSets: number;
+        confirmedSets: number;
+        exerciseNames: string[];
+        template: {
+            id: number;
+            name: string;
+        };
+    } | {
         exercises: {
             id: number;
             order: number;
@@ -214,6 +307,52 @@ export declare class FriendsService {
             name: string;
         };
     }>;
+    getFriendWorkoutBlock(userId: number, friendUserId: number, workoutId: number, blockId: number): Promise<{
+        id: number;
+        order: number;
+        status: import("../entities/common-workout-block.entity").CommonWorkoutBlockStatus;
+        completedAt: any;
+        defaultExercise: any;
+        users: {
+            sets?: {
+                id: number;
+                setNumber: number;
+                previousWeight: number;
+                previousReps: number;
+                currentWeight: number;
+                currentReps: number;
+                durationSeconds: number;
+                repMax: number;
+                confirmed: boolean;
+            }[];
+            availableActions?: {
+                changeExercise: boolean;
+                addSet: boolean;
+                updateOwnSets: boolean;
+                removeOwnSets: boolean;
+            };
+            participantId: number;
+            user: {
+                id: number;
+                email: string;
+                name: string;
+                avatarPath: string;
+                avatarUrl: string;
+            };
+            workoutExerciseId: number;
+            exercise: {
+                id: number;
+                name: string;
+                description: string;
+                muscleGroups: string[];
+            };
+            completed: boolean;
+            completedAt: Date;
+            setsCount: number;
+            confirmedSets: number;
+        }[];
+        workoutId: number;
+    }>;
     acceptRequest(userId: number, requestId: number): Promise<{
         id: number;
         status: FriendshipStatus.ACCEPTED;
@@ -244,10 +383,16 @@ export declare class FriendsService {
         friendUserId: number;
     }>;
     private mapUser;
+    private getVisibleActiveWorkoutSummariesForFriends;
+    private getFriendActiveCommonWorkoutParticipant;
     private getAcceptedFriendOrThrow;
     private mapBodyMeasurement;
     private mapWorkoutSummary;
+    private mapActiveCommonWorkoutSummary;
+    private getDurationSeconds;
+    private getDurationLabel;
     private mapWorkoutExercise;
     private mapWorkoutStats;
     private summarizeSets;
+    private markReadOnly;
 }

@@ -1,14 +1,14 @@
-import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
-import { UserWeightEntry } from '../entities/user-weight-entry.entity';
-import { UserBodyMeasurementEntry } from '../entities/user-body-measurement-entry.entity';
-import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { UpdateEmailDto } from './dto/update-email.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
-import { CreateWeightEntryDto } from './dto/create-weight-entry.dto';
-import { UpdateWeightEntryDto } from './dto/update-weight-entry.dto';
-import { CreateBodyMeasurementEntryDto } from './dto/create-body-measurement-entry.dto';
-import { UpdateBodyMeasurementEntryDto } from './dto/update-body-measurement-entry.dto';
+import { Repository } from "typeorm";
+import { User } from "../entities/user.entity";
+import { UserWeightEntry } from "../entities/user-weight-entry.entity";
+import { UserBodyMeasurementEntry } from "../entities/user-body-measurement-entry.entity";
+import { UpdateUserProfileDto } from "./dto/update-user-profile.dto";
+import { UpdateEmailDto } from "./dto/update-email.dto";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
+import { CreateWeightEntryDto } from "./dto/create-weight-entry.dto";
+import { UpdateWeightEntryDto } from "./dto/update-weight-entry.dto";
+import { CreateBodyMeasurementEntryDto } from "./dto/create-body-measurement-entry.dto";
+import { UpdateBodyMeasurementEntryDto } from "./dto/update-body-measurement-entry.dto";
 export declare class UsersService {
     private userRepository;
     private weightEntryRepository;
@@ -23,6 +23,8 @@ export declare class UsersService {
         role: import("../entities/user.entity").UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
     }>;
     getUserCard(id: number): Promise<{
         id: number;
@@ -32,6 +34,8 @@ export declare class UsersService {
         role: import("../entities/user.entity").UserRole;
         avatarPath: string;
         avatarUrl: string;
+        hideActiveWorkout: boolean;
+        hideWorkoutHistory: boolean;
         currentWeight: number;
         weightHistory: UserWeightEntry[];
         weightChart: {
