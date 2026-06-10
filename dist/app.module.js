@@ -26,6 +26,7 @@ const friends_module_1 = require("./friends/friends.module");
 const common_workouts_module_1 = require("./common-workouts/common-workouts.module");
 const loop_protection_interceptor_1 = require("./common/interceptors/loop-protection.interceptor");
 const admin_module_1 = require("./admin/admin.module");
+const database_import_module_1 = require("./database/database-import.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -62,6 +63,7 @@ exports.AppModule = AppModule = __decorate([
             friends_module_1.FriendsModule,
             common_workouts_module_1.CommonWorkoutsModule,
             admin_module_1.AdminModule,
+            database_import_module_1.DatabaseImportModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

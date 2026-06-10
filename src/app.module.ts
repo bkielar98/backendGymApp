@@ -17,6 +17,7 @@ import { FriendsModule } from './friends/friends.module';
 import { CommonWorkoutsModule } from './common-workouts/common-workouts.module';
 import { LoopProtectionInterceptor } from './common/interceptors/loop-protection.interceptor';
 import { AdminModule } from './admin/admin.module';
+import { DatabaseImportModule } from './database/database-import.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { AdminModule } from './admin/admin.module';
     FriendsModule,
     CommonWorkoutsModule,
     AdminModule,
+    DatabaseImportModule,
   ],
   controllers: [AppController],
   providers: [

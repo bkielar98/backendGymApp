@@ -8,7 +8,9 @@ const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter"
 const path_1 = require("path");
 const express = require("express");
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const app = await core_1.NestFactory.create(app_module_1.AppModule, { bodyParser: false });
+    app.use(express.json({ limit: '50mb' }));
+    app.use(express.urlencoded({ extended: true, limit: '50mb' }));
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         transform: true,
